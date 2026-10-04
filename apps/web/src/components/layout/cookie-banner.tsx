@@ -1,71 +1,84 @@
 "use client";
 
-import { ShieldCheck, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import type { Locale } from "@/types/cms";
 
-const storageKey = "moalfarras-cookie-v3";
+// v4 replaces the old full card; visitors who already accepted v3 stay dismissed.
+const storageKey = "moalfarras-consent-v4";
+const legacyKey = "moalfarras-cookie-v3";
 
 const copy = {
   en: {
-    title: "Privacy first",
-    body: "This site uses only the minimum browser storage needed for theme and language preferences.",
-    accept: "Accept",
+    body: "No advertising or tracking cookies. Only essential preferences, like your language, stay in your browser, plus anonymous, cookieless page statistics.",
+    privacy: "Privacy",
+    ok: "Got it",
   },
   ar: {
-    title: "الخصوصية أولا",
-    body: "يستخدم هذا الموقع أقل قدر ممكن من التخزين داخل المتصفح لحفظ الثيم واللغة فقط.",
-    accept: "موافق",
+    body: "لا توجد ملفات تعريف للإعلانات أو التتبّع. يُحفظ في متصفحك فقط ما هو ضروري مثل اللغة، مع إحصاءات زيارات مجهولة بدون كوكيز.",
+    privacy: "الخصوصية",
+    ok: "حسناً",
   },
 } as const;
 
+/**
+ * A quiet, non-blocking notice. It waits until the visitor has scrolled past the
+ * hero (or 15 seconds have passed), so it never competes with the hero, and it sits in
+ * a corner instead of covering content.
+ */
 export function CookieBanner({ locale }: { locale: Locale }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const accepted = window.localStorage.getItem(storageKey);
-    if (!accepted) {
-      const timer = window.setTimeout(() => setOpen(true), 900);
-      return () => window.clearTimeout(timer);
+    try {
+      if (localStorage.getItem(storageKey) || localStorage.getItem(legacyKey)) return;
+    } catch {
+      return;
     }
+    let shown = false;
+    const show = () => {
+      if (shown) return;
+      shown = true;
+      setOpen(true);
+      cleanup();
+    };
+    const timer = window.setTimeout(show, 15000);
+    const onScroll = () => {
+      if (window.scrollY > 480) show();
+    };
+    function cleanup() {
+      window.clearTimeout(timer);
+      window.removeEventListener("scroll", onScroll);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return cleanup;
   }, []);
 
   if (!open) return null;
 
   const t = copy[locale];
 
-  function close() {
-    window.localStorage.setItem(storageKey, "accepted");
+  function dismiss() {
+    try {
+      localStorage.setItem(storageKey, "essential");
+    } catch {
+      // Storage may be blocked; closing for this page view is enough.
+    }
     setOpen(false);
   }
 
   return (
-    <div className="cookie-banner-wrap">
-      <div className="cookie-banner-card fresh-cookie">
-        <div className="flex items-start gap-3">
-          <div className="fresh-mini-icon">
-            <ShieldCheck className="h-5 w-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-black text-[var(--text-1)]">{t.title}</p>
-                <p className="mt-1 text-sm leading-6 text-[var(--text-2)]">{t.body}</p>
-              </div>
-              <button type="button" onClick={close} className="fresh-icon-button" aria-label="Close cookie banner">
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button type="button" onClick={close} className="fresh-button fresh-button-primary">
-                {t.accept}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <aside className="st-consent" role="region" aria-label={locale === "ar" ? "إشعار الخصوصية" : "Privacy notice"}>
+      <p>
+        {t.body}{" "}
+        <Link href={`/${locale}/privacy`} prefetch={false}>
+          {t.privacy}
+        </Link>
+      </p>
+      <button type="button" onClick={dismiss} className="st-consent-ok">
+        {t.ok}
+      </button>
+    </aside>
   );
 }

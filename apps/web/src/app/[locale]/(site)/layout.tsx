@@ -56,44 +56,23 @@ const youtubeMetricsFallback: YoutubeMetricsSetting = {
   videos: youtubeChannel.fallback.videos,
 };
 
-function formatYoutubeViewsLabel(n: number | undefined): string {
-  const v = typeof n === "number" && n > 0 ? n : youtubeMetricsFallback.views!;
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M+`;
-  if (v >= 1000) return `${(v / 1000).toFixed(1)}K+`;
-  return String(v);
-}
-
-function formatYoutubeSubsLabel(n: number | undefined): string {
-  const v = typeof n === "number" && n > 0 ? n : youtubeMetricsFallback.subscribers!;
-  if (v >= 1000) return `${(v / 1000).toFixed(1)}K+`;
-  return String(v);
-}
-
-function buildFooterQuickFacts(locale: "ar" | "en", yt: YoutubeMetricsSetting) {
-  const videoCount =
-    typeof yt.videos === "number" && yt.videos > 0 ? yt.videos : youtubeMetricsFallback.videos!;
-  const viewsLabel = formatYoutubeViewsLabel(yt.views);
-  const arViewsCore = viewsLabel.replace(/\+$/, "").trim();
-  if (locale === "ar") {
-    return [
-      { label: "\u0645\u0642\u064a\u0645 \u0641\u064a", value: "\u0623\u0644\u0645\u0627\u0646\u064a\u0627" },
-      { label: "\u0627\u0644\u062c\u0630\u0648\u0631", value: "\u0627\u0644\u062d\u0633\u0643\u0629\u060c \u0633\u0648\u0631\u064a\u0627" },
-      { label: "\u0627\u0644\u0644\u063a\u0627\u062a", value: "\u0627\u0644\u0639\u0631\u0628\u064a\u0629 / \u0627\u0644\u0623\u0644\u0645\u0627\u0646\u064a\u0629 / \u0627\u0644\u0625\u0646\u062c\u0644\u064a\u0632\u064a\u0629" },
-      { label: "\u064a\u0648\u062a\u064a\u0648\u0628", value: `+${arViewsCore} \u0645\u0634\u0627\u0647\u062f\u0629 \u0639\u0644\u0649 \u064a\u0648\u062a\u064a\u0648\u0628` },
-      { label: "\u0627\u0644\u0645\u0634\u062a\u0631\u0643\u0648\u0646", value: formatYoutubeSubsLabel(yt.subscribers) },
-      { label: "\u0627\u0644\u0641\u064a\u062f\u064a\u0648\u0647\u0627\u062a", value: String(videoCount) },
-      { label: "\u0627\u0644\u0645\u0646\u062a\u062c", value: "MoPlayer" },
-    ];
-  }
-  return [
-    { label: "Based in", value: "Germany" },
-    { label: "Roots", value: "Al-Hasakah, Syria" },
-    { label: "Languages", value: "Arabic / German / English" },
-    { label: "YouTube", value: `${viewsLabel} YouTube views` },
-    { label: "Subscribers", value: formatYoutubeSubsLabel(yt.subscribers) },
-    { label: "Videos", value: String(videoCount) },
-    { label: "Product", value: "MoPlayer" },
-  ];
+function footerStats(locale: "ar" | "en", yt: YoutubeMetricsSetting) {
+  const fmt = new Intl.NumberFormat(locale === "ar" ? "ar" : "en", { notation: "compact", maximumFractionDigits: 1 });
+  const pick = (value: number | undefined, fallback: number) => fmt.format(typeof value === "number" && value > 0 ? value : fallback);
+  const views = pick(yt.views, youtubeMetricsFallback.views!);
+  const subscribers = pick(yt.subscribers, youtubeMetricsFallback.subscribers!);
+  const videos = pick(yt.videos, youtubeMetricsFallback.videos!);
+  return locale === "ar"
+    ? [
+        { label: "مشاهدات يوتيوب", value: views },
+        { label: "مشتركون", value: subscribers },
+        { label: "فيديوهات", value: videos },
+      ]
+    : [
+        { label: "YouTube views", value: views },
+        { label: "Subscribers", value: subscribers },
+        { label: "Videos", value: videos },
+      ];
 }
 
 export default async function SiteLayout({
@@ -128,7 +107,7 @@ export default async function SiteLayout({
       }
     : savedYoutubeMetrics;
   const siteTheme = getSiteSetting<SiteThemeSetting>(snapshot, "site_theme", {});
-  const footerQuickFacts = buildFooterQuickFacts(locale, ytMetrics);
+  const footerStatItems = footerStats(locale, ytMetrics);
   const copy = siteCopy(locale);
   const siteUrl = "https://moalfarras.space";
   const navLinks = getNavigation(locale);
@@ -175,7 +154,6 @@ export default async function SiteLayout({
       >
         <LocaleDocumentSync locale={locale} />
         <VisitBeacon />
-        <div className="noise-overlay" />
 
         <a
           href="#main-content"
@@ -185,7 +163,9 @@ export default async function SiteLayout({
         </a>
 
         <SiteNavbar locale={locale} links={navLinks} tagline={copy.tagline} logoSrc={logoSrc} brandName={copy.brandName} />
-        <main id="main-content">{children}</main>
+        <main id="main-content" tabIndex={-1}>
+          {children}
+        </main>
         <ScrollReveal />
         <CardTilt />
         <LazySiteAssistant locale={locale} />
@@ -196,7 +176,7 @@ export default async function SiteLayout({
           brandName={copy.brandName}
           links={navLinks}
           legalLinks={footerLegalLinks}
-          quickFacts={footerQuickFacts}
+          stats={footerStatItems}
         />
       </div>
     </>

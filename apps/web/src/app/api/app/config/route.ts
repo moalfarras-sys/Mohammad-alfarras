@@ -4,7 +4,7 @@ import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { releaseAssetDownloadUrl, selectReleaseAsset } from "@/lib/release-asset-selection";
 import { createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
-import { currentAppReleases } from "@moalfarras/shared/app-releases";
+import { appTvInstall, currentAppReleases } from "@moalfarras/shared/app-releases";
 
 const classicRelease = currentAppReleases.moplayer;
 const proRelease = currentAppReleases.moplayer2;
@@ -17,7 +17,7 @@ const fallbackConfigs = {
     minimumVersionCode: 18,
     latestVersionName: classicRelease.versionName,
     latestVersionCode: classicRelease.versionCode,
-    downloaderCode: "2418397",
+    downloaderCode: appTvInstall.moplayer.downloaderCode,
     message: "",
     accentColor: "#00e5ff",
     logoUrl: "/images/moplayer-brand-logo-final.png",
@@ -41,7 +41,7 @@ const fallbackConfigs = {
     minimumVersionCode: 50,
     latestVersionName: proRelease.versionName,
     latestVersionCode: proRelease.versionCode,
-    downloaderCode: "4608937",
+    downloaderCode: appTvInstall.moplayer2.downloaderCode,
     appName: "MoPlayer Pro",
     packageName: "com.moalfarras.moplayerpro",
     message: "",
@@ -106,7 +106,7 @@ const legacyFallbackConfig = {
   minimumVersionCode: 18,
   latestVersionName: classicRelease.versionName,
   latestVersionCode: classicRelease.versionCode,
-  downloaderCode: "2418397",
+  downloaderCode: appTvInstall.moplayer.downloaderCode,
   message: "",
   accentColor: "#00e5ff",
   logoUrl: "/images/moplayer-brand-logo-final.png",

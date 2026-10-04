@@ -1,0 +1,320 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   STUDIO PAGES — components shared by the inner pages (services, YouTube,
+   about, legal, support, 404, MoOS). Tokens come from studio.css.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.st-section--tight {
+  padding-top: clamp(40px, 5vw, 72px);
+}
+
+.st-hero-tags {
+  margin-top: 30px;
+}
+
+/* ── Feature grid ──────────────────────────────────────────────────────── */
+
+.st-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--st-line);
+  border-radius: var(--st-r-xl);
+  background: var(--st-line);
+  list-style: none;
+}
+
+.st-feature {
+  padding: clamp(24px, 3vw, 36px);
+  background: var(--st-ink);
+  transition: background-color 0.3s ease;
+}
+
+.st-feature:hover {
+  background: var(--st-ink-2);
+}
+
+.st-feature-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--st-line-2);
+  border-radius: 12px;
+  background: rgba(79, 227, 255, 0.06);
+  color: var(--st-accent);
+}
+
+.st-feature h3 {
+  margin: 20px 0 8px;
+  color: var(--st-text);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.st-feature p {
+  margin: 0;
+  color: var(--st-text-2);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+/* ── Stats variants, handle chip ───────────────────────────────────────── */
+
+.st-stats--stack {
+  display: grid;
+  gap: 22px;
+  justify-items: start;
+  padding: clamp(22px, 3vw, 32px);
+  border: 1px solid var(--st-line);
+  border-radius: var(--st-r-lg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+}
+
+.st-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 16px 0 8px;
+  border: 1px solid var(--st-line-2);
+  border-radius: 999px;
+  color: var(--st-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+[dir="rtl"] .st-handle {
+  padding: 0 8px 0 16px;
+}
+
+.st-handle-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #0d1220;
+}
+
+/* ── Video spotlight + grid ────────────────────────────────────────────── */
+
+.st-spotlight {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: center;
+  padding: clamp(14px, 1.6vw, 20px);
+  border: 1px solid var(--st-line);
+  border-radius: var(--st-r-xl);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+  color: var(--st-text);
+  transition:
+    border-color 0.3s ease,
+    transform 0.5s var(--st-ease);
+}
+
+.st-spotlight:hover {
+  border-color: var(--st-line-2);
+  transform: translateY(-3px);
+}
+
+.st-spotlight-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: calc(var(--st-r-xl) - 10px);
+  background: var(--st-ink-3);
+}
+
+.st-spotlight-media .st-cover {
+  object-position: center;
+}
+
+.st-spotlight:hover .st-video-play {
+  opacity: 1;
+}
+
+.st-spotlight:hover .st-cover {
+  transform: scale(1.03);
+}
+
+.st-spotlight-copy {
+  display: grid;
+  gap: 14px;
+  padding-inline-end: clamp(8px, 2vw, 28px);
+}
+
+.st-spotlight-copy .st-meta {
+  color: var(--st-accent);
+}
+
+.st-spotlight-title {
+  font-size: clamp(1.4rem, 1.1rem + 1.1vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.st-spotlight-copy .st-video-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.st-video-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.st-index-row--compact {
+  grid-template-columns: 56px minmax(0, 1fr);
+}
+
+/* ── About ─────────────────────────────────────────────────────────────── */
+
+.st-portrait--small {
+  width: 100%;
+  max-width: 360px;
+  justify-self: end;
+}
+
+.st-about {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+  gap: clamp(32px, 6vw, 96px);
+  align-items: start;
+}
+
+.st-prose p {
+  max-width: 62ch;
+  margin: 0 0 1.25em;
+  color: var(--st-text-2);
+  font-size: clamp(1.05rem, 1rem + 0.3vw, 1.22rem);
+  line-height: 1.75;
+}
+
+.st-prose p:first-child {
+  color: var(--st-text);
+}
+
+[dir="rtl"] .st-prose p {
+  line-height: 2;
+}
+
+.st-about-side {
+  display: grid;
+  gap: 36px;
+  padding: clamp(24px, 3vw, 32px);
+  border: 1px solid var(--st-line);
+  border-radius: var(--st-r-lg);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.st-lang-list,
+.st-check-list {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.st-lang-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--st-line);
+  font-size: 0.94rem;
+}
+
+.st-lang-list li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.st-lang-list strong {
+  color: var(--st-text);
+}
+
+.st-lang-list span {
+  color: var(--st-text-3);
+  text-align: end;
+}
+
+.st-check-list li {
+  position: relative;
+  padding-inline-start: 22px;
+  color: var(--st-text-2);
+  font-size: 0.93rem;
+  line-height: 1.6;
+}
+
+.st-check-list li::before {
+  content: "";
+  position: absolute;
+  top: 0.62em;
+  inset-inline-start: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--st-accent);
+  box-shadow: 0 0 0 3px rgba(79, 227, 255, 0.14);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 1000px) {
+  .st-video-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .st-feature-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .st-spotlight {
+    grid-template-columns: 1fr;
+  }
+
+  .st-spotlight-copy {
+    padding: 0 6px 8px;
+  }
+
+  .st-about {
+    grid-template-columns: 1fr;
+  }
+
+  .st-portrait--small {
+    justify-self: start;
+    max-width: 320px;
+  }
+
+  .st-stats--stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .st-video-grid,
+  .st-feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .st-index-row--compact {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+}

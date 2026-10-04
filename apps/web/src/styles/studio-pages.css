@@ -689,6 +689,217 @@
   color: var(--st-text-3);
 }
 
+.st-notice {
+  margin: 24px 0 0;
+  padding: 14px 18px;
+  border: 1px solid rgba(79, 227, 255, 0.35);
+  border-radius: 14px;
+  background: rgba(79, 227, 255, 0.08);
+  color: var(--st-text);
+  font-weight: 600;
+}
+
+.st-tips {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.st-tips dt {
+  color: var(--st-text);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.st-tips dd {
+  margin: 4px 0 0;
+  color: var(--st-text-2);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+/* ── 404 ───────────────────────────────────────────────────────────────── */
+
+.st-404 {
+  display: grid;
+  place-items: center;
+  min-height: 78vh;
+  padding: calc(var(--st-nav-h) + 48px) var(--st-gutter) 48px;
+  text-align: center;
+}
+
+.st-404-code {
+  margin: 0;
+  background: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.18));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: var(--st-font-mono);
+  font-size: clamp(5rem, 3rem + 10vw, 10rem);
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  line-height: 1;
+}
+
+.st-404 h1 {
+  margin: 18px 0 0;
+  color: var(--st-text);
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.st-404 h1 + p,
+.st-404-lead {
+  max-width: 52ch;
+  margin: 12px auto 0;
+  color: var(--st-text-2);
+  line-height: 1.7;
+}
+
+.st-404-routes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.st-404-routes a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--st-line-2);
+  border-radius: 999px;
+  color: var(--st-text-2);
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.st-404-routes a:hover {
+  border-color: var(--st-line-3);
+  color: var(--st-text);
+}
+
+/* ── Legal documents ───────────────────────────────────────────────────── */
+
+.st-legal-updated {
+  margin: 22px 0 0;
+  color: var(--st-text-3);
+  font-size: 0.82rem;
+}
+
+.st-legal-grid {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: start;
+}
+
+.st-legal-toc {
+  position: sticky;
+  top: calc(var(--st-nav-h) + 36px);
+  padding: 22px;
+  border: 1px solid var(--st-line);
+  border-radius: var(--st-r-lg);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.st-legal-toc ol,
+.st-legal-toc ul {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.st-legal-toc a {
+  display: flex;
+  gap: 10px;
+  padding: 6px 0;
+  color: var(--st-text-2);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.st-legal-toc a:hover {
+  color: var(--st-text);
+}
+
+.st-legal-toc a .st-mono {
+  flex: none;
+  color: var(--st-text-3);
+  font-size: 0.78rem;
+}
+
+.st-legal-related-label {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--st-line);
+}
+
+.st-legal-body {
+  max-width: 72ch;
+}
+
+.st-legal-section {
+  padding-bottom: 34px;
+  scroll-margin-top: calc(var(--st-nav-h) + 40px);
+}
+
+.st-legal-section + .st-legal-section {
+  padding-top: 34px;
+  border-top: 1px solid var(--st-line);
+}
+
+.st-legal-section h2 {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  margin: 0 0 14px;
+  color: var(--st-text);
+  font-size: clamp(1.2rem, 1.05rem + 0.6vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.st-legal-section h2 .st-mono {
+  color: var(--st-accent);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.st-legal-section p {
+  margin: 0 0 12px;
+  color: var(--st-text-2);
+  font-size: 1rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+[dir="rtl"] .st-legal-section p {
+  line-height: 1.95;
+}
+
+@media (max-width: 900px) {
+  .st-legal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .st-legal-toc {
+    position: static;
+  }
+}
+
 /* ── MoOS (keeps its own teal product identity from route-moos.css) ─────── */
 
 .moos-theme-grid.moos-theme-grid--compact {

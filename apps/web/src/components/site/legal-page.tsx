@@ -1,59 +1,105 @@
-import Image from "next/image";
 import Link from "next/link";
 
-import { unoptimizedImage } from "@/lib/asset-url";
+import { PageHero } from "@/components/studio/primitives";
 import type { LegalPageContent } from "@/lib/legal-pages";
 import type { Locale } from "@/types/cms";
 
-export function LegalPage({ content, locale, heroImage }: { content: LegalPageContent; locale: Locale; heroImage: string }) {
+type LegalSection = { title: string; body: string[] };
+
+/**
+ * One calm document layout for every legal page: a hero, a sticky table of
+ * contents and readable numbered sections. Server-rendered, no client JS.
+ */
+export function LegalDocument({
+  locale,
+  label,
+  title,
+  description,
+  updated,
+  sections,
+}: {
+  locale: Locale;
+  label: string;
+  title: string;
+  description?: string;
+  updated?: string;
+  sections: LegalSection[];
+}) {
   const isAr = locale === "ar";
+  const visible = sections.filter((section) => section.body.some((line) => line.trim()));
+  const related = [
+    { href: `/${locale}/privacy`, label: isAr ? "سياسة الخصوصية" : "Privacy policy" },
+    { href: `/${locale}/impressum`, label: isAr ? "البيانات القانونية" : "Impressum" },
+    { href: `/${locale}/terms`, label: isAr ? "الشروط" : "Terms" },
+    { href: `/${locale}/support`, label: isAr ? "الدعم" : "Support" },
+    { href: `/${locale}/contact`, label: isAr ? "تواصل" : "Contact" },
+  ];
 
   return (
-    <main className="fresh-page" dir={isAr ? "rtl" : "ltr"}>
-      <section className="fresh-hero">
-        <div className="fresh-hero-copy">
-          <p className="fresh-eyebrow">{isAr ? "قانوني" : "Legal"}</p>
-          <h1>{content.title}</h1>
-          <p>{content.description}</p>
-          <p className="fresh-note mt-6">{isAr ? `آخر تحديث: ${content.updated}` : `Last updated: ${content.updated}`}</p>
-        </div>
-        <aside className="fresh-card">
-          <div className="relative mb-5 aspect-video overflow-hidden rounded-2xl border border-white/10">
-            <Image
-              src={heroImage}
-              alt={content.title}
-              fill
-              sizes="(max-width: 900px) 92vw, 420px"
-              className="fresh-image"
-              priority
-              unoptimized={unoptimizedImage(heroImage)}
-            />
-          </div>
-          <p className="fresh-eyebrow">{isAr ? "روابط مهمة" : "Important links"}</p>
-          <div className="fresh-channel-list">
-            <Link href={`/${locale}/privacy`}>{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</Link>
-            <Link href={`/${locale}/support`}>{isAr ? "الدعم" : "Support"}</Link>
-            <Link href={`/${locale}/contact`}>{isAr ? "تواصل" : "Contact"}</Link>
-          </div>
-        </aside>
-      </section>
+    <div className="st-page st-legal">
+      <PageHero pill={label} title={title} lead={description}>
+        {updated ? <p className="st-legal-updated st-mono">{updated}</p> : null}
+      </PageHero>
 
-      <section className="fresh-section">
-        <div className="grid gap-4">
-          {content.sections
-            .filter((section) => section.body.length)
-            .map((section) => (
-              <article key={section.title} className="fresh-card">
-                <p className="fresh-eyebrow">{section.title}</p>
-                <div className="grid gap-3">
-                  {section.body.map((line) => (
+      <section className="st-section st-section--tight">
+        <div className="st-container st-legal-grid">
+          <nav className="st-legal-toc" aria-label={isAr ? "محتويات الصفحة" : "On this page"}>
+            <p className="st-meta st-mono">{isAr ? "المحتويات" : "On this page"}</p>
+            <ol>
+              {visible.map((section, index) => (
+                <li key={section.title}>
+                  <a href={`#legal-${index + 1}`}>
+                    <span className="st-mono">{String(index + 1).padStart(2, "0")}</span>
+                    {section.title}
+                  </a>
+                </li>
+              ))}
+            </ol>
+            <p className="st-meta st-mono st-legal-related-label">{isAr ? "صفحات ذات صلة" : "Related"}</p>
+            <ul>
+              {related.map((item) => (
+                <li key={item.href}>
+                  <Link href={item.href} prefetch={false}>
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <article className="st-legal-body">
+            {visible.map((section, index) => (
+              <section key={section.title} id={`legal-${index + 1}`} className="st-legal-section">
+                <h2>
+                  <span className="st-mono" aria-hidden="true">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  {section.title}
+                </h2>
+                {section.body
+                  .filter((line) => line.trim())
+                  .map((line) => (
                     <p key={line}>{line}</p>
                   ))}
-                </div>
-              </article>
+              </section>
             ))}
+          </article>
         </div>
       </section>
-    </main>
+    </div>
+  );
+}
+
+export function LegalPage({ content, locale }: { content: LegalPageContent; locale: Locale; heroImage?: string }) {
+  const isAr = locale === "ar";
+  return (
+    <LegalDocument
+      locale={locale}
+      label={isAr ? "قانوني" : "Legal"}
+      title={content.title}
+      description={content.description}
+      updated={isAr ? `آخر تحديث: ${content.updated}` : `Last updated: ${content.updated}`}
+      sections={content.sections}
+    />
   );
 }

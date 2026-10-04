@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { PortfolioPrivacyPage } from "@/components/site/portfolio-pages";
+import { LegalDocument } from "@/components/site/legal-page";
 import { privacyCopy } from "@/content/legal";
 import { SITE_URL } from "@/content/site";
 import { readSiteSetting } from "@/lib/content/store";
@@ -73,7 +73,17 @@ export default async function LocalizedPrivacyPage({ params }: { params: Promise
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(page) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <PortfolioPrivacyPage locale={loc} extraNote={legal.privacyExtra} />
+      <LegalDocument
+        locale={loc}
+        label={copy.eyebrow}
+        title={copy.title}
+        description={copy.intro}
+        updated={copy.updated}
+        sections={[
+          ...copy.sections.map((section) => ({ title: section.title, body: [section.body] })),
+          ...(legal.privacyExtra?.trim() ? [{ title: loc === "ar" ? "ملاحظة إضافية" : "Additional note", body: [legal.privacyExtra.trim()] }] : []),
+        ]}
+      />
     </>
   );
 }

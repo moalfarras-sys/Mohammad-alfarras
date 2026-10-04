@@ -1,10 +1,10 @@
 "use client";
 
-import { ArrowUpRight, BriefcaseBusiness, Home, Menu, MonitorPlay, PlayCircle, Send, UserRound, Wrench } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, Home, Menu, MonitorPlay, Send, Wrench } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { LocalePreferenceLink } from "@/components/layout/locale-preference-link";
 import { alternateLocalePath, localeMeta } from "@/lib/i18n";
@@ -19,12 +19,16 @@ const dockIcons = {
   work: BriefcaseBusiness,
   services: Wrench,
   apps: MonitorPlay,
-  youtube: PlayCircle,
-  cv: UserRound,
   contact: Send,
 } as const;
 
 const fallbackLogoSrc = "/images/logo.png";
+
+export function isActiveLink(href: string, pathname: string | null, locale: Locale) {
+  if (!pathname) return false;
+  if (href === `/${locale}`) return pathname === `/${locale}` || pathname === `/${locale}/`;
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function SiteNavbar({
   locale,
@@ -42,94 +46,97 @@ export function SiteNavbar({
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [failedLogoSrcs, setFailedLogoSrcs] = useState<ReadonlySet<string>>(() => new Set());
-  const resolvedLogoSrc = logoSrc || fallbackLogoSrc;
-  const brandLogoSrc = failedLogoSrcs.has(resolvedLogoSrc) ? fallbackLogoSrc : resolvedLogoSrc;
+  const [logoFailed, setLogoFailed] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const brandLogoSrc = logoFailed ? fallbackLogoSrc : logoSrc || fallbackLogoSrc;
   const nextLocale = locale === "ar" ? "en" : "ar";
   const alternatePath = pathname ? alternateLocalePath(pathname, locale) : `/${nextLocale}`;
   const isAr = locale === "ar";
-  // The mobile dock shows 5 short, non-truncated essentials; the rest stay in
-  // the hamburger drawer. Seven long labels were being clipped ("السيرة الذ…").
-  const dockShortLabels: Record<string, { ar: string; en: string }> = {
+
+  // The phone dock shows five short essentials; everything else lives in the menu.
+  const dockShortLabels: Record<keyof typeof dockIcons, { ar: string; en: string }> = {
     home: { ar: "الرئيسية", en: "Home" },
     work: { ar: "الأعمال", en: "Work" },
     services: { ar: "الخدمات", en: "Services" },
     apps: { ar: "MoPlayer", en: "MoPlayer" },
     contact: { ar: "تواصل", en: "Contact" },
   };
-  const mobileDockLinks = (["home", "work", "services", "apps", "contact"] as const)
+  const mobileDockLinks = (Object.keys(dockShortLabels) as Array<keyof typeof dockIcons>)
     .map((id) => {
       const item = links.find((link) => link.id === id);
-      return item ? { ...item, label: dockShortLabels[id][isAr ? "ar" : "en"] } : null;
+      return item ? { ...item, id, label: dockShortLabels[id][isAr ? "ar" : "en"] } : null;
     })
-    .filter((item): item is (typeof links)[number] => item !== null);
-  const ctaLabel = isAr ? "ابدأ مشروعك" : "Start Project";
-  const dockLabel = isAr ? "التنقل السريع" : "Quick navigation";
+    .filter((item): item is NavLink & { id: keyof typeof dockIcons } => item !== null);
   const hideMobileDock = Boolean(pathname?.includes("/activate") || pathname?.includes("/moplayer/setup"));
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16);
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setScrolled(window.scrollY > 12));
+    };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
+
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    menuButtonRef.current?.focus();
   }, []);
 
   return (
     <>
-      <header className="fresh-nav-wrap">
-        <div className={scrolled ? "site-navbar-shell fresh-nav fresh-nav-scrolled" : "site-navbar-shell fresh-nav"}>
-          <Link href={`/${locale}`} prefetch={false} className="fresh-brand">
-            <span className="fresh-brand-mark">
-              <Image
-                src={brandLogoSrc}
-                alt={brandName}
-                width={44}
-                height={44}
-                priority
-                className="fresh-brand-logo"
-                onError={() =>
-                  setFailedLogoSrcs((current) => {
-                    if (current.has(resolvedLogoSrc)) return current;
-                    const next = new Set(current);
-                    next.add(resolvedLogoSrc);
-                    return next;
-                  })
-                }
-              />
+      <header className="st-nav-wrap">
+        <div className={scrolled ? "st-nav is-scrolled" : "st-nav"}>
+          <Link href={`/${locale}`} prefetch={false} className="st-brand" aria-label={isAr ? `${brandName} — الرئيسية` : `${brandName} — home`}>
+            <span className="st-brand-mark">
+              <Image src={brandLogoSrc} alt="" width={36} height={36} loading="eager" onError={() => setLogoFailed(true)} />
             </span>
-            <span>
+            <span className="st-brand-text">
               <strong>{brandName}</strong>
               <small>{tagline}</small>
             </span>
           </Link>
 
-          <nav className="fresh-nav-links">
+          <nav className="st-nav-links" aria-label={isAr ? "التنقل الرئيسي" : "Main"}>
             {links.map((item) => {
-              const active =
-                item.href === `/${locale}`
-                  ? pathname === `/${locale}` || pathname === `/${locale}/`
-                  : pathname === item.href || pathname?.startsWith(`${item.href}/`);
+              const active = isActiveLink(item.href, pathname, locale);
               return (
-                <Link key={item.id} href={item.href} prefetch={false} className={active ? "fresh-nav-link fresh-nav-link-active" : "fresh-nav-link"}>
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  prefetch={false}
+                  className={active ? "st-nav-link is-active" : "st-nav-link"}
+                  aria-current={active ? "page" : undefined}
+                >
                   {item.label}
                 </Link>
               );
             })}
           </nav>
 
-          <div className="fresh-nav-actions">
-            <LocalePreferenceLink href={alternatePath} className="fresh-icon-button fresh-lang">
+          <div className="st-nav-actions">
+            <LocalePreferenceLink href={alternatePath} className="st-lang" hrefLang={nextLocale} lang={nextLocale}>
               {localeMeta[nextLocale].label}
             </LocalePreferenceLink>
-
-            <Link href={`/${locale}/contact`} prefetch={false} className="fresh-nav-cta">
-              <Send size={16} />
-              <span>{ctaLabel}</span>
-              <ArrowUpRight size={16} />
+            <Link href={`/${locale}/contact`} prefetch={false} className="st-btn st-btn--primary st-btn--sm st-nav-cta">
+              {isAr ? "ابدأ مشروعك" : "Start a project"}
+              <ArrowUpRight size={15} aria-hidden />
             </Link>
-
-            <button type="button" onClick={() => setDrawerOpen(true)} className="fresh-icon-button fresh-menu-button" aria-label="Open menu">
-              <Menu size={18} />
+            <button
+              ref={menuButtonRef}
+              type="button"
+              onClick={() => setDrawerOpen(true)}
+              className="st-menu-button"
+              aria-label={isAr ? "فتح القائمة" : "Open menu"}
+              aria-expanded={drawerOpen}
+              aria-controls="site-menu"
+            >
+              <Menu size={20} aria-hidden />
             </button>
           </div>
         </div>
@@ -137,26 +144,23 @@ export function SiteNavbar({
 
       <MobileMenuDrawer
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={closeDrawer}
         locale={locale}
         brandName={brandName}
-        tagline={tagline}
         logoSrc={brandLogoSrc}
         links={links}
         pathname={pathname}
+        alternatePath={alternatePath}
       />
 
       {!hideMobileDock ? (
-        <nav className="mobile-bottom-dock" aria-label={dockLabel}>
+        <nav className="st-dock" aria-label={isAr ? "التنقل السريع" : "Quick navigation"}>
           {mobileDockLinks.map((item) => {
-            const Icon = dockIcons[item.id as keyof typeof dockIcons] ?? Home;
-            const active =
-              item.href === `/${locale}`
-                ? pathname === `/${locale}` || pathname === `/${locale}/`
-                : pathname === item.href || pathname?.startsWith(`${item.href}/`);
+            const Icon = dockIcons[item.id];
+            const active = isActiveLink(item.href, pathname, locale);
             return (
-              <Link key={item.id} href={item.href} prefetch={false} className={active ? "mobile-dock-link mobile-dock-link-active" : "mobile-dock-link"} aria-label={item.label}>
-                <Icon size={18} />
+              <Link key={item.id} href={item.href} prefetch={false} className="st-dock-link" aria-current={active ? "page" : undefined}>
+                <Icon size={19} aria-hidden />
                 <span>{item.label}</span>
               </Link>
             );

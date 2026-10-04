@@ -49,8 +49,10 @@ export default async function ContactPageRoute({
         dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }}
       />
       <ContactHubPage locale={loc} content={model.t.contact} />
-      <section className="pw-section section-frame" id="design-your-project">
-        <ProjectWizard locale={loc} />
+      <section className="st-section" id="design-your-project">
+        <div className="st-container pw-section">
+          <ProjectWizard locale={loc} />
+        </div>
       </section>
       <SiteOffersSection model={model} placement="contact" />
     </>

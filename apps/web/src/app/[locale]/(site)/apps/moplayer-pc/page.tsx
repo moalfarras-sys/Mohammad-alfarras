@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { MoPlayerPcLanding } from "@/components/app/moplayer-pc-landing";
-import { normalizePublicImagePath } from "@/lib/asset-url";
-import { readAppEcosystem } from "@/lib/app-ecosystem";
-import { publicDownloadStats, readDownloadCounts } from "@/lib/download-counter";
+import { MoPlayerPcPage } from "@/components/app/moplayer/pc-page";
+import { pcShots } from "@/components/app/moplayer/shots";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, softwareApplicationJsonLd } from "@/lib/seo-jsonld";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
@@ -24,29 +22,17 @@ export async function generateMetadata({
       ? {
           title: "تحميل MoPlayer PC لويندوز — مثبّت ونسخة محمولة",
           description:
-            "حمّل MoPlayer PC مجاناً لويندوز 10 و 11: مشغّل IPTV مكتبي يدعم Xtream و M3U، بمثبّت رسمي ونسخة محمولة تعمل بدون تثبيت، مع تحديث تلقائي وتفعيل من الموقع.",
+            "حمّل MoPlayer PC مجاناً لويندوز 10 و 11: مشغّل IPTV مكتبي يدعم Xtream و M3U، بمثبّت رسمي ونسخة محمولة تعمل بدون تثبيت، مع تفعيل عبر QR من الموقع.",
         }
       : {
           title: "Download MoPlayer PC for Windows — installer & portable",
           description:
-            "Download MoPlayer PC free for Windows 10 and 11: a desktop IPTV player with Xtream and M3U support, an official installer plus a portable build that needs no install, automatic updates and website activation.",
+            "Download MoPlayer PC free for Windows 10 and 11: a desktop IPTV player with Xtream and M3U support, an official installer plus a portable build that needs no install and QR activation from the website.",
         };
 
   const canonical = `${SITE_URL}/${locale}/apps/moplayer-pc`;
   const socialTitle = `${copy.title} | Mohammad Alfarras`;
-  const [ecosystem, windowsRelease] = await Promise.all([
-    readAppEcosystem("moplayer2"),
-    readLatestWindowsRelease(),
-  ]);
-  const image = normalizePublicImagePath(
-    windowsRelease?.cardImage ||
-      windowsRelease?.heroImage ||
-      windowsRelease?.screenshotItems?.[0]?.url ||
-      windowsRelease?.screenshots?.[0] ||
-      ecosystem.product.hero_image_path ||
-      ecosystem.product.tv_banner_path ||
-      "/images/moplayer-pc-desktop.png",
-  );
+  const image = pcShots.settings.src;
 
   const keywords =
     locale === "ar"
@@ -95,7 +81,7 @@ export async function generateMetadata({
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       siteName: "Mohammad Alfarras | محمد الفراس",
-      images: [{ url: image, width: 1600, height: 900, alt: socialTitle }],
+      images: [{ url: image, width: 1280, height: 673, alt: socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
@@ -112,11 +98,7 @@ export default async function MoPlayerPcRoute({ params }: { params: Promise<{ lo
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const [ecosystem, windowsRelease, downloadCounts] = await Promise.all([
-    readAppEcosystem("moplayer2"),
-    readLatestWindowsRelease(),
-    readDownloadCounts(),
-  ]);
+  const windowsRelease = await readLatestWindowsRelease();
 
   const loc = locale as "en" | "ar";
   const isAr = loc === "ar";
@@ -129,7 +111,7 @@ export default async function MoPlayerPcRoute({ params }: { params: Promise<{ lo
     description: isAr
       ? "مشغل مكتبي لويندوز يشغّل مصادر M3U و Xtream التي يضيفها المستخدم، بمثبّت ونسخة محمولة."
       : "A Windows desktop player for your own M3U and Xtream sources, with an installer and a portable build.",
-    version: windowsRelease?.version ?? "1.0.4",
+    version: windowsRelease?.version ?? "",
     fileSize: windowsRelease?.fileSizeBytes ? `${Math.round(windowsRelease.fileSizeBytes / 1024 / 1024)} MB` : undefined,
     downloadUrl: `${SITE_URL}/api/app/download/latest?product=moplayer-pc&platform=windows`,
     operatingSystem: windowsRelease?.systemRequirements ?? "Windows 10, Windows 11",
@@ -146,12 +128,7 @@ export default async function MoPlayerPcRoute({ params }: { params: Promise<{ lo
     <>
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(software) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
-      <MoPlayerPcLanding
-        ecosystem={ecosystem}
-        locale={loc}
-        windowsRelease={windowsRelease}
-        downloadStats={publicDownloadStats(downloadCounts, "moplayer2", "windows")}
-      />
+      <MoPlayerPcPage locale={loc} release={windowsRelease} />
     </>
   );
 }

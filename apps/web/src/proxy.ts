@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import { defaultLocale, isLocale } from "@/lib/i18n";
+import { appTvInstall, tvInstallPagePath } from "@moalfarras/shared/app-releases";
 
 function localeFromPathname(pathname: string) {
   const segment = pathname.split("/").filter(Boolean)[0];
@@ -13,6 +14,8 @@ function localeFromPathname(pathname: string) {
   }
   return null;
 }
+
+const tvShortLinkPaths = new Set([...Object.values(appTvInstall).map((item) => item.shortPath), tvInstallPagePath]);
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -28,6 +31,19 @@ export function proxy(request: NextRequest) {
       if (localizedIndex) url.pathname = `/${localizedIndex[1]}`;
     }
     return NextResponse.redirect(url, 308);
+  }
+
+  // TV install short links (/mp, /mp2, /tv) live outside the locale segment.
+  // People type them with a remote, so /MP or /Tv/ are folded onto the
+  // canonical lowercase path instead of 404ing.
+  const tvShortLink = pathname.replace(/\/+$/, "").toLowerCase();
+  if (tvShortLinkPaths.has(tvShortLink)) {
+    if (pathname !== tvShortLink) {
+      const url = request.nextUrl.clone();
+      url.pathname = tvShortLink;
+      return NextResponse.redirect(url, 308);
+    }
+    return NextResponse.next();
   }
 
   const locale = localeFromPathname(pathname);

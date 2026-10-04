@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { MoPlayerLanding } from "@/components/app/moplayer-landing";
-import { getMoPlayerFaqs, moPlayerCopy } from "@/content/apps";
-import { normalizePublicImagePath } from "@/lib/asset-url";
+import { MoPlayerClassicPage } from "@/components/app/moplayer/classic-page";
+import { classicShots } from "@/components/app/moplayer/shots";
+import { getMoPlayerFaqs } from "@/content/apps";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
+import { formatDownloadNumber, hasPublicDownloadCount } from "@/lib/download-display";
 import { publicDownloadStats, readDownloadCounts } from "@/lib/download-counter";
+import { formatFileSize, readReleaseFacts, releaseFactsFrom } from "@/lib/moplayer-release-facts";
 import { isLocale } from "@/lib/i18n";
 import {
   breadcrumbJsonLd,
@@ -14,7 +16,7 @@ import {
   softwareApplicationJsonLd,
 } from "@/lib/seo-jsonld";
 import type { Locale } from "@/types/cms";
-import { androidRequirementLabel, androidVersionForApi, currentAppReleases } from "@moalfarras/shared/app-releases";
+import { androidRequirementLabel } from "@moalfarras/shared/app-releases";
 
 const SITE_URL = "https://moalfarras.space";
 
@@ -41,13 +43,7 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const meta = localizedMeta[locale];
-  const ecosystem = await readAppEcosystem("moplayer");
-  const image = normalizePublicImagePath(
-    ecosystem.product.hero_image_path ||
-      ecosystem.product.tv_banner_path ||
-      ecosystem.screenshots[0]?.image_path ||
-      "/images/moplayer-hero-3d-final.png",
-  );
+  const image = classicShots.liveBrowser.src;
   const keywords =
     locale === "ar"
       ? ["MoPlayer Classic", "مشغل IPTV للأندرويد", "مشغل M3U", "مشغل Xtream", "مشغل خفيف للأجهزة الضعيفة", "تحميل APK", "محمد الفراس"]
@@ -72,7 +68,7 @@ export async function generateMetadata({
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: image, width: 1600, height: 900, alt: meta.socialTitle }],
+      images: [{ url: image, width: 1920, height: 1080, alt: meta.socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
@@ -92,28 +88,15 @@ export default async function MoPlayerClassicRoute({
   if (!isLocale(locale)) notFound();
 
   const loc = locale as Locale;
-  const [ecosystem, downloadCounts] = await Promise.all([
+  const [ecosystem, proFacts, downloadCounts] = await Promise.all([
     readAppEcosystem("moplayer"),
+    readReleaseFacts("moplayer2"),
     readDownloadCounts(),
   ]);
-  const normalizedEcosystem = {
-    ...ecosystem,
-    product: {
-      ...ecosystem.product,
-      hero_image_path: normalizePublicImagePath(ecosystem.product.hero_image_path),
-      logo_path: normalizePublicImagePath(ecosystem.product.logo_path),
-      tv_banner_path: normalizePublicImagePath(ecosystem.product.tv_banner_path),
-    },
-    screenshots: ecosystem.screenshots.map((item) => ({
-      ...item,
-      image_path: normalizePublicImagePath(item.image_path),
-    })),
-  };
-  const latest = normalizedEcosystem.releases[0] ?? null;
-  const primaryAsset = latest?.assets.find((a) => a.is_primary) ?? latest?.assets[0] ?? null;
-  const fileSize = primaryAsset?.file_size_bytes
-    ? `${(primaryAsset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB`
-    : undefined;
+  const facts = releaseFactsFrom("moplayer", ecosystem);
+  const stats = publicDownloadStats(downloadCounts, "moplayer");
+  const downloads = hasPublicDownloadCount(stats) ? formatDownloadNumber(stats.value, loc) : null;
+  const fileSize = formatFileSize(facts.sizeBytes, "en") ?? undefined;
 
   const meta = localizedMeta[loc];
   const breadcrumb = breadcrumbJsonLd(loc, [
@@ -127,15 +110,14 @@ export default async function MoPlayerClassicRoute({
     path: "apps/moplayer/classic",
     name: "MoPlayer Classic",
     description: meta.description,
-    version: latest?.version_name || currentAppReleases.moplayer.versionName,
+    version: facts.version,
     fileSize,
-    targetSdk: normalizedEcosystem.product.android_target_sdk,
-    operatingSystem: `Android ${androidVersionForApi(normalizedEcosystem.product.android_min_sdk) ?? "7.0"}+, Android TV`,
-    requirements: androidRequirementLabel(normalizedEcosystem.product.android_min_sdk),
-    downloadUrl: latest ? `${SITE_URL}/api/app/releases/${latest.slug}/download` : undefined,
+    targetSdk: ecosystem.product.android_target_sdk,
+    operatingSystem: `Android ${facts.minAndroid}+, Android TV`,
+    requirements: androidRequirementLabel(facts.minSdk),
+    downloadUrl: `${SITE_URL}${facts.downloadHref}`,
   });
   const faq = faqPageJsonLd(getMoPlayerFaqs(loc));
-  const pageCopy = moPlayerCopy[loc];
 
   return (
     <>
@@ -171,12 +153,12 @@ export default async function MoPlayerClassicRoute({
             about: {
               "@type": "SoftwareApplication",
               name: "MoPlayer Classic",
-              description: pageCopy.heroBody,
+              description: meta.description,
             },
           }),
         }}
       />
-      <MoPlayerLanding ecosystem={normalizedEcosystem} locale={loc} downloadStats={publicDownloadStats(downloadCounts, "moplayer")} />
+      <MoPlayerClassicPage locale={loc} facts={facts} proFacts={proFacts} downloads={downloads} />
     </>
   );
 }

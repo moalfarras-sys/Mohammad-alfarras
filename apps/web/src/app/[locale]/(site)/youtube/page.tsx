@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SitePage } from "@/components/site/site-pages-v3";
 import { buildSiteModel } from "@/components/site/site-model";
+import { YoutubeV3 } from "@/components/v3/pages/youtube-v3";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, videoObjectJsonLd, webPageJsonLd } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
 import { compactMetric, youtubeChannel } from "@/content/site-data";
+import "@/styles/v3-motion.css";
+import "@/styles/v3-pages.css";
+import "@/styles/v3-youtube.css";
 import type { Locale } from "@/types/cms";
 
 export async function generateMetadata({
@@ -72,7 +75,7 @@ export default async function YoutubeRoute({ params }: { params: Promise<{ local
           dangerouslySetInnerHTML={{ __html: jsonLdString(videoJson) }}
         />
       ) : null}
-      <SitePage locale={loc} slug="youtube" />
+      <YoutubeV3 model={model} />
     </>
   );
 }

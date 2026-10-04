@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { MoPlayerProductHub } from "@/components/app/moplayer-product-hub";
-import { normalizePublicImagePath } from "@/lib/asset-url";
-import { readAppEcosystem } from "@/lib/app-ecosystem";
+import { pcFactsFrom } from "@/components/app/moplayer/family";
+import { MoPlayerHubPage } from "@/components/app/moplayer/hub-page";
+import { classicShots } from "@/components/app/moplayer/shots";
+import { readReleaseFacts } from "@/lib/moplayer-release-facts";
 import { isLocale } from "@/lib/i18n";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 import { breadcrumbJsonLd, collectionPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
@@ -76,8 +77,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const meta = repairMojibakeDeep(localizedMeta[locale]);
-  const pro = await readAppEcosystem("moplayer2");
-  const image = normalizePublicImagePath(pro.product.hero_image_path || pro.product.tv_banner_path || pro.screenshots[0]?.image_path || "/images/moplayer-pro-hero.webp");
+  const image = classicShots.liveBrowser.src;
   return {
     title: meta.title,
     description: meta.description,
@@ -97,7 +97,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: image, width: 1600, height: 900, alt: meta.socialTitle }],
+      images: [{ url: image, width: 1920, height: 1080, alt: meta.socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
@@ -133,8 +133,8 @@ export default async function MoPlayerHubRoute({ params }: { params: Promise<{ l
     ],
   };
   const [classic, pro, windowsRelease] = await Promise.all([
-    readAppEcosystem("moplayer"),
-    readAppEcosystem("moplayer2"),
+    readReleaseFacts("moplayer"),
+    readReleaseFacts("moplayer2"),
     readLatestWindowsRelease(),
   ]);
 
@@ -143,7 +143,7 @@ export default async function MoPlayerHubRoute({ params }: { params: Promise<{ l
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(collection) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(breadcrumb) }} />
       <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdString(itemList) }} />
-      <MoPlayerProductHub locale={loc} classic={classic} pro={pro} windowsRelease={windowsRelease} />
+      <MoPlayerHubPage locale={loc} classic={classic} pro={pro} pc={pcFactsFrom(windowsRelease)} />
     </>
   );
 }

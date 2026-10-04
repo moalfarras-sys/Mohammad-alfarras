@@ -182,10 +182,17 @@ function moplayerFallback(locale: Locale): SiteViewModel["projects"][number] {
   return repairMojibakeDeep({
     id: "moplayer-fallback",
     slug: "moplayer",
-    title: locale === "ar" ? localProjects[0].nameAR : localProjects[0].nameEN,
+    title: "MoPlayer Classic",
     ctaLabel: locale === "ar" ? "استكشف التطبيق" : "Explore app",
-    summary: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
-    description: locale === "ar" ? localProjects[0].descriptionAR : localProjects[0].descriptionEN,
+    // Classic ships as signed public releases; it is no longer "in development".
+    summary:
+      locale === "ar"
+        ? "مشغّل Android وAndroid TV الخفيف لمصادر M3U وXtream القانونية الخاصة بك، مع تفعيل عبر QR وإصدارات موقّعة."
+        : "The lightweight Android and Android TV player for your own legal M3U and Xtream sources, with QR activation and signed releases.",
+    description:
+      locale === "ar"
+        ? "MoPlayer Classic هو الإصدار الأزرق الخفيف للأجهزة العادية والضعيفة، مع صفحات تحميل وتفعيل ودعم خاصة به."
+        : "MoPlayer Classic is the lightweight blue edition for everyday and low-power devices, with its own download, activation and support pages.",
     image: "/images/moplayer-hero-3d-final.png",
     href: `/${locale}/apps/moplayer`,
     repoUrl: localProjects[0].downloadLinks.github,
@@ -231,8 +238,8 @@ function moplayer2Fallback(locale: Locale): SiteViewModel["projects"][number] {
     title: "MoPlayer Pro",
     ctaLabel: isAr ? "استكشف التطبيق الجديد" : "Explore new app",
     summary: isAr
-      ? "الجيل الجديد من MoPlayer كمنتج مستقل داخل نفس موقع محمد الفراس، مع صفحة وإصدارات وإدارة منفصلة."
-      : "The new MoPlayer generation as a separate product inside the same Mohammad Alfarras site, with its own page, releases, and admin control.",
+      ? "الجيل الأحدث من MoPlayer لأجهزة Android وAndroid TV: واجهة أسرع، بث مباشر وأفلام ومسلسلات، تفعيل عبر QR وتحديثات داخل التطبيق."
+      : "The newest MoPlayer for Android and Android TV: a faster interface, live TV, movies and series, QR activation and in-app updates.",
     description: isAr
       ? "MoPlayer Pro يبقى تحت نفس الدومين ونفس لوحة الإدارة، لكنه يظهر كمنتج مستقل عن MoPlayer القديم."
       : "MoPlayer Pro stays under the same domain and management flow, but appears as its own product separate from classic MoPlayer.",
@@ -269,38 +276,38 @@ function moplayerPcFallback(locale: Locale): SiteViewModel["projects"][number] {
     id: "moplayer-pc-fallback",
     slug: "moplayer-pc",
     title: "MoPlayer PC",
-    ctaLabel: isAr ? "قريباً" : "Coming soon",
+    ctaLabel: isAr ? "استكشف التطبيق" : "Explore app",
+    // The Windows edition has public installers on its download page.
     summary: isAr
-      ? "نسخة ويندوز من MoPlayer تنقل تجربة المشاهدة إلى الكمبيوتر بنفس الهوية — قيد التطوير حالياً."
-      : "The Windows edition of MoPlayer, bringing the playback experience to desktop with the same identity — currently in development.",
+      ? "نسخة ويندوز من MoPlayer تنقل تجربة المشاهدة إلى الكمبيوتر بنفس الهوية، مع تحميل مباشر من صفحتها."
+      : "The Windows edition of MoPlayer, bringing the playback experience to the desktop with the same identity — downloadable from its page.",
     description: isAr
       ? "تطبيق سطح مكتب لويندوز يكمل منظومة MoPlayer (أندرويد وAndroid TV) ليغطّي الكمبيوتر بواجهة سريعة وواضحة."
       : "A Windows desktop app extending the MoPlayer ecosystem (Android and Android TV) to the computer with a fast, clear interface.",
-    image: "/images/moplayer-pro-showcase-1.png",
-    href: undefined,
+    image: "/images/moplayer-pc-desktop.png",
+    href: `/${locale}/apps/moplayer-pc`,
     featured: true,
     featuredRank: 5,
     accent: "blue",
     highlightStyle: "app",
     deviceFrame: "browser",
-    eyebrow: isAr ? "تطبيق ويندوز · قيد التطوير" : "Windows app · In development",
+    eyebrow: isAr ? "تطبيق ويندوز" : "Windows app",
     challenge: isAr ? "توسيع MoPlayer من الموبايل والتلفاز إلى الكمبيوتر بنفس الجودة." : "Extend MoPlayer from mobile and TV to desktop with the same quality.",
     solution: isAr ? "تطبيق ويندوز أصلي يشارك نفس الهوية ومنطق التشغيل والتفعيل." : "A native Windows app sharing the same identity, playback, and activation logic.",
-    result: isAr ? "منظومة MoPlayer تغطّي كل الشاشات قريباً." : "A MoPlayer ecosystem covering every screen — soon.",
-    tags: isAr ? ["MoPlayer", "ويندوز", "كمبيوتر", "قيد التطوير"] : ["MoPlayer", "Windows", "Desktop", "In development"],
-    gallery: ["/images/moplayer-pro-showcase-1.png", "/images/moplayer-pro-showcase-2.png"],
+    result: isAr ? "منظومة MoPlayer على الهاتف والتلفاز والكمبيوتر." : "One MoPlayer ecosystem across phone, TV and desktop.",
+    tags: isAr ? ["MoPlayer", "ويندوز", "كمبيوتر"] : ["MoPlayer", "Windows", "Desktop"],
+    gallery: ["/images/moplayer-pc-desktop.png", "/images/moplayer-pro-showcase-1.png"],
     metrics: isAr
       ? [
           { value: "Windows", label: "المنصة" },
-          { value: "قريباً", label: "الإطلاق" },
+          { value: "متاح", label: "الإطلاق" },
           { value: "Desktop", label: "تجربة الكمبيوتر" },
         ]
       : [
           { value: "Windows", label: "Platform" },
-          { value: "Soon", label: "Release" },
+          { value: "Available", label: "Release" },
           { value: "Desktop", label: "Experience" },
         ],
-    status: "in-development",
   });
 }
 

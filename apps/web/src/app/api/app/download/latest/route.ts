@@ -1,24 +1,9 @@
 import { after, NextResponse } from "next/server";
 
-import { readAppEcosystem, resolveDownloadBySlug } from "@/lib/app-ecosystem";
 import { downloadEventFromRequest, recordDownload, shouldCountDownload } from "@/lib/download-counter";
-import { mirrorFor, resolveDownloadTarget } from "@/lib/download-mirror";
+import { latestApkResponse } from "@/lib/latest-apk-download";
 import { readLatestWindowsRelease } from "@/lib/windows-release";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
-
-function unavailableResponse(productName: string, mode: "maintenance" | "disabled", message?: string) {
-  return NextResponse.json(
-    {
-      error:
-        message ||
-        (mode === "maintenance"
-          ? `${productName} is under maintenance. Please try again shortly.`
-          : `${productName} downloads are currently disabled.`),
-      status: mode,
-    },
-    { status: 503, headers: { "Cache-Control": "no-store" } },
-  );
-}
 
 // Slugs that mean "the Windows desktop build" even when ?platform=windows is
 // omitted. They all resolve to the `moplayer2` namespace, but the Windows
@@ -83,48 +68,7 @@ export async function GET(request: Request) {
     });
   }
 
-  const ecosystem = await readAppEcosystem(product);
-  const runtime = ecosystem.runtimeConfig;
-  if (runtime?.enabled === false) {
-    return unavailableResponse(ecosystem.product.product_name, "disabled", runtime.message);
-  }
-  if (runtime?.maintenanceMode === true) {
-    return unavailableResponse(ecosystem.product.product_name, "maintenance", runtime.message);
-  }
-
-  const latest = ecosystem.releases[0] ?? null;
-
-  if (!latest) {
-    return NextResponse.json({ error: "Release not found" }, { status: 404 });
-  }
-
-  const resolved = await resolveDownloadBySlug(latest.slug, abi, assetId);
-  if (!resolved) {
-    return NextResponse.json({ error: "Release asset not found" }, { status: 404 });
-  }
-
-  // Prefer the free host, but never hand a visitor a dead link: if GitHub is
-  // unreachable (the repo has been private before) the Blob mirror takes over.
-  const resolvedUrl = await resolveDownloadTarget(resolved.redirectUrl, mirrorFor(resolved.redirectUrl));
-  const target = new URL(resolvedUrl, request.url);
-
-  if (shouldCountDownload(request)) {
-    after(() =>
-      recordDownload(
-        product,
-        platform,
-        downloadEventFromRequest(request, {
-          releaseSlug: latest.slug,
-          assetId: resolved.asset.id,
-          fileName: resolved.filename,
-          targetUrl: resolved.redirectUrl,
-        }),
-      ),
-    );
-  }
-  return NextResponse.redirect(target, {
-    headers: {
-      "Cache-Control": "no-store",
-    },
-  });
+  // Android APK: shared with the /mp and /mp2 short links so every entry point
+  // serves the same asset and counts the download the same way.
+  return latestApkResponse(request, product, { abi, assetId, platform });
 }

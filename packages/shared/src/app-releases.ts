@@ -82,6 +82,49 @@ export const currentAppReleases: Record<ManagedAppSlug, CurrentAppRelease> = {
   },
 };
 
+/**
+ * How a TV owner installs each Android app without a browser: the numeric
+ * code typed into the AFTVnews "Downloader" app and the short, remote-typeable
+ * link that always redirects to the latest APK of that product.
+ *
+ * Downloader codes (go.aftvnews.com) are numeric, permanent and cannot be
+ * edited after creation. When the owner registers new codes that point at the
+ * short links, change ONLY `downloaderCode` here; every product page, the /tv
+ * page and the install sections read it from this record.
+ *
+ * Current codes (2026-10): 2418397 opens /en/apps/moplayer, 4608937 opens
+ * /en/apps/moplayer2.
+ */
+export type AppTvInstall = {
+  productSlug: ManagedAppSlug;
+  /** Numeric Downloader (AFTVnews) code. */
+  downloaderCode: string;
+  /** Short path served by the public site, e.g. "/mp". Always lowercase. */
+  shortPath: string;
+  /** Short link without scheme, for typing with a remote: "moalfarras.space/mp". */
+  shortUrl: string;
+};
+
+export const tvInstallHost = "moalfarras.space";
+
+/** The TV-first download page (no locale prefix). */
+export const tvInstallPagePath = "/tv";
+
+export const appTvInstall: Record<ManagedAppSlug, AppTvInstall> = {
+  moplayer: {
+    productSlug: "moplayer",
+    downloaderCode: "2418397",
+    shortPath: "/mp",
+    shortUrl: `${tvInstallHost}/mp`,
+  },
+  moplayer2: {
+    productSlug: "moplayer2",
+    downloaderCode: "4608937",
+    shortPath: "/mp2",
+    shortUrl: `${tvInstallHost}/mp2`,
+  },
+};
+
 const androidVersionByApi: Record<number, string> = {
   21: "5.0",
   22: "5.1",

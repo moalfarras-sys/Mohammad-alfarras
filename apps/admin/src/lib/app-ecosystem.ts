@@ -563,10 +563,29 @@ async function readSiteSetting<T>(key: string, fallback: T): Promise<T> {
   return fallback;
 }
 
-async function upsertSiteSetting(key: string, value: Record<string, unknown>): Promise<void> {
-  localSettings.set(key, value);
+/** Thrown when a change cannot be stored anywhere durable; actions turn it into an error toast. */
+export class PersistenceUnavailableError extends Error {
+  constructor(what: string) {
+    super(`${what} could not be saved: the database is not reachable from the admin.`);
+    this.name = "PersistenceUnavailableError";
+  }
+}
 
-  if (!hasDatabaseUrl()) return;
+async function upsertSiteSetting(key: string, value: Record<string, unknown>): Promise<void> {
+  // Without a database connection the value would live only in this server instance's memory
+  // and vanish on the next cold start, while the admin showed "saved". Fail loudly instead.
+  if (!hasDatabaseUrl()) throw new PersistenceUnavailableError(key);
+
+  await upsertRow(
+    "site_settings",
+    {
+      key,
+      value_json: value,
+    },
+    ["key"],
+  );
+  localSettings.set(key, value);
+  return;
 
   await upsertRow(
     "site_settings",
@@ -1071,15 +1090,17 @@ export async function saveAppFaq(input: Partial<AppFaq> & { product_slug: string
   }
 }
 
-export async function deleteAppFaq(id: string) {
+export async function deleteAppFaq(id: string, productSlug: string = "moplayer") {
   try {
     const supabase = createSupabaseAdminClient();
     const { error } = await supabase.from("app_faqs").delete().eq("id", id);
     if (error) throw error;
   } catch {
-    const current = await readSiteSetting("moplayer_app_faqs", asSiteSettingValue(fallbackFaqs));
-    const next = (Array.isArray(current) ? (current as AppFaq[]) : fallbackFaqs).filter((item) => item.id !== id);
-    await upsertSiteSetting("moplayer_app_faqs", asSiteSettingValue(next));
+    const slug = resolveManagedAppSlug(productSlug);
+    const fallback = fallbackFor(slug).faqs;
+    const current = await readSiteSetting(`${slug}_app_faqs`, asSiteSettingValue(fallback));
+    const next = (Array.isArray(current) ? (current as AppFaq[]) : fallback).filter((item) => item.id !== id);
+    await upsertSiteSetting(`${slug}_app_faqs`, asSiteSettingValue(next));
   }
 }
 
@@ -1139,15 +1160,17 @@ export async function saveAppScreenshot(input: Partial<AppScreenshot> & { produc
   }
 }
 
-export async function deleteAppScreenshot(id: string) {
+export async function deleteAppScreenshot(id: string, productSlug: string = "moplayer") {
   try {
     const supabase = createSupabaseAdminClient();
     const { error } = await supabase.from("app_screenshots").delete().eq("id", id);
     if (error) throw error;
   } catch {
-    const current = await readSiteSetting("moplayer_app_screenshots", asSiteSettingValue(fallbackScreenshots));
-    const next = (Array.isArray(current) ? (current as AppScreenshot[]) : fallbackScreenshots).filter((item) => item.id !== id);
-    await upsertSiteSetting("moplayer_app_screenshots", asSiteSettingValue(next));
+    const slug = resolveManagedAppSlug(productSlug);
+    const fallback = fallbackFor(slug).screenshots;
+    const current = await readSiteSetting(`${slug}_app_screenshots`, asSiteSettingValue(fallback));
+    const next = (Array.isArray(current) ? (current as AppScreenshot[]) : fallback).filter((item) => item.id !== id);
+    await upsertSiteSetting(`${slug}_app_screenshots`, asSiteSettingValue(next));
   }
 }
 
@@ -1182,15 +1205,17 @@ export async function saveAppRelease(input: Partial<AppRelease> & { product_slug
   return payload.id;
 }
 
-export async function deleteAppRelease(id: string) {
+export async function deleteAppRelease(id: string, productSlug: string = "moplayer") {
   try {
     const supabase = createSupabaseAdminClient();
     const { error } = await supabase.from("app_releases").delete().eq("id", id);
     if (error) throw error;
   } catch {
-    const current = await readSiteSetting("moplayer_app_releases", asSiteSettingValue(fallbackReleases));
-    const next = (Array.isArray(current) ? (current as AppRelease[]) : fallbackReleases).filter((item) => item.id !== id);
-    await upsertSiteSetting("moplayer_app_releases", asSiteSettingValue(next));
+    const slug = resolveManagedAppSlug(productSlug);
+    const fallback = fallbackFor(slug).releases;
+    const current = await readSiteSetting(`${slug}_app_releases`, asSiteSettingValue(fallback));
+    const next = (Array.isArray(current) ? (current as AppRelease[]) : fallback).filter((item) => item.id !== id);
+    await upsertSiteSetting(`${slug}_app_releases`, asSiteSettingValue(next));
   }
 }
 

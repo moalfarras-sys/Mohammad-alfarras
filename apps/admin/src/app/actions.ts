@@ -157,6 +157,30 @@ function appRedirect(updated: string, productSlug: ManagedAppSlug) {
   redirect(`${appRoute(productSlug)}?updated=${encodeURIComponent(updated)}`);
 }
 
+/**
+ * Runs a save and reports a failure as an error toast. `redirect()` works by throwing, so it is
+ * always called outside the try block.
+ */
+async function persistOrReport(productSlug: ManagedAppSlug, save: () => Promise<unknown>): Promise<boolean> {
+  let failed = false;
+  try {
+    await save();
+  } catch (error) {
+    console.error("[admin] save failed", error instanceof Error ? error.message : error);
+    failed = true;
+  }
+  if (failed) appRedirect("save_failed", productSlug);
+  return true;
+}
+
+/** An empty datetime field must not become "" (rejected by the not-null timestamp column). */
+function formDateOrNow(formData: FormData, key: string) {
+  const raw = String(formData.get(key) ?? "").trim();
+  if (!raw) return new Date().toISOString();
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+}
+
 const WEBSITE_IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 
 function uploadFailureCode(error: unknown) {
@@ -228,7 +252,7 @@ export async function saveProductAction(formData: FormData) {
     appRedirect(uploadFailureCode(error), productSlug);
   }
 
-  await saveAppProduct({
+  await persistOrReport(productSlug, () => saveAppProduct({
     slug: productSlug,
     product_name: String(formData.get("product_name") ?? ""),
     hero_badge: String(formData.get("hero_badge") ?? ""),
@@ -258,7 +282,7 @@ export async function saveProductAction(formData: FormData) {
     compatibility_notes: parseSimpleLines(String(formData.get("compatibility_notes") ?? "")),
     legal_notes: parseSimpleLines(String(formData.get("legal_notes") ?? "")),
     last_updated_at: new Date().toISOString(),
-  });
+  }));
 
   revalidateAll();
   appRedirect("product", productSlug);
@@ -267,13 +291,13 @@ export async function saveProductAction(formData: FormData) {
 export async function saveFaqAction(formData: FormData) {
   await requireAdminRole("editor");
   const productSlug = formProductSlug(formData);
-  await saveAppFaq({
+  await persistOrReport(productSlug, () => saveAppFaq({
     id: String(formData.get("id") ?? "").trim() || undefined,
     product_slug: productSlug,
     question: String(formData.get("question") ?? ""),
     answer: String(formData.get("answer") ?? ""),
     sort_order: Number(formData.get("sort_order") ?? 1),
-  });
+  }));
 
   revalidateAll();
   appRedirect("faq", productSlug);
@@ -282,7 +306,7 @@ export async function saveFaqAction(formData: FormData) {
 export async function deleteFaqAction(formData: FormData) {
   await requireAdminRole("admin");
   const productSlug = formProductSlug(formData);
-  await deleteAppFaq(String(formData.get("id") ?? ""));
+  await persistOrReport(productSlug, () => deleteAppFaq(String(formData.get("id") ?? ""), productSlug));
   revalidateAll();
   appRedirect("faq_deleted", productSlug);
 }
@@ -305,7 +329,7 @@ export async function saveScreenshotAction(formData: FormData) {
     throw new Error("Screenshot image is required.");
   }
 
-  await saveAppScreenshot({
+  await persistOrReport(productSlug, () => saveAppScreenshot({
     id: String(formData.get("id") ?? "").trim() || undefined,
     product_slug: productSlug,
     title: String(formData.get("title") ?? ""),
@@ -314,7 +338,7 @@ export async function saveScreenshotAction(formData: FormData) {
     device_frame: String(formData.get("device_frame") ?? "phone") as "phone" | "tv" | "landscape",
     sort_order: Number(formData.get("sort_order") ?? 1),
     is_featured: formData.get("is_featured") === "on",
-  });
+  }));
 
   revalidateAll();
   appRedirect("screenshot", productSlug);
@@ -323,7 +347,7 @@ export async function saveScreenshotAction(formData: FormData) {
 export async function deleteScreenshotAction(formData: FormData) {
   await requireAdminRole("admin");
   const productSlug = formProductSlug(formData);
-  await deleteAppScreenshot(String(formData.get("id") ?? ""));
+  await persistOrReport(productSlug, () => deleteAppScreenshot(String(formData.get("id") ?? ""), productSlug));
   revalidateAll();
   appRedirect("screenshot_deleted", productSlug);
 }
@@ -338,7 +362,9 @@ export async function saveReleaseAction(formData: FormData) {
     throw new Error("Release slug is required.");
   }
 
-  const releaseId = await saveAppRelease({
+  let releaseId = "";
+  await persistOrReport(productSlug, async () => {
+    releaseId = await saveAppRelease({
     id: String(formData.get("id") ?? "").trim() || undefined,
     product_slug: productSlug,
     slug,
@@ -346,21 +372,23 @@ export async function saveReleaseAction(formData: FormData) {
     version_code: Number(formData.get("version_code") ?? 1),
     release_notes: String(formData.get("release_notes") ?? ""),
     compatibility_notes: String(formData.get("compatibility_notes") ?? ""),
-    published_at: String(formData.get("published_at") ?? new Date().toISOString()),
+    published_at: formDateOrNow(formData, "published_at"),
     is_published: formData.get("is_published") === "on",
+    });
   });
 
   const file = formData.get("file");
   if (file instanceof File && file.size > 0) {
-    await uploadReleaseAsset({
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    await persistOrReport(productSlug, () => uploadReleaseAsset({
       filename: file.name,
       contentType: file.type || "application/vnd.android.package-archive",
-      bytes: new Uint8Array(await file.arrayBuffer()),
+      bytes,
       releaseId,
       versionName: String(formData.get("version_name") ?? slug),
       abi: String(formData.get("abi") ?? "arm64-v8a"),
       isPrimary: true,
-    });
+    }));
   }
 
   revalidateAll();
@@ -370,7 +398,7 @@ export async function saveReleaseAction(formData: FormData) {
 export async function deleteReleaseAction(formData: FormData) {
   await requireAdminRole("admin");
   const productSlug = formProductSlug(formData);
-  await deleteAppRelease(String(formData.get("id") ?? ""));
+  await persistOrReport(productSlug, () => deleteAppRelease(String(formData.get("id") ?? ""), productSlug));
   revalidateAll();
   appRedirect("release_deleted", productSlug);
 }
@@ -495,7 +523,7 @@ export async function saveRuntimeConfigAction(formData: FormData) {
   const iosButtonLabel = String(formData.get("iosButtonLabel") ?? "").trim();
   const iosHeroImageUrl = String(formData.get("iosHeroImageUrl") ?? "").trim();
   const iosNote = String(formData.get("iosNote") ?? "").trim();
-  await saveRuntimeConfig(
+  await persistOrReport(productSlug, () => saveRuntimeConfig(
     {
       enabled: formData.get("enabled") === "on",
       maintenanceMode: formData.get("maintenanceMode") === "on",
@@ -569,7 +597,7 @@ export async function saveRuntimeConfigAction(formData: FormData) {
       privacyUrl: String(formData.get("privacyUrl") ?? "https://moalfarras.space/privacy"),
     },
     productSlug,
-  );
+  ));
   revalidateAll();
   appRedirect("runtime_config", productSlug);
 }
@@ -611,6 +639,7 @@ export async function saveIosRuntimeConfigAction(formData: FormData) {
     }
   }
 
+  let iosSaveFailed = false;
   await saveRuntimeConfig(
     {
       ...runtime,
@@ -625,7 +654,11 @@ export async function saveIosRuntimeConfigAction(formData: FormData) {
       },
     },
     "moplayer2",
-  );
+  ).catch((error: unknown) => {
+    console.error("[admin] iOS runtime save failed", error instanceof Error ? error.message : error);
+    iosSaveFailed = true;
+  });
+  if (iosSaveFailed) redirect("/moplayer/ios?updated=save_failed#ios-runtime");
   revalidateAll();
   redirect("/moplayer/ios?updated=ios_runtime#ios-runtime");
 }

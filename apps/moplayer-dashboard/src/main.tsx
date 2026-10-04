@@ -81,32 +81,11 @@ function App() {
     : clean(form.server_name) && clean(form.playlist_url)
 
   async function activateDevice() {
-    if (!supabase || !activation || !canSubmit) return
-    setSaving(true)
-    setStatus('Activating TV...')
-    const payload = {
-      status: 'activated',
-      server_name: clean(form.server_name),
-      server_type: form.server_type,
-      base_url: clean(form.base_url),
-      username: clean(form.username),
-      password: form.password,
-      playlist_url: clean(form.playlist_url),
-      activated_at: new Date().toISOString(),
-      error_message: '',
-    }
-    const { error } = await supabase
-      .from('device_activation_codes')
-      .update(payload)
-      .eq('device_code', activation.device_code)
-      .eq('status', 'pending')
-    if (error) setStatus(safeError(error.message))
-    else {
-      setStatus('Activated. The TV will sync automatically.')
-      await loadActivation()
-      setForm({ ...form, password: '' })
-    }
-    setSaving(false)
+    // Retired: this experimental dashboard used to write the provider URL, username and password
+    // into Supabase from the browser with the public key. Provider sources may only travel through
+    // the one-time encrypted QR handoff on moalfarras.space/activate, so nothing is sent from here.
+    if (!activation || !canSubmit) return
+    setStatus('Use moalfarras.space/activate to send a source to the TV (encrypted, one-time QR handoff).')
   }
 
   const expired = activation ? new Date(activation.expires_at).getTime() <= Date.now() : false

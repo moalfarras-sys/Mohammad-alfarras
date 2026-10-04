@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { MoosLanding } from "@/components/app/moos-landing";
+import { MoosLanding } from "@/components/site/moos-landing";
 import { isLocale } from "@/lib/i18n";
 import { readLatestMoosRelease } from "@/lib/moos-release";
 import { breadcrumbJsonLd, jsonLdString } from "@/lib/seo-jsonld";
@@ -22,12 +22,12 @@ export async function generateMetadata({
       ? {
           title: "نظام MoOS — نظام تشغيل عربي مجاني للكمبيوتر",
           description:
-            "تعرّف إلى MoOS، نظام تشغيل عربي جديد قيد التطوير مبني على Fedora Atomic وKDE Plasma 6، مع تطبيقات Android وWindows الاختيارية وMo AI والتحكم من الجوال. حمّل ISO المجرّب مجاناً.",
+            "تعرّف إلى MoOS، نظام تشغيل عربي جديد قيد التطوير مبني على Fedora Atomic وKDE Plasma 6، مع تطبيقات Android وWindows الاختيارية وMo AI والتحكم من الجوال. مجاني ومفتوح المصدر، مع مثبّت رسمي موقّع.",
         }
       : {
           title: "MoOS — a free Arabic-native desktop operating system",
           description:
-            "Meet MoOS, a new Arabic-native operating system in active development, built on Fedora Atomic and KDE Plasma 6 with optional Android and Windows apps, Mo AI and phone control. Download the tested ISO free.",
+            "Meet MoOS, a new Arabic-native operating system in active development, built on Fedora Atomic and KDE Plasma 6 with optional Android and Windows apps, Mo AI and phone control. Free and open source, with a signed official installer.",
         };
 
   const canonical = `${SITE_URL}/${locale}/moos`;

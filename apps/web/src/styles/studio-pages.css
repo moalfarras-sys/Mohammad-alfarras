@@ -537,7 +537,184 @@
   margin: 28px 0 0;
 }
 
+/* ── Contact ───────────────────────────────────────────────────────────── */
+
+.st-contact {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+
+.liquid-site .st-contact-form {
+  padding: clamp(22px, 3.4vw, 40px);
+  border-color: var(--st-line-2);
+  border-radius: var(--st-r-xl);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)), var(--st-ink-2);
+  box-shadow: 0 40px 100px -60px rgba(0, 0, 0, 0.9);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.liquid-site .st-contact-form::after {
+  content: none;
+}
+
+/* A form is not a scroll effect: no 3D view-timeline tilt while typing. */
+.liquid-site .st-contact-form {
+  animation: none;
+}
+
+.st-contact-form-head {
+  margin-bottom: 18px;
+}
+
+.st-contact-form-head h2 {
+  margin: 0;
+  color: var(--st-text);
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.st-contact-form-head p {
+  margin: 8px 0 0;
+  color: var(--st-text-2);
+}
+
+.st-contact-side {
+  display: grid;
+  gap: 14px;
+}
+
+.st-side-block {
+  padding: 22px;
+  border: 1px solid var(--st-line);
+  border-radius: var(--st-r-lg);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.st-side-block .st-meta {
+  margin-bottom: 14px;
+}
+
+.st-channels {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.st-channels a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 12px;
+  color: var(--st-text-3);
+  transition: background-color 0.2s ease;
+}
+
+.st-channels a:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--st-text);
+}
+
+.st-channel-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--st-line-2);
+  border-radius: 11px;
+  color: var(--st-accent);
+}
+
+.st-channel-text {
+  display: grid;
+  min-width: 0;
+}
+
+.st-channel-text strong {
+  color: var(--st-text);
+  font-size: 0.95rem;
+}
+
+.st-channel-text small {
+  overflow: hidden;
+  color: var(--st-text-3);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.st-times {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 0;
+}
+
+.st-times > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+
+.st-times dd {
+  margin: 0;
+  color: var(--st-text);
+  font-size: 1.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.st-times dt {
+  color: var(--st-text-3);
+  font-size: 0.84rem;
+}
+
+.st-side-note {
+  margin: 0 0 8px;
+  color: var(--st-text-2);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.st-side-note:last-child {
+  margin-bottom: 0;
+  color: var(--st-text-3);
+}
+
+/* ── MoOS (keeps its own teal product identity from route-moos.css) ─────── */
+
+.moos-theme-grid.moos-theme-grid--compact {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 1000px) {
+  .moos-theme-grid.moos-theme-grid--compact {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .moos-theme-grid.moos-theme-grid--compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 /* ── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .st-contact {
+    grid-template-columns: 1fr;
+  }
+}
 
 @media (max-width: 1000px) {
   .st-skill-groups {

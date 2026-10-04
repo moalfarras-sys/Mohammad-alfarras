@@ -645,10 +645,21 @@
 }
 
 @media (max-width: 760px) {
+  /* Leave the inline-end corner to the Mo AI launcher. */
   .st-consent {
     bottom: calc(86px + env(safe-area-inset-bottom));
-    inset-inline: 10px;
+    inset-inline: 10px 68px;
     width: auto;
+    gap: 10px;
+    padding: 10px 10px 10px 14px;
+  }
+
+  [dir="rtl"] .st-consent {
+    padding: 10px 14px 10px 10px;
+  }
+
+  .st-consent p {
+    font-size: 0.76rem;
   }
 }
 
@@ -722,4 +733,20 @@
 /* Skip link target should not show a focus ring box around all content. */
 #main-content:focus {
   outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-drawer,
+  .st-drawer-backdrop,
+  .st-consent {
+    animation: none;
+  }
+
+  .st-nav,
+  .st-btn,
+  .st-tile,
+  .st-frame,
+  .st-cover {
+    transition: none;
+  }
 }

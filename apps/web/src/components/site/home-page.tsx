@@ -337,7 +337,7 @@ export function HomePage({ model }: { model: SiteViewModel }) {
             <div className="st-ticket">
               <div className="st-ticket-head">
                 <span>{c.label.route}</span>
-                <span className="st-mono">AR · DE · EN</span>
+                <span className="st-ticket-langs">AR · DE · EN</span>
               </div>
               <dl>
                 <div>

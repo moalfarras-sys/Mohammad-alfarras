@@ -23,12 +23,16 @@ export const arabicFont = Cairo({
 // Arabic display face for headings: Alexandria's geometric, open forms give
 // Arabic headlines the same calm, engineered tone as the Latin display type
 // and pair cleanly with Cairo body copy.
+// Preloaded with display "optional" and no synthetic fallback: when it is not
+// ready for the first paint the headline renders in Cairo (already preloaded)
+// and never swaps mid-view, so Arabic headlines cause no layout shift.
 export const arabicDisplayFont = Alexandria({
   subsets: ["arabic"],
   weight: "variable",
   variable: "--font-arabic-display",
-  display: "swap",
-  preload: false,
+  display: "optional",
+  preload: true,
+  adjustFontFallback: false,
 });
 
 // Editorial accent: one italic serif word inside Latin headlines.

@@ -629,7 +629,7 @@ body {
   letter-spacing: 0;
 }
 
-.st-ticket-head .st-mono {
+.st-ticket-langs {
   direction: ltr;
   letter-spacing: 0.08em;
 }
@@ -647,11 +647,12 @@ body {
   align-items: baseline;
 }
 
+/* UI font, not mono: the hero must not wait on a third web font. */
 .st-ticket dt {
   color: var(--st-text-3);
-  font-family: var(--st-font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 

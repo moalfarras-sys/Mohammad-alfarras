@@ -26,6 +26,7 @@ import kotlinx.coroutines.withContext
 @HiltViewModel
 class LiveTvViewModel @Inject constructor(
     private val repository: IptvRepository,
+    private val parentalLockManager: com.mo.moplayer.util.ParentalLockManager,
     private val networkErrorHandler: NetworkErrorHandler,
     private val xmltvEpgRepository: com.mo.moplayer.data.epg.XmltvEpgRepository
 ) : ViewModel() {
@@ -118,7 +119,7 @@ class LiveTvViewModel @Inject constructor(
                     }
                     try {
                         val cats = withContext(Dispatchers.IO) {
-                            repository.getLiveCategories(server.id).first()
+                            parentalLockManager.filterAdultCategories(repository.getLiveCategories(server.id).first()) { it.name }
                         }
                         _categories.value = cats
                         loadCategoryCounts(cats)

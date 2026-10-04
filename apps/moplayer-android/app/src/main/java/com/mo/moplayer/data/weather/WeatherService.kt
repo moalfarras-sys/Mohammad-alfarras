@@ -352,10 +352,11 @@ class WeatherService @Inject constructor(
             
             Result.success(weatherData)
         } catch (e: Exception) {
-            Log.w(TAG, "Weather refresh failed, using cached/default data when available: ${e.message}")
+            Log.w(TAG, "Weather refresh failed, using cached data when available: ${e.message}")
             val cached = cachedWeather.first()
             if (cached != null) return@withContext Result.success(cached)
-            Result.success(defaultWeather())
+            // No network and nothing cached: report it instead of showing invented weather.
+            Result.failure(e)
         }
     }
 
@@ -386,25 +387,6 @@ class WeatherService @Inject constructor(
         throw lastError ?: IllegalStateException("Weather proxy unavailable")
     }
 
-    private fun defaultWeather(): WeatherData {
-        return WeatherData(
-            temperature = 18,
-            feelsLike = 18,
-            condition = "Cloudy",
-            conditionCode = 1006,
-            icon = "",
-            cityName = DisplayScale.localized(context).getString(R.string.weather_city_unavailable),
-            humidity = 55,
-            windSpeed = 6.0,
-            windDegree = 0,
-            gustSpeed = 8.0,
-            precipMm = 0.0,
-            cloud = 65,
-            isDay = true,
-            lastUpdatedEpochMs = System.currentTimeMillis()
-        )
-    }
-    
     /**
      * Get condition code from icon string (fallback for cached data)
      */

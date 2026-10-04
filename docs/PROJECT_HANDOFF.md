@@ -2,6 +2,16 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-10-04 MoPlayer Classic 2.5.x, site redesign, downloads and admin honesty
+
+- **MoPlayer Classic 2.5.0 → 2.5.1** (PRs #37, #43): one interface size on every TV (`util/DisplayScale.kt`), real fonts, working language switch and full Arabic, Live TV fixes, account-aware playback errors, 2:3 poster grids, Live TV home row, reliable QR activation, XMLTV EPG for M3U, working adult lock. QA against a real Xtream line (13k channels / 20k movies / 10k series, one connection) on Android TV API 36 (240/320 dpi), API 24 720p and a phone in landscape; signed in-place upgrades 2.4.0 → 2.5.0 → 2.5.1. Current release `moplayer-android-2.5.1` (53,237,761 bytes, SHA-256 `210aba34…f3ea1c`).
+- **Release data** for the site, admin and config API is one file: `packages/shared/src/app-releases.ts` (`currentAppReleases`, `appTvInstall`). Update it (plus the GitHub Release) for every APK release.
+- **TV install:** `moalfarras.space/mp` (Classic) and `/mp2` (Pro) 307 to the latest APK; `/tv` is a light remote-friendly download page. AFTVnews Downloader codes cannot be edited after creation; new codes for `/mp` and `/mp2` need a CAPTCHA on go.aftvnews.com (owner step). Current codes 2418397 / 4608937 open the product pages.
+- **MoPlayer PC 1.0.4** is served from GitHub Release `moplayer-pc-v1.0.4` (#40); the Vercel Blob store answered 403. `apps/moplayer-pro-windows/scripts/write-release-meta.mjs` now writes GitHub URLs.
+- **Admin** (#41): saves fail loudly ("Not saved" toast) instead of keeping values only in memory; empty release publish time fixed; Pro deletes use Pro keys. `apps/moplayer-dashboard` no longer writes provider credentials. Production still lacks the app tables in Supabase, so admin release/runtime saves report failure until the database rollout in `PROJECT_STATUS.md` is done.
+- **Website redesign** (#42 MoPlayer pages, #44 whole site): studio design layer (`styles/studio*.css`, `components/studio`), new shell, rebuilt home/work/services/MoOS/YouTube/CV/contact/legal/support/404, honest MoPlayer pages with real 2.5 screenshots (legal public playlist only). Production Lighthouse mobile: /en and /ar 90 performance, 100 accessibility/best practices/SEO. Next.js 16.3.8 (#38).
+- **Open items:** owner creates new Downloader codes; Supabase app-table rollout; Windows code signing; iOS Mac/Xcode pass; Pro dead settings/Cast (see the audit list in PROJECT_STATUS.md history); recapture fresh Pro screenshots.
+
 ## 2026-06-20 MoPlayer Pro Android TV player/cache pass
 
 - Renamed the Pro Android folder with Git from `apps/moplayer2-android` to `apps/moplayer-pro-android`; the public/product slug remains `moplayer2`, Gradle root remains `MoPlayerPro`, and Android `applicationId` remains `com.moalfarras.moplayerpro`.

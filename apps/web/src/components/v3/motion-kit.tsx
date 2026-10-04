@@ -23,6 +23,7 @@ import {
 import Image from "next/image";
 import {
   Children,
+  Fragment,
   isValidElement,
   useEffect,
   useRef,
@@ -140,18 +141,22 @@ export function SplitHeadline({
         const accent = /^\*.*\*[.,!?؟،]*$/.test(word);
         const clean = word.replace(/\*/g, "");
         return (
-          <span key={`${word}-${index}`} className="v3-split-mask" aria-hidden="true">
-            <motion.span
-              className={cn("v3-split-word", accent && "v3-accent")}
-              variants={{
-                hidden: { y: "110%", opacity: 0 },
-                show: { y: "0%", opacity: 1, transition: { duration: 0.85, ease: easeOut } },
-              }}
-            >
-              {clean}
-            </motion.span>
+          // The space must sit outside the inline-block mask: trailing spaces inside an
+          // inline-block are collapsed, which glued the words together.
+          <Fragment key={`${word}-${index}`}>
+            <span className="v3-split-mask" aria-hidden="true">
+              <motion.span
+                className={cn("v3-split-word", accent && "v3-accent")}
+                variants={{
+                  hidden: { y: "110%", opacity: 0 },
+                  show: { y: "0%", opacity: 1, transition: { duration: 0.85, ease: easeOut } },
+                }}
+              >
+                {clean}
+              </motion.span>
+            </span>
             {index < words.length - 1 ? " " : null}
-          </span>
+          </Fragment>
         );
       })}
     </Tag>

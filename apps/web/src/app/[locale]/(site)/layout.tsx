@@ -8,14 +8,14 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNavbar } from "@/components/layout/site-navbar";
 import { CardTilt } from "@/components/site/card-tilt";
 import { ScrollReveal } from "@/components/site/scroll-reveal";
+import { ScrollProgress } from "@/components/v3/motion-kit";
 import { VisitBeacon } from "@/components/site/visit-beacon";
 import { getNavigation } from "@/content/navigation";
-import { siteIdentity, youtubeChannel } from "@/content/site-data";
+import { siteIdentity } from "@/content/site-data";
 import { resolveBrandAssetPaths } from "@/lib/cms-documents";
 import { getSiteSetting, readSnapshot } from "@/lib/content/store";
 import { isLocale } from "@/lib/i18n";
 import { legalFooterLinks } from "@/lib/legal-pages";
-import { getLiveYoutubeChannelStats } from "@/lib/youtube-live";
 
 export const revalidate = 30;
 
@@ -47,33 +47,7 @@ function safeLogoSrc(path: string | null | undefined) {
   return path;
 }
 
-type YoutubeMetricsSetting = { channel_id?: string; views?: number; subscribers?: number; videos?: number };
 type SiteThemeSetting = { accent?: string; background?: string; panel?: string };
-
-const youtubeMetricsFallback: YoutubeMetricsSetting = {
-  views: youtubeChannel.fallback.views,
-  subscribers: youtubeChannel.fallback.subscribers,
-  videos: youtubeChannel.fallback.videos,
-};
-
-function footerStats(locale: "ar" | "en", yt: YoutubeMetricsSetting) {
-  const fmt = new Intl.NumberFormat(locale === "ar" ? "ar" : "en", { notation: "compact", maximumFractionDigits: 1 });
-  const pick = (value: number | undefined, fallback: number) => fmt.format(typeof value === "number" && value > 0 ? value : fallback);
-  const views = pick(yt.views, youtubeMetricsFallback.views!);
-  const subscribers = pick(yt.subscribers, youtubeMetricsFallback.subscribers!);
-  const videos = pick(yt.videos, youtubeMetricsFallback.videos!);
-  return locale === "ar"
-    ? [
-        { label: "مشاهدات يوتيوب", value: views },
-        { label: "مشتركون", value: subscribers },
-        { label: "فيديوهات", value: videos },
-      ]
-    : [
-        { label: "YouTube views", value: views },
-        { label: "Subscribers", value: subscribers },
-        { label: "Videos", value: videos },
-      ];
-}
 
 export default async function SiteLayout({
   children,
@@ -97,17 +71,7 @@ export default async function SiteLayout({
   if (siteStatus.maintenance) {
     return <MaintenanceScreen locale={locale} logoSrc={logoSrc} message={locale === "ar" ? siteStatus.message_ar : siteStatus.message_en} />;
   }
-  const savedYoutubeMetrics = getSiteSetting(snapshot, "youtube_channel", youtubeMetricsFallback);
-  const liveYoutubeMetrics = await getLiveYoutubeChannelStats(savedYoutubeMetrics.channel_id);
-  const ytMetrics = liveYoutubeMetrics
-    ? {
-        views: liveYoutubeMetrics.totalViews,
-        subscribers: liveYoutubeMetrics.subscribers,
-        videos: liveYoutubeMetrics.videoCount,
-      }
-    : savedYoutubeMetrics;
   const siteTheme = getSiteSetting<SiteThemeSetting>(snapshot, "site_theme", {});
-  const footerStatItems = footerStats(locale, ytMetrics);
   const copy = siteCopy(locale);
   const siteUrl = "https://moalfarras.space";
   const navLinks = getNavigation(locale);
@@ -167,6 +131,7 @@ export default async function SiteLayout({
           {children}
         </main>
         <ScrollReveal />
+        <ScrollProgress />
         <CardTilt />
         <LazySiteAssistant locale={locale} />
         <CookieBanner locale={locale} />
@@ -176,7 +141,6 @@ export default async function SiteLayout({
           brandName={copy.brandName}
           links={navLinks}
           legalLinks={footerLegalLinks}
-          stats={footerStatItems}
         />
       </div>
     </>

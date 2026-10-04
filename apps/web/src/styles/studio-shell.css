@@ -452,6 +452,24 @@
   color: var(--st-accent);
 }
 
+/* v3: compact top strip — the big headline lived on every page already as the page CTA. */
+.st-footer-top--compact {
+  align-items: center;
+  gap: 16px 32px;
+  padding-bottom: 28px;
+}
+
+.st-footer-top--compact .st-footer-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.st-footer-mail--compact {
+  margin-top: 0;
+  font-size: 1rem;
+}
+
 .st-footer-stats {
   display: flex;
   flex-wrap: wrap;

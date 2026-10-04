@@ -72,7 +72,7 @@
             android:layout_width="match_parent"
             android:layout_height="8dp"
             android:max="100"
-            android:progress="40"
+            android:progress="0"
             android:progressDrawable="@drawable/bg_player_seekbar" />
 
         <TextView

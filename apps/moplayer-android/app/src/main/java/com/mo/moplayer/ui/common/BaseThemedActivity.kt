@@ -83,6 +83,12 @@ abstract class BaseThemedActivity : AppCompatActivity() {
         setupBackPressHandler()
     }
 
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // Dialogs and the keyboard can bring the bars back; hide them again on return.
+        if (hasFocus) com.mo.moplayer.util.ImmersiveMode.apply(this)
+    }
+
     private fun setupBackPressHandler() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(shouldConfirmExitOnBack()) {
             override fun handleOnBackPressed() {
@@ -149,6 +155,7 @@ abstract class BaseThemedActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        com.mo.moplayer.util.ImmersiveMode.apply(this)
         // Start observers once (onResume runs often on TV).
         if (!themeAndBackgroundObserversStarted) {
             themeAndBackgroundObserversStarted = true

@@ -347,7 +347,7 @@
                     android:background="@drawable/bg_type_badge_live"
                     android:paddingHorizontal="10dp"
                     android:paddingVertical="4dp"
-                    android:text="LIVE"
+                    android:text="@string/badge_live"
                     android:textColor="@android:color/white"
                     android:textSize="10sp"
                     android:textStyle="bold" />
@@ -520,7 +520,7 @@
                         android:layout_height="4dp"
                         android:layout_marginTop="10dp"
                         android:max="100"
-                        android:progress="35"
+                        android:progress="0"
                         android:progressDrawable="@drawable/bg_progress_bar"
                         android:visibility="gone"
                         tools:visibility="visible" />
@@ -747,7 +747,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="LIVE"
+                android:text="@string/badge_live"
                 android:textColor="@color/htc_error"
                 android:textSize="10sp"
                 android:textStyle="bold" />

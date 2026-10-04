@@ -136,7 +136,7 @@
                 android:layout_height="3dp"
                 android:layout_gravity="bottom"
                 android:max="100"
-                android:progress="35"
+                android:progress="0"
                 android:progressTint="@color/moplayer_orange"
                 android:progressBackgroundTint="#200B0F1A"
                 android:visibility="gone"

@@ -159,6 +159,11 @@ class LoginActivity : AppCompatActivity() {
         super.attachBaseContext(com.mo.moplayer.util.DisplayScale.wrap(newBase))
     }
 
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) com.mo.moplayer.util.ImmersiveMode.apply(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         val splashScreen = installSplashScreen()

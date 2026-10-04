@@ -91,7 +91,7 @@ object ProviderSourceUrlParser {
 
     /**
      * Readable name for a source: the playlist file name when it means something, otherwise the
-     * provider host ("http://m3ulink.site/get.php?..." -> "m3ulink.site").
+     * provider host ("http://provider.example/get.php?..." -> "provider.example").
      */
     fun displayName(name: String?, serverUrl: String?): String {
         if (!isGenericSourceName(name)) return name!!.trim()

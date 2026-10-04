@@ -4,10 +4,30 @@
  */
 
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { Children, isValidElement, type CSSProperties, type ReactNode } from "react";
 
 import { ParallaxImage, Reveal, SplitHeadline } from "@/components/v3/motion-kit";
 import { cn } from "@/lib/cn";
+
+/**
+ * One orchestrated hero entrance: children rise, de-blur and settle one after another on first
+ * paint. Pure CSS (v3p-seq-item keyframes), so hero images are not held back until hydration.
+ */
+export function LoadSequence({ children, className, delay = 0.15 }: { children: ReactNode; className?: string; delay?: number }) {
+  return (
+    <div className={className}>
+      {Children.map(children, (child, index) =>
+        isValidElement(child) ? (
+          <div className="v3p-seq-item" style={{ "--v3p-seq-delay": `${delay + index * 0.14}s` } as CSSProperties}>
+            {child}
+          </div>
+        ) : (
+          child
+        ),
+      )}
+    </div>
+  );
+}
 
 export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
   return (

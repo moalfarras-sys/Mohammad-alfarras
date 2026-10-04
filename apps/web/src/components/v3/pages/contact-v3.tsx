@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { ArrowUpRight, Clock3, Mail, MessageCircle, MonitorPlay, Network, Send, ShieldCheck } from "lucide-react";
 
@@ -86,7 +87,7 @@ export function ContactV3({ locale, content }: { locale: Locale; content?: Rebui
     <div className="st-page v3p v3p-contact">
       <section className="v3p-hero v3k-hero">
         <div className="st-container v3k-hero-grid">
-          <Reveal className="v3k-portrait-wrap" y={30}>
+          <div className="v3k-portrait-wrap v3p-load">
             <TiltCard className="v3k-portrait" max={7}>
               <Image src="/images/protofeilnew.jpeg" alt={t.portraitAlt} fill priority sizes="(max-width: 900px) 86vw, 460px" quality={75} className="v3-cover v3k-portrait-img" />
               <span className="v3-holo-sweep" aria-hidden="true" />
@@ -98,18 +99,18 @@ export function ContactV3({ locale, content }: { locale: Locale; content?: Rebui
               {t.based}
             </span>
             <span className="v3k-chip v3k-chip--b">{t.languages}</span>
-          </Reveal>
+          </div>
 
           <div className="v3k-hero-copy">
-            <Reveal y={14}>
+            <div className="v3p-load" style={{ "--v3p-seq-delay": "0.05s" } as CSSProperties}>
               <Eyebrow>{t.pill}</Eyebrow>
-            </Reveal>
-            <SplitHeadline text={title} className="v3p-h1" />
-            <Reveal delay={0.2} y={18}>
+            </div>
+            <SplitHeadline as="h1" immediate text={title} className="v3p-h1" />
+            <div className="v3p-load" style={{ "--v3p-seq-delay": "0.25s" } as CSSProperties}>
               <p className="v3p-lead">{body}</p>
-            </Reveal>
+            </div>
 
-            <Reveal delay={0.32} y={22} className="v3k-methods">
+            <div className="v3p-load v3k-methods" style={{ "--v3p-seq-delay": "0.38s" } as CSSProperties}>
               <p className="v3k-label">{t.direct}</p>
               <a className="v3k-method v3k-method--wa" href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer">
                 <span className="v3k-method-icon" aria-hidden="true">
@@ -149,7 +150,7 @@ export function ContactV3({ locale, content }: { locale: Locale; content?: Rebui
                   );
                 })}
               </ul>
-            </Reveal>
+            </div>
           </div>
         </div>
       </section>
@@ -158,11 +159,9 @@ export function ContactV3({ locale, content }: { locale: Locale; content?: Rebui
         <div className="st-container v3k-form-grid">
           <div className="v3k-form-col">
             <SectionHead eyebrow={formLabel} title={t.formTitle} body={t.formBody} />
-            <Reveal y={30} amount={0.1}>
-              <section className="contact-form-panel v3k-form" id="inquiry-form" aria-label={formLabel}>
-                <LiquidContactForm locale={locale} />
-              </section>
-            </Reveal>
+            <section className="contact-form-panel v3k-form" id="inquiry-form" aria-label={formLabel}>
+              <LiquidContactForm locale={locale} />
+            </section>
           </div>
           <Reveal className="v3k-aside" y={24} delay={0.1}>
             <div className="v3k-aside-media">

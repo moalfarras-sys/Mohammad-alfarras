@@ -6,7 +6,6 @@ import { WorkV3 } from "@/components/v3/pages/work-v3";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, collectionPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
-import "@/styles/v3-motion.css";
 import "@/styles/v3-pages.css";
 import "@/styles/v3-work.css";
 import type { Locale } from "@/types/cms";

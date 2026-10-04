@@ -6,8 +6,8 @@
  * like the kit, respect prefers-reduced-motion.
  */
 
-import { motion, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
-import { Children, isValidElement, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useSpring, useTransform } from "framer-motion";
+import { useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 import { CountUp } from "@/components/v3/motion-kit";
 import { cn } from "@/lib/cn";
@@ -44,31 +44,6 @@ export function ScrollLayer({
   );
 }
 
-/* ───────────────────────── Entrance for collages ───────────────────────── */
-
-/** One orchestrated entrance: children rise, de-blur and settle one after another on load. */
-export function LoadSequence({ children, className, delay = 0.15 }: { children: ReactNode; className?: string; delay?: number }) {
-  const reduce = useReducedMotion();
-  return (
-    <div className={className}>
-      {Children.map(children, (child, index) =>
-        isValidElement(child) ? (
-          <motion.div
-            className="v3p-seq-item"
-            initial={reduce ? false : { opacity: 0, y: 36, scale: 0.96, filter: "blur(10px)" }}
-            animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-            transition={{ duration: 0.95, delay: delay + index * 0.14, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {child}
-          </motion.div>
-        ) : (
-          child
-        ),
-      )}
-    </div>
-  );
-}
-
 /* ───────────────────────── Process line ───────────────────────── */
 
 /**
@@ -85,12 +60,15 @@ export function ProcessTrack({
   const ref = useRef<HTMLOListElement>(null);
   const reduce = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start 75%", "end 55%"] });
-  const progress = useSpring(scrollYProgress, { stiffness: 90, damping: 24, restDelta: 0.001 });
+  // The line only ever draws forward: scrolling back up keeps what has been reached.
+  const reachedProgress = useMotionValue(0);
+  const progress = useSpring(reachedProgress, { stiffness: 90, damping: 24, restDelta: 0.001 });
   const scaleY = useTransform(progress, (value) => (reduce ? 1 : value));
   const [reached, setReached] = useState(reduce ? steps.length : 0);
 
   useMotionValueEvent(scrollYProgress, "change", (value) => {
     if (reduce) return;
+    if (value > reachedProgress.get()) reachedProgress.set(value);
     const next = Math.min(steps.length, Math.floor(value * steps.length + 0.35));
     setReached((current) => (next > current ? next : current));
   });

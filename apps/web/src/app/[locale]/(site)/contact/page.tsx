@@ -9,7 +9,6 @@ import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, contactPageJsonLd, jsonLdString } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
 import "@/styles/route-contact.css";
-import "@/styles/v3-motion.css";
 import "@/styles/v3-pages.css";
 import "@/styles/v3-contact.css";
 import type { Locale } from "@/types/cms";

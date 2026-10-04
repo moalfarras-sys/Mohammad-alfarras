@@ -87,6 +87,9 @@
   gap: clamp(28px, 5vw, 84px);
   align-items: center;
 }
+.v3s-row.is-flipped {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.22fr);
+}
 .v3s-row.is-flipped .v3s-row-media {
   order: 2;
 }
@@ -124,7 +127,8 @@
   text-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
 .v3s-row-num {
-  display: flex;
+  display: inline-flex;
+  direction: ltr;
   gap: 8px;
   margin: 0;
   color: var(--v3-holo);
@@ -340,9 +344,13 @@
     grid-template-columns: minmax(0, 1fr);
   }
   .v3s-collage {
-    max-width: 440px;
+    order: -1;
+    aspect-ratio: 1.22 / 1;
+    max-width: 460px;
     margin-inline: auto;
-    margin-top: 8px;
+  }
+  .v3s-row.is-flipped {
+    grid-template-columns: minmax(0, 1fr);
   }
   .v3s-row.is-flipped .v3s-row-media {
     order: 0;

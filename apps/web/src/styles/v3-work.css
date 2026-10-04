@@ -414,7 +414,8 @@
   align-items: center;
 }
 .v3c-back {
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   align-items: center;
   gap: 8px;
   margin-bottom: 22px;
@@ -639,8 +640,12 @@
 .v3c-gallery li.is-phone {
   grid-column: span 4;
 }
-.v3c-gallery li.is-phone + li:not(.is-phone) {
+.v3c-gallery li.is-phone + li:not(.is-phone),
+.v3c-gallery li:not(.is-phone):has(+ li.is-phone) {
   grid-column: span 8;
+}
+.v3c-gallery li.is-phone > div {
+  height: 100%;
 }
 .v3c-gallery-card {
   position: relative;
@@ -725,6 +730,7 @@
   }
   .v3w-collage,
   .v3c-stage {
+    order: -1;
     max-width: 560px;
     margin-inline: auto;
     width: 100%;
@@ -735,9 +741,27 @@
   .v3c-story {
     grid-template-columns: minmax(0, 1fr);
   }
+  .v3c-stage {
+    width: 92%;
+  }
+  .v3c-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .v3c-metrics > div {
+    padding: 14px 12px;
+    border-radius: 16px;
+  }
+  .v3c-metrics dd {
+    font-size: 1.2rem;
+  }
+  .v3c-metrics dt {
+    font-size: 0.78rem;
+  }
   .v3c-gallery li,
   .v3c-gallery li.is-phone,
-  .v3c-gallery li.is-phone + li:not(.is-phone) {
+  .v3c-gallery li.is-phone + li:not(.is-phone),
+  .v3c-gallery li:not(.is-phone):has(+ li.is-phone) {
     grid-column: 1 / -1;
   }
   .v3c-nav {

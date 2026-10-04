@@ -5,7 +5,6 @@ import { buildSiteModel } from "@/components/site/site-model";
 import { ServicesV3 } from "@/components/v3/pages/services-v3";
 import { isLocale } from "@/lib/i18n";
 import { pageMetadata } from "@/lib/seo";
-import "@/styles/v3-motion.css";
 import "@/styles/v3-pages.css";
 import "@/styles/v3-services.css";
 import type { Locale } from "@/types/cms";

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ArrowUpRight, ExternalLink, Mail } from "lucide-react";
@@ -8,8 +9,8 @@ import { caseStudyCopy } from "@/content/work";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
 
 import { AskAssistantButton } from "./ask-assistant-button";
-import { Eyebrow, PhoneShot, SectionHead } from "./v3-page-parts";
-import { LoadSequence, ScrollLayer } from "./v3-page-motion";
+import { Eyebrow, LoadSequence, PhoneShot, SectionHead } from "./v3-page-parts";
+import { ScrollLayer } from "./v3-page-motion";
 import { categoryOf, hostOf, mobileShotOf } from "./work-data";
 
 const copy = {
@@ -82,15 +83,15 @@ export function CaseV3({ model, slug }: { model: SiteViewModel; slug: string }) 
       <section className="v3p-hero v3c-hero">
         <div className="st-container v3c-hero-grid">
           <div className="v3c-hero-copy">
-            <Reveal y={10}>
+            <div className="v3p-load" style={{ "--v3p-seq-delay": "0.05s" } as CSSProperties}>
               <Link href={`/${locale}/work`} prefetch={false} className="v3c-back">
                 <ArrowLeft size={16} aria-hidden />
                 {t.back}
               </Link>
               <Eyebrow>{project.eyebrow || project.tags[0]}</Eyebrow>
-            </Reveal>
-            <SplitHeadline text={project.title} className="v3p-h1" />
-            <Reveal delay={0.25} y={18}>
+            </div>
+            <SplitHeadline as="h1" immediate text={project.title} className="v3p-h1" />
+            <div className="v3p-load" style={{ "--v3p-seq-delay": "0.3s" } as CSSProperties}>
               <p className="v3p-lead">{project.description}</p>
               <div className="v3p-actions v3c-actions">
                 {project.href ? (
@@ -110,7 +111,7 @@ export function CaseV3({ model, slug }: { model: SiteViewModel; slug: string }) 
                 </Link>
                 <AskAssistantButton prompt={prompt} label={t.ask} className="st-btn st-btn--ghost" />
               </div>
-            </Reveal>
+            </div>
           </div>
 
           <LoadSequence className="v3c-stage" delay={0.12}>

@@ -15,6 +15,11 @@
 }
 
 /* ── type ── */
+/* Room for descenders (g, y, Arabic tails) inside the headline word masks. */
+.v3p .v3-split-mask {
+  padding-bottom: 0.16em;
+  margin-bottom: -0.16em;
+}
 .v3p-h1 {
   margin: 18px 0 0;
   max-width: 15ch;
@@ -283,9 +288,21 @@
   line-height: 1.65;
 }
 
-/* collage entrance wrapper (LoadSequence) */
+/* hero entrances in CSS (run on first paint, before hydration) */
+.v3p-seq-item,
+.v3p-load {
+  animation: v3p-rise 0.95s var(--v3-ease) both;
+  animation-delay: var(--v3p-seq-delay, 0.1s);
+}
 .v3p-seq-item {
   position: relative;
+}
+@keyframes v3p-rise {
+  from {
+    opacity: 0;
+    transform: translateY(36px) scale(0.96);
+    filter: blur(10px);
+  }
 }
 
 /* ── process track (vertical, scroll-drawn) ── */
@@ -368,6 +385,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .v3p-seq-item,
+  .v3p-load {
+    animation: none;
+  }
   .v3p-track-copy {
     opacity: 1;
     transform: none;

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Gauge, Languages, LifeBuoy, MessageCircle, Search, ShieldCheck, Smartphone } from "lucide-react";
@@ -8,8 +9,8 @@ import { Reveal, SplitHeadline, Stagger, TiltCard } from "@/components/v3/motion
 import { socialLinks } from "@/content/site";
 import { withLocale } from "@/lib/i18n";
 
-import { BrowserShot, CtaBand, Eyebrow, PhoneShot, SectionHead } from "./v3-page-parts";
-import { LoadSequence, ProcessTrack, ScrollLayer } from "./v3-page-motion";
+import { BrowserShot, CtaBand, Eyebrow, LoadSequence, PhoneShot, SectionHead } from "./v3-page-parts";
+import { ProcessTrack, ScrollLayer } from "./v3-page-motion";
 
 const copy = {
   en: {
@@ -123,11 +124,11 @@ export function ServicesV3({ model }: { model: SiteViewModel }) {
       <section className="v3p-hero v3s-hero">
         <div className="st-container v3s-hero-grid">
           <div className="v3s-hero-copy">
-            <Reveal y={14}>
+            <div className="v3p-load" style={{ "--v3p-seq-delay": "0.05s" } as CSSProperties}>
               <Eyebrow>{c.pill}</Eyebrow>
-            </Reveal>
-            <SplitHeadline text={c.title} className="v3p-h1" />
-            <Reveal delay={0.25} y={18}>
+            </div>
+            <SplitHeadline as="h1" immediate text={c.title} className="v3p-h1" />
+            <div className="v3p-load" style={{ "--v3p-seq-delay": "0.3s" } as CSSProperties}>
               <p className="v3p-lead">{c.lead}</p>
               <ul className="v3p-chips" aria-label={c.pill}>
                 {c.outcomes.map((item) => (
@@ -143,19 +144,19 @@ export function ServicesV3({ model }: { model: SiteViewModel }) {
                   {c.heroSecondary}
                 </a>
               </div>
-            </Reveal>
+            </div>
           </div>
 
           <LoadSequence className="v3s-collage" delay={0.1}>
-            <ScrollLayer speed={26} className="v3s-collage-main">
-              <TiltCard className="v3s-collage-card" max={6}>
-                <Image src="/images/service_web.png" alt={c.collageAlt[0]} fill priority sizes="(max-width: 900px) 78vw, 460px" className="v3-cover" />
-              </TiltCard>
-            </ScrollLayer>
             <ScrollLayer speed={-34} rotate={-4} className="v3s-collage-back">
               <div className="v3s-collage-card">
                 <Image src="/images/service_tech.png" alt={c.collageAlt[1]} fill sizes="(max-width: 900px) 46vw, 300px" className="v3-cover" />
               </div>
+            </ScrollLayer>
+            <ScrollLayer speed={26} className="v3s-collage-main">
+              <TiltCard className="v3s-collage-card" max={6}>
+                <Image src="/images/service_web.png" alt={c.collageAlt[0]} fill priority sizes="(max-width: 900px) 78vw, 460px" className="v3-cover" />
+              </TiltCard>
             </ScrollLayer>
             <ScrollLayer speed={-60} rotate={5} className="v3s-collage-front">
               <div className="v3s-collage-card">
@@ -286,7 +287,7 @@ export function ServicesV3({ model }: { model: SiteViewModel }) {
         </div>
       </section>
 
-      <CtaBand eyebrow={c.ctaLabel} title={c.ctaTitle} body={c.ctaBody} image="/images/service_web.png">
+      <CtaBand eyebrow={c.ctaLabel} title={c.ctaTitle} body={c.ctaBody} image="/images/hero_tech.png">
         <Link href={href("contact")} prefetch={false} className="st-btn st-btn--primary st-btn--lg">
           {c.ctaPrimary}
           <ArrowUpRight size={18} aria-hidden />

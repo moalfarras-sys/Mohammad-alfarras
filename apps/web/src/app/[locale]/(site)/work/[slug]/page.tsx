@@ -6,7 +6,6 @@ import { CaseV3 } from "@/components/v3/pages/case-v3";
 import { normalizePublicImagePath } from "@/lib/asset-url";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, creativeWorkJsonLd, jsonLdString } from "@/lib/seo-jsonld";
-import "@/styles/v3-motion.css";
 import "@/styles/v3-pages.css";
 import "@/styles/v3-work.css";
 import type { Locale } from "@/types/cms";

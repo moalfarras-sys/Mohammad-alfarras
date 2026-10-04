@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, CalendarDays, Eye, PlayCircle } from "lucide-react";
@@ -116,11 +117,11 @@ export function YoutubeV3({ model }: { model: SiteViewModel }) {
       <section className="v3p-hero v3y-hero">
         <div className="st-container">
           <div className="v3y-hero-copy">
-            <Reveal y={14}>
+            <div className="v3p-load" style={{ "--v3p-seq-delay": "0.05s" } as CSSProperties}>
               <Eyebrow>{y.pill}</Eyebrow>
-            </Reveal>
-            <SplitHeadline text={y.title} className="v3p-h1" />
-            <Reveal delay={0.25} y={18} className="v3y-hero-row">
+            </div>
+            <SplitHeadline as="h1" immediate text={y.title} className="v3p-h1" />
+            <div className="v3p-load v3y-hero-row" style={{ "--v3p-seq-delay": "0.3s" } as CSSProperties}>
               <p className="v3p-lead">{y.lead}</p>
               <div className="v3p-actions">
                 <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="st-btn st-btn--primary st-btn--lg v3y-subscribe">
@@ -134,7 +135,7 @@ export function YoutubeV3({ model }: { model: SiteViewModel }) {
                   <bdi>{handle}</bdi>
                 </span>
               </div>
-            </Reveal>
+            </div>
           </div>
 
           <div className="v3y-banner-wrap">
@@ -142,7 +143,7 @@ export function YoutubeV3({ model }: { model: SiteViewModel }) {
               src="/images/yt-channel-hero.png"
               alt={y.bannerAlt}
               priority
-              strength={40}
+              strength={22}
               className="v3y-banner"
               sizes="(max-width: 1240px) 100vw, 1240px"
             />

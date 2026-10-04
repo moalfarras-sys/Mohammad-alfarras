@@ -7,7 +7,6 @@ import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, videoObjectJsonLd, webPageJsonLd } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
 import { compactMetric, youtubeChannel } from "@/content/site-data";
-import "@/styles/v3-motion.css";
 import "@/styles/v3-pages.css";
 import "@/styles/v3-youtube.css";
 import type { Locale } from "@/types/cms";

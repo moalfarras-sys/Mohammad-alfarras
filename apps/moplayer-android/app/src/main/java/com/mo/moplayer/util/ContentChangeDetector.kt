@@ -113,6 +113,19 @@ class ContentChangeDetector @Inject constructor(
      * Compare two snapshots and detect changes
      */
     fun detectChanges(oldSnapshot: ContentSnapshot, newSnapshot: ContentSnapshot): ContentChangeSummary {
+        // No earlier snapshot (first sync, new source, or an update that reset the counters):
+        // this is the baseline, not "44,000 new items".
+        val hasBaseline = oldSnapshot.channelsCount > 0 || oldSnapshot.moviesCount > 0 ||
+            oldSnapshot.seriesCount > 0 || oldSnapshot.categoriesCount > 0
+        if (!hasBaseline) {
+            return ContentChangeSummary(
+                hasChanges = false,
+                newChannels = 0,
+                newMovies = 0,
+                newSeries = 0,
+                newCategories = 0
+            )
+        }
         val newChannels = maxOf(0, newSnapshot.channelsCount - oldSnapshot.channelsCount)
         val newMovies = maxOf(0, newSnapshot.moviesCount - oldSnapshot.moviesCount)
         val newSeries = maxOf(0, newSnapshot.seriesCount - oldSnapshot.seriesCount)

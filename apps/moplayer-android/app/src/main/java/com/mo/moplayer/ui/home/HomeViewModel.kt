@@ -165,7 +165,7 @@ class HomeViewModel @Inject constructor(
 
                     launch {
                         repository.getRecentlyAddedMovies(server.id, 20)
-                            .distinctUntilChangedBy { rows -> rows.map { it.movieId } }
+                            .distinctUntilChanged()
                             .collect { recentMovies ->
                                 updateRow(
                                     key = "recent_movies",
@@ -207,7 +207,7 @@ class HomeViewModel @Inject constructor(
 
                     launch {
                         repository.getRecentlyAddedSeries(server.id, 20)
-                            .distinctUntilChangedBy { rows -> rows.map { it.seriesId } }
+                            .distinctUntilChanged()
                             .collect { recentSeries ->
                                 updateRow(
                                     key = "recent_series",

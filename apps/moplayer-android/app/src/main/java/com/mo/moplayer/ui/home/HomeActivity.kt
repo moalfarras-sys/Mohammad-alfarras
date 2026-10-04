@@ -177,7 +177,30 @@ class HomeActivity : BaseTvActivity() {
             TvNavigationManager.restoreFocusState(screenId, binding.root)
             ensureHomeFocus()
         }
+        installFocusGuard()
         scheduleDeferredStartup()
+    }
+
+    private var lastKeyAtMs = 0L
+
+    /**
+     * When a row is refreshed (new ratings or posters after a sync) its focused card can be
+     * rebound, and Android then hands focus to the first focusable view, the weather widget. If
+     * focus leaves the content without a key press, put it back on the content.
+     */
+    private fun installFocusGuard() {
+        binding.root.viewTreeObserver.addOnGlobalFocusChangeListener { oldFocus, newFocus ->
+            val keyDriven = android.os.SystemClock.uptimeMillis() - lastKeyAtMs < 400
+            if (keyDriven || newFocus == null) return@addOnGlobalFocusChangeListener
+            // A rebound card is already detached when focus moves, so its parent chain is gone.
+            val leftContent = oldFocus == null || !oldFocus.isAttachedToWindow ||
+                isViewInParent(oldFocus, binding.rvContent)
+            val landedInHeader = isViewInParent(newFocus, binding.topSignalBar) || isViewInParent(newFocus, binding.topBar)
+            val untouchedStart = !userHasNavigated
+            if ((leftContent || untouchedStart) && landedInHeader && homeRowsEmpty.not()) {
+                binding.rvContent.post { requestPrimaryContentFocus() }
+            }
+        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -935,7 +958,7 @@ class HomeActivity : BaseTvActivity() {
 
             if (shouldShiftToContent && requestPrimaryContentFocus()) {
                 initialContentFocusApplied = true
-            } else if (shouldShiftToContent && attempt < 8) {
+            } else if (shouldShiftToContent && attempt < 20) {
                 // The nested row lists may not be laid out yet on the first pass.
                 scheduleInitialContentFocus(attempt + 1)
             }
@@ -1990,7 +2013,10 @@ class HomeActivity : BaseTvActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN) userHasNavigated = true
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            userHasNavigated = true
+            lastKeyAtMs = android.os.SystemClock.uptimeMillis()
+        }
         if (event.action == KeyEvent.ACTION_DOWN &&
             (event.keyCode == KeyEvent.KEYCODE_DPAD_UP ||
                 event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||

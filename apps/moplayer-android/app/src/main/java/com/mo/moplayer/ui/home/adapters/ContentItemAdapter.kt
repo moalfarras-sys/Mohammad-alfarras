@@ -269,12 +269,11 @@ class ContentItemAdapter(
         private fun applyPosterMetrics() {
             val metrics = tvUiPreferences.posterMetrics(posterSize)
             val density = binding.root.resources.displayMetrics.density
+            // Width comes from the poster size setting; the poster keeps 2:3 (AspectRatioFrameLayout)
+            // and the two-line title sits below it, so nothing is clipped at any size.
             binding.root.layoutParams = binding.root.layoutParams.apply {
                 width = (metrics.widthDp * density).toInt()
-                height = (metrics.contentHeightDp * density).toInt()
-            }
-            binding.posterCard?.layoutParams = binding.posterCard?.layoutParams?.apply {
-                height = (metrics.heightDp * density).toInt()
+                height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
             }
             binding.tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, metrics.titleTextSp)
         }

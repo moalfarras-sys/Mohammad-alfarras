@@ -43,7 +43,9 @@ class M3uParser {
         val totalLines: Int = 0,
         val skippedEntries: Int = 0,
         val duplicateEntries: Int = 0,
-        val itemCount: Int = 0
+        val itemCount: Int = 0,
+        /** XMLTV guide announced by the playlist header (`url-tvg` / `x-tvg-url`), if any. */
+        val epgUrl: String? = null
     )
     
     companion object {
@@ -53,6 +55,14 @@ class M3uParser {
         private val LOGO_PATTERN = Regex("tvg-logo=\"([^\"]*)\"", RegexOption.IGNORE_CASE)
         private val TVG_ID_PATTERN = Regex("tvg-id=\"([^\"]*)\"", RegexOption.IGNORE_CASE)
         private val TVG_NAME_PATTERN = Regex("tvg-name=\"([^\"]*)\"", RegexOption.IGNORE_CASE)
+        private val HEADER_EPG_PATTERN = Regex("(?:url-tvg|x-tvg-url)=\"([^\"]+)\"", RegexOption.IGNORE_CASE)
+
+        /** First guide URL of an `#EXTM3U url-tvg="a.xml,b.xml"` header line. */
+        fun headerEpgUrl(headerLine: String): String? =
+            HEADER_EPG_PATTERN.find(headerLine)?.groupValues?.getOrNull(1)
+                ?.split(',')
+                ?.map { it.trim() }
+                ?.firstOrNull { it.startsWith("http://", true) || it.startsWith("https://", true) }
     }
     
     fun parse(content: String): ParseResult {
@@ -160,13 +170,17 @@ class M3uParser {
         var itemCount = 0
 
         var currentInfo: String? = null
+        var headerEpgUrl: String? = null
 
         for (line in lines) {
             totalLines += 1
             val trimmedLine = line.trim()
 
             when {
-                trimmedLine.isEmpty() || trimmedLine.startsWith("#EXTM3U") -> Unit
+                trimmedLine.startsWith("#EXTM3U") -> {
+                    if (headerEpgUrl == null) headerEpgUrl = headerEpgUrl(trimmedLine)
+                }
+                trimmedLine.isEmpty() -> Unit
                 trimmedLine.startsWith("#EXTINF:") -> {
                     currentInfo = trimmedLine
                 }
@@ -216,7 +230,8 @@ class M3uParser {
             totalLines = totalLines,
             skippedEntries = skippedEntries,
             duplicateEntries = duplicateEntries,
-            itemCount = itemCount
+            itemCount = itemCount,
+            epgUrl = headerEpgUrl
         )
     }
     

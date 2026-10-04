@@ -1,5 +1,10 @@
 <resources>
     <!-- ShimmerView attributes -->
+    <declare-styleable name="AspectRatioFrameLayout">
+        <!-- Height divided by width (1.5 = 2:3 poster, 0.5625 = 16:9 video). -->
+        <attr name="aspectRatio" format="float" />
+    </declare-styleable>
+
     <declare-styleable name="ShimmerView">
         <attr name="shimmerCornerRadius" format="dimension" />
         <attr name="shimmerColor" format="color" />

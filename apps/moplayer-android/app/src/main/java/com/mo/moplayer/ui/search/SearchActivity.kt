@@ -259,18 +259,11 @@ class SearchActivity : BaseTvActivity() {
         )
 
         binding.rvSearchResults.apply {
-            // Use responsive grid layout that adapts to screen size
-            val cardWidthDp = LayoutHelper.getCardWidthDp(this@SearchActivity)
-            val cardMarginDp = LayoutHelper.getCardMarginDp(this@SearchActivity)
-            val screenMarginDp = LayoutHelper.getScreenMarginHorizontalDp(this@SearchActivity)
-            
-            layoutManager = LayoutHelper.createResponsiveGridLayoutManager(
-                context = this@SearchActivity,
-                cardWidthDp = cardWidthDp,
-                cardMarginDp = cardMarginDp,
-                screenMarginHorizontalDp = screenMarginDp,
-                minColumns = 2,
-                maxColumns = 8
+            // Columns follow the grid's real width; each card fills its cell at poster ratio.
+            val columnWidth = (SEARCH_POSTER_WIDTH_DP * resources.displayMetrics.density).toInt() +
+                resources.getDimensionPixelSize(com.mo.moplayer.R.dimen.card_margin) * 2
+            layoutManager = com.mo.moplayer.ui.common.AutoFitGridLayoutManager(
+                this@SearchActivity, columnWidth, minColumns = 3, maxColumns = 10
             )
             adapter = searchAdapter
             setHasFixedSize(true)
@@ -450,5 +443,9 @@ class SearchActivity : BaseTvActivity() {
             }
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    private companion object {
+        const val SEARCH_POSTER_WIDTH_DP = 104
     }
 }

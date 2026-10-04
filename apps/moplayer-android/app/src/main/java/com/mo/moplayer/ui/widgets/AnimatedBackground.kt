@@ -52,6 +52,7 @@ class AnimatedBackground @JvmOverloads constructor(
     // Paint objects
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val backgroundPaint = Paint()
+    private val photoDimPaint = Paint()
     private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     
     // View dimensions
@@ -112,6 +113,16 @@ class AnimatedBackground @JvmOverloads constructor(
     
     // Custom background image
     private var customBitmap: Bitmap? = null
+
+    /**
+     * Darkening drawn over a photo background (city wallpaper or custom image) so posters, lists
+     * and text on top stay readable. Screens with their own scrim (Home) can lower it.
+     */
+    var photoDim: Float = 0.6f
+        set(value) {
+            field = value.coerceIn(0f, 0.95f)
+            invalidate()
+        }
     private var blurredBitmap: Bitmap? = null
     private var savedImagePath: String? = null
     
@@ -666,6 +677,10 @@ class AnimatedBackground @JvmOverloads constructor(
         )
         canvas.drawRect(0f, 0f, viewWidth, viewHeight, backgroundPaint)
         backgroundPaint.shader = null
+        if (photoDim > 0f) {
+            photoDimPaint.color = Color.argb((photoDim * 255).toInt(), 4, 10, 22)
+            canvas.drawRect(0f, 0f, viewWidth, viewHeight, photoDimPaint)
+        }
     }
 
     private fun drawAmbientBase(canvas: Canvas, topBase: Int, bottomBase: Int) {

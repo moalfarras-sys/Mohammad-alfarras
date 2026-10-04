@@ -93,7 +93,7 @@ class SettingsViewModel @Inject constructor(
             val snapshot = repository.getContentSnapshot(server.id)
             SourceStatusItem(
                 id = server.id,
-                name = server.name,
+                name = com.mo.moplayer.data.util.ProviderSourceUrlParser.displayName(server.name, server.serverUrl),
                 type = server.serverType,
                 isActive = server.isActive,
                 endpoint = maskEndpoint(server),

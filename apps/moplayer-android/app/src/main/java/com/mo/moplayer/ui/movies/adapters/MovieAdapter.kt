@@ -61,6 +61,7 @@ class MovieAdapter(
         val binding = ItemContentCardBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
+        com.mo.moplayer.ui.common.PosterCardSizing.fitGridCell(binding.root, parent)
         return MovieViewHolder(binding)
     }
 
@@ -102,7 +103,7 @@ class MovieAdapter(
                     Glide.with(binding.root.context)
                         .load(movie.streamIcon)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .override(90, 135)
+                        .override(240, 360)
                         .thumbnail(0.1f)
                         .placeholder(R.drawable.ic_content_placeholder)
                         .error(R.drawable.ic_content_placeholder)

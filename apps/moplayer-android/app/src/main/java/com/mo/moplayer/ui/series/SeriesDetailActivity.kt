@@ -483,9 +483,12 @@ class SeriesDetailActivity : BaseTvActivity() {
     private fun playEpisode(episode: SeriesDetailViewModel.Episode) {
         val streamUrl = episode.streamUrl
         if (streamUrl.isNullOrEmpty()) {
-            Toast.makeText(this, "Stream URL not available", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.error_stream_unavailable, Toast.LENGTH_SHORT).show()
             return
         }
+        // Close the focus preview first: one-connection accounts would refuse the episode while
+        // the preview stream is still open.
+        videoPreviewManager?.stopPreview()
 
         lifecycleScope.launch {
             val extraData =

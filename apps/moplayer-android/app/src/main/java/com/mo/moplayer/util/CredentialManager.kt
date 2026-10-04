@@ -25,6 +25,8 @@ class CredentialManager @Inject constructor(
         private const val PREFS_FILE = "moplayer_secure_credentials"
         private const val KEY_PREFIX_USER = "cred_%d_user"
         private const val KEY_PREFIX_PASS = "cred_%d_pass"
+        private const val KEY_PREFIX_PLAYLIST = "cred_%d_playlist_url"
+        private const val KEY_PREFIX_EPG = "cred_%d_epg_url"
     }
 
     private val prefs: SharedPreferences? by lazy {
@@ -83,6 +85,8 @@ class CredentialManager @Inject constructor(
             prefs?.edit()
                 ?.remove(KEY_PREFIX_USER.format(serverId))
                 ?.remove(KEY_PREFIX_PASS.format(serverId))
+                ?.remove(KEY_PREFIX_PLAYLIST.format(serverId))
+                ?.remove(KEY_PREFIX_EPG.format(serverId))
                 ?.apply()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to delete credentials for server $serverId: ${e.message}", e)
@@ -102,4 +106,27 @@ class CredentialManager @Inject constructor(
             }
         }
     }
+
+    /**
+     * Playlist and XMLTV guide links of an M3U source. They can carry provider credentials, so
+     * they live here (encrypted, on this device only) and never in Room or on the website.
+     */
+    fun saveSourceLinks(serverId: Long, playlistUrl: String?, epgUrl: String?) {
+        try {
+            prefs?.edit()?.apply {
+                if (playlistUrl.isNullOrBlank()) remove(KEY_PREFIX_PLAYLIST.format(serverId))
+                else putString(KEY_PREFIX_PLAYLIST.format(serverId), playlistUrl.trim())
+                if (epgUrl.isNullOrBlank()) remove(KEY_PREFIX_EPG.format(serverId))
+                else putString(KEY_PREFIX_EPG.format(serverId), epgUrl.trim())
+            }?.apply()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to save source links for server $serverId: ${e.message}", e)
+        }
+    }
+
+    fun getEpgUrl(serverId: Long): String? =
+        runCatching { prefs?.getString(KEY_PREFIX_EPG.format(serverId), null) }.getOrNull()?.takeIf { it.isNotBlank() }
+
+    fun getPlaylistUrl(serverId: Long): String? =
+        runCatching { prefs?.getString(KEY_PREFIX_PLAYLIST.format(serverId), null) }.getOrNull()?.takeIf { it.isNotBlank() }
 }

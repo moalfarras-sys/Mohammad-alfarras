@@ -62,6 +62,10 @@ abstract class BaseThemedActivity : AppCompatActivity() {
     private val exitHelper: ExitHelper by lazy { ExitHelper(this) }
     private var themeAndBackgroundObserversStarted: Boolean = false
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.mo.moplayer.util.DisplayScale.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         // Keep the TV screen awake for the entire app lifetime — IPTV users browse for

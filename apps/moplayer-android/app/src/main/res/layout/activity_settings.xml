@@ -1381,6 +1381,50 @@
 
                     </LinearLayout>
 
+                    <!-- Interface size: one grid on every TV, adjustable by the viewer -->
+                    <LinearLayout
+                        android:id="@+id/optionInterfaceSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/settings_card_padding"
+                        android:focusable="true">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_interface_size"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvInterfaceSizeValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="Standard" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/htc_text_tertiary"
+                            tools:ignore="ContentDescription" />
+
+                    </LinearLayout>
+
                     <!-- Football Widget Section -->
                     <TextView
                         android:layout_width="wrap_content"

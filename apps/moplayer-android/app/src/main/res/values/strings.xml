@@ -32,12 +32,12 @@
     <string name="login_choice_xtream">Add Xtream source</string>
     <string name="login_choice_xtream_subtitle">Server URL, username, and password</string>
     <string name="login_choice_m3u">Add M3U playlist</string>
-    <string name="home_empty_title">Your TV OS is ready</string>
-    <string name="home_empty_subtitle">Add content or refresh the active source to fill the dashboard.</string>
-    <string name="home_empty_eyebrow">CONNECTED TO DIGITAL OS</string>
+    <string name="home_empty_title">MoPlayer is ready</string>
+    <string name="home_empty_subtitle">Refresh your source in Settings, or add one from Settings &gt; Server management.</string>
+    <string name="home_empty_eyebrow">MOPLAYER</string>
     <string name="home_source_ready_title">Your source is ready</string>
-    <string name="home_source_ready_subtitle">Open Live, Movies, or Series from the dock. Loaded: %1$d live, %2$d movies, %3$d series.</string>
-    <string name="home_source_ready_pending_subtitle">Open Live, Movies, or Series from the dock. Source: %1$s.</string>
+    <string name="home_source_ready_subtitle">Open Live TV, Movies or Series from the dock below. Loaded: %1$d channels, %2$d movies, %3$d series.</string>
+    <string name="home_source_ready_pending_subtitle">Loading your library from %1$s. Live TV, Movies and Series open as soon as it is ready.</string>
     <string name="source_status_label_format">%1$s - %2$s</string>
     <string name="login_choice_m3u_subtitle">Playlist URL or local M3U file</string>
     <string name="login_back_to_methods">Back to methods</string>
@@ -62,9 +62,13 @@
     <string name="activation_backend_waiting">Waiting for activation service</string>
     <string name="activation_backend_waiting_body">The activation service did not answer yet. Check your connection or try again.</string>
     <string name="activation_service_unavailable">Activation service unavailable</string>
-    <string name="activation_service_unavailable_body">A local code is shown for the screen, but backend activation could not create a session. Try Check status again.</string>
+    <string name="activation_service_unavailable_body">moalfarras.space could not be reached. MoPlayer keeps trying automatically; check the TV internet connection or press Check status.</string>
     <string name="activation_completed_login_hint">Activated. Choose Xtream or M3U to add your content source.</string>
     <string name="website_source_received">Website source received. MoPlayer is testing and importing it now…</string>
+    <string name="activation_code_placeholder">MO-····</string>
+    <string name="activation_expired_renewing">Code expired. Creating a new one…</string>
+    <string name="error_stream_unavailable">This episode has no stream link from the provider.</string>
+    <string name="live_preview_ok_to_watch">Press OK to watch</string>
     <string name="activation_refresh">Check status</string>
     <string name="activation_add_source">Add source</string>
     <string name="activation_privacy">Private app device ID. Hardware identifiers are not used.</string>
@@ -411,6 +415,11 @@
     <string name="settings_language">Language</string>
     <string name="language_english">English</string>
     <string name="language_arabic">العربية</string>
+    <string name="language_system">Device language</string>
+    <string name="settings_interface_size">Interface size</string>
+    <string name="settings_interface_size_compact">Compact</string>
+    <string name="settings_interface_size_standard">Standard</string>
+    <string name="settings_interface_size_large">Large</string>
     
     
     <string name="cd_logo">MoPlayer brand mark</string>

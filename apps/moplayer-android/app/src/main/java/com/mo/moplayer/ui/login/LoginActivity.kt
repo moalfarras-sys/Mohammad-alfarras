@@ -155,6 +155,10 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.mo.moplayer.util.DisplayScale.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         val splashScreen = installSplashScreen()
@@ -839,7 +843,11 @@ class LoginActivity : AppCompatActivity() {
             }
             "m3u" -> {
                 showSourceForm(LoginViewModel.LoginTab.M3U)
-                viewModel.importM3uFromUrl(source.optString("playlistUrl"), name)
+                viewModel.importM3uFromUrl(
+                    source.optString("playlistUrl"),
+                    name,
+                    source.optString("epgUrl").takeIf { it.startsWith("http", ignoreCase = true) }
+                )
             }
             else -> {
                 binding.tvErrorClean.text = getString(R.string.website_source_failed)

@@ -97,7 +97,9 @@ class SeriesActivity : BaseTvActivity() {
         setupSearchButton()
         observeViewModel()
 
-        previewBinding.previewPanel.visibility = View.GONE
+        // Reserve the preview panel's space from the start: the grid keeps the same columns
+        // when the first card is focused instead of reflowing under the viewer.
+        previewBinding.previewPanel.visibility = View.INVISIBLE
         binding.animatedBackground.pauseAnimation()
         binding.root.postDelayed({ binding.animatedBackground.resumeAnimation() }, 320L)
     }
@@ -346,14 +348,7 @@ class SeriesActivity : BaseTvActivity() {
         )
 
         binding.rvMovies.apply {
-            layoutManager = LayoutHelper.createResponsiveGridLayoutManager(
-                    context = this@SeriesActivity,
-                    cardWidthDp = 180,
-                    cardMarginDp = LayoutHelper.getCardMarginDp(this@SeriesActivity),
-                    screenMarginHorizontalDp = LayoutHelper.getScreenMarginHorizontalDp(this@SeriesActivity),
-                    minColumns = 4,
-                    maxColumns = 9
-            )
+            layoutManager = posterGridLayoutManager(tvUiPreferences.posterMetrics(com.mo.moplayer.util.TvUiPreferences.PosterSize.MEDIUM).widthDp)
             adapter = seriesAdapter
             setHasFixedSize(true)
             recyclerViewOptimizer.optimizeChannelList(this)
@@ -372,14 +367,7 @@ class SeriesActivity : BaseTvActivity() {
                 val metrics = tvUiPreferences.posterMetrics(posterSize)
                 binding.rvMovies.layoutManager =
                     if (layoutStyle == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.GRID) {
-                        LayoutHelper.createResponsiveGridLayoutManager(
-                            context = this@SeriesActivity,
-                            cardWidthDp = metrics.widthDp,
-                            cardMarginDp = LayoutHelper.getCardMarginDp(this@SeriesActivity),
-                            screenMarginHorizontalDp = LayoutHelper.getScreenMarginHorizontalDp(this@SeriesActivity),
-                            minColumns = 4,
-                            maxColumns = 9
-                        )
+                        posterGridLayoutManager(metrics.widthDp)
                     } else {
                         androidx.recyclerview.widget.GridLayoutManager(this@SeriesActivity, 1)
                     }
@@ -550,5 +538,13 @@ class SeriesActivity : BaseTvActivity() {
         if (::seriesAdapter.isInitialized) {
             seriesAdapter.updateThemeColor(color)
         }
+    }
+
+    /** Grid whose column count follows the space it really has (the preview panel takes part). */
+    private fun posterGridLayoutManager(posterWidthDp: Int): com.mo.moplayer.ui.common.AutoFitGridLayoutManager {
+        val density = resources.displayMetrics.density
+        val marginPx = resources.getDimensionPixelSize(R.dimen.card_margin)
+        val columnWidth = (posterWidthDp * density).toInt() + marginPx * 2
+        return com.mo.moplayer.ui.common.AutoFitGridLayoutManager(this, columnWidth, minColumns = 3, maxColumns = 10)
     }
 }

@@ -26,7 +26,8 @@ import kotlinx.coroutines.withContext
 @HiltViewModel
 class LiveTvViewModel @Inject constructor(
     private val repository: IptvRepository,
-    private val networkErrorHandler: NetworkErrorHandler
+    private val networkErrorHandler: NetworkErrorHandler,
+    private val xmltvEpgRepository: com.mo.moplayer.data.epg.XmltvEpgRepository
 ) : ViewModel() {
 
     private val _channels = MutableLiveData<List<ChannelEntity>>()
@@ -107,6 +108,10 @@ class LiveTvViewModel @Inject constructor(
                 val server = repository.getActiveServerSync()
                 if (server != null) {
                     serverId = server.id
+                    // M3U sources with an XMLTV link fill the guide in the background.
+                    if (!server.serverType.equals("xtream", ignoreCase = true)) {
+                        xmltvEpgRepository.refreshInBackground(server.id)
+                    }
                     try {
                         val cats = withContext(Dispatchers.IO) {
                             repository.getLiveCategories(server.id).first()

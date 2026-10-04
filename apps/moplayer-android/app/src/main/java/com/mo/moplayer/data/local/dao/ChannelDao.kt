@@ -50,9 +50,19 @@ interface ChannelDao {
     suspend fun getChannelCountByCategory(serverId: Long, categoryId: String): Int
 
     // --- Stale-content pruning support ---
+    @Query("SELECT epgChannelId, streamId, name FROM channels WHERE serverId = :serverId")
+    suspend fun getEpgKeys(serverId: Long): List<ChannelEpgKey>
+
     @Query("SELECT channelId FROM channels WHERE serverId = :serverId")
     suspend fun getChannelIds(serverId: Long): List<String>
 
     @Query("DELETE FROM channels WHERE channelId IN (:channelIds)")
     suspend fun deleteChannelsByIds(channelIds: List<String>)
 }
+
+/** Minimal channel columns used to map an XMLTV guide onto a playlist. */
+data class ChannelEpgKey(
+    val epgChannelId: String?,
+    val streamId: Int,
+    val name: String
+)

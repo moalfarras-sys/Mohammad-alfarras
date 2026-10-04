@@ -50,6 +50,7 @@ class FavoritesAdapter(
         val binding = ItemContentCardBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
+        com.mo.moplayer.ui.common.PosterCardSizing.fitGridCell(binding.root, parent)
         return FavoriteViewHolder(binding)
     }
 

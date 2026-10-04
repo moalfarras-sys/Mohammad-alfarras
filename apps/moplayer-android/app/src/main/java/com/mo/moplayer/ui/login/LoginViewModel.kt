@@ -24,7 +24,8 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val repository: IptvRepository,
     private val okHttpClient: OkHttpClient,
-    private val application: Application
+    private val application: Application,
+    private val xmltvEpgRepository: com.mo.moplayer.data.epg.XmltvEpgRepository
 ) : ViewModel() {
     
     private val _loginState = MutableLiveData<LoginState>(LoginState.Idle)
@@ -128,7 +129,7 @@ class LoginViewModel @Inject constructor(
     /**
      * Import M3U playlist from URL
      */
-    fun importM3uFromUrl(url: String, playlistName: String) {
+    fun importM3uFromUrl(url: String, playlistName: String, epgUrl: String? = null) {
         if (url.isBlank()) {
             _loginState.value = LoginState.Error("Please enter a playlist URL")
             return
@@ -147,7 +148,7 @@ class LoginViewModel @Inject constructor(
                     return@launch
                 }
                 
-                importM3uFromNetwork(url, name)
+                importM3uFromNetwork(url, name, epgUrl)
             } catch (e: Exception) {
                 _isLoading.value = false
                 _loginState.value = LoginState.Error("Error: ${e.message}")
@@ -245,7 +246,7 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private suspend fun importM3uFromNetwork(url: String, name: String) = withContext(Dispatchers.IO) {
+    private suspend fun importM3uFromNetwork(url: String, name: String, epgUrl: String?) = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
             .url(url)
@@ -255,15 +256,21 @@ class LoginViewModel @Inject constructor(
             okHttpClient.newCall(request).execute().use { response ->
                 if (response.isSuccessful && response.body != null) {
                     _loadingMessage.postValue("Parsing playlist...")
-                    val result = repository.importM3uPlaylist(response.body!!.byteStream(), name) { imported ->
+                    val result = repository.importM3uPlaylist(
+                        inputStream = response.body!!.byteStream(),
+                        serverName = name,
+                        playlistUrl = url,
+                        epgUrl = epgUrl
+                    ) { imported ->
                         _loadingMessage.postValue(
                             application.getString(R.string.login_parsing_playlist_progress, imported)
                         )
                     }
                     when (result) {
                         is Resource.Success -> {
+                            xmltvEpgRepository.refreshInBackground(result.data!!, force = true)
                             _isLoading.postValue(false)
-                            _loginState.postValue(LoginState.M3uImported(result.data!!))
+                            _loginState.postValue(LoginState.M3uImported(result.data))
                         }
                         is Resource.Error -> {
                             _isLoading.postValue(false)
@@ -361,12 +368,9 @@ class LoginViewModel @Inject constructor(
         return try {
             val uri = java.net.URI(url)
             val path = uri.path ?: ""
-            val fileName = path.substringAfterLast('/')
-            if (fileName.isNotBlank()) {
-                fileName.substringBeforeLast('.').replace("_", " ").replace("-", " ")
-            } else {
-                uri.host ?: "My Playlist"
-            }
+            val fileName = path.substringAfterLast('/').substringBeforeLast('.')
+                .replace("_", " ").replace("-", " ").trim()
+            ProviderSourceUrlParser.displayName(fileName, url)
         } catch (e: Exception) {
             "My Playlist"
         }

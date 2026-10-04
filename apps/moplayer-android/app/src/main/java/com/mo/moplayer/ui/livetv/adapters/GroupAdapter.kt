@@ -204,7 +204,8 @@ class GroupAdapter(
                     focusRing = null,
                     focusedElevation = 10f,
                     restingElevation = 2f,
-                    translationYFocused = 0f
+                    translationYFocused = 0f,
+                    focusedScale = com.mo.moplayer.ui.common.design.LiquidGlassTokens.LIST_ROW_FOCUS_SCALE
                 )
 
                 // Glow animation

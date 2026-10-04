@@ -82,7 +82,7 @@
             android:id="@+id/leftPanel"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="28"
+            android:layout_weight="26"
             android:layout_marginStart="18dp"
             android:layout_marginTop="18dp"
             android:layout_marginBottom="18dp"
@@ -171,7 +171,7 @@
             android:id="@+id/centerPanel"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="54"
+            android:layout_weight="47"
             android:layout_marginTop="18dp"
             android:layout_marginBottom="18dp"
             android:background="@drawable/bg_panel_floating_glass"
@@ -261,7 +261,7 @@
             android:id="@+id/previewPanel"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="18"
+            android:layout_weight="27"
             android:layout_marginTop="18dp"
             android:layout_marginEnd="18dp"
             android:layout_marginBottom="18dp"
@@ -269,12 +269,12 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Mini Video Preview Container -->
-            <FrameLayout
+            <!-- Mini Video Preview Container: always 16:9; shows the channel logo when no video -->
+            <com.mo.moplayer.ui.common.AspectRatioFrameLayout
                 android:id="@+id/miniPreviewContainer"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1">
+                android:layout_height="wrap_content"
+                app:aspectRatio="0.5625">
 
                 <!-- Preview Glow Background -->
                 <View
@@ -319,8 +319,9 @@
 
                         <ImageView
                             android:id="@+id/ivPreviewLogo"
-                            android:layout_width="80dp"
-                            android:layout_height="80dp"
+                            android:layout_width="120dp"
+                            android:layout_height="68dp"
+                            android:scaleType="fitCenter"
                             android:src="@drawable/ic_placeholder_channel"
                             tools:ignore="ContentDescription" />
 
@@ -328,7 +329,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
-                            android:text="@string/preview"
+                            android:text="@string/live_preview_ok_to_watch"
                             android:textColor="@color/liquid_text_tertiary"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -351,7 +352,7 @@
                     android:textSize="10sp"
                     android:textStyle="bold" />
 
-            </FrameLayout>
+            </com.mo.moplayer.ui.common.AspectRatioFrameLayout>
 
             <!-- Channel Info Card -->
             <androidx.cardview.widget.CardView
@@ -405,7 +406,6 @@
                                 android:id="@+id/tvChannelNumber"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:tag="accent_text"
                                 android:background="@drawable/bg_channel_number_badge"
                                 android:paddingHorizontal="10dp"
                                 android:paddingVertical="3dp"
@@ -421,10 +421,12 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:ellipsize="end"
-                                android:maxLines="1"
+                                android:maxLines="2"
+                                android:textDirection="locale"
+                                android:textAlignment="viewStart"
                                 android:tag="accent_text"
                                 android:textColor="@color/liquid_text_primary"
-                                android:textSize="16sp"
+                                android:textSize="15sp"
                                 android:textStyle="bold"
                                 tools:text="Discovery Channel HD" />
 
@@ -571,11 +573,17 @@
 
             </androidx.cardview.widget.CardView>
 
+            <!-- Pushes the clock to the bottom of the panel -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
             <!-- Clock Display -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:gravity="center"
                 android:orientation="vertical">
 

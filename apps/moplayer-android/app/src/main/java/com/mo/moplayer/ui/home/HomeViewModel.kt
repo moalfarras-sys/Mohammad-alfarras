@@ -81,10 +81,21 @@ class HomeViewModel @Inject constructor(
 
     private fun observeContent() {
         viewModelScope.launch {
+            var observedServerId: Long? = null
+            var observedOnce = false
             repository.getActiveServer().collectLatest { server ->
-                contentObserverJob?.cancel()
                 _activeServer.value = server
                 _activeServerLiveData.value = server
+                // The server row also changes when its subscription info or sync status is
+                // refreshed; only a different source should rebuild the rows (otherwise Home
+                // flickers empty and loses focus every time the account is re-checked).
+                if (observedOnce && server?.id == observedServerId) {
+                    server?.let { loadDashboardState(it) }
+                    return@collectLatest
+                }
+                observedOnce = true
+                observedServerId = server?.id
+                contentObserverJob?.cancel()
 
                 if (server == null) {
                     rowCache.clear()
@@ -218,7 +229,7 @@ class HomeViewModel @Inject constructor(
             val snapshot = repository.getContentSnapshot(server.id)
             val syncState = repository.getServerSyncState(server.id)
             _dashboardState.value = HomeDashboardState(
-                sourceName = server.name,
+                sourceName = com.mo.moplayer.data.util.ProviderSourceUrlParser.displayName(server.name, server.serverUrl),
                 sourceType = server.serverType,
                 isActive = server.isActive,
                 liveCount = syncState?.totalChannels?.takeIf { it > 0 } ?: snapshot.channelsCount,

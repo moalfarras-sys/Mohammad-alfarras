@@ -283,7 +283,7 @@ class PlayerActivity : BaseTvActivity() {
             loadPlayerSettings()
 
             binding.tvTitle.text = title
-            binding.tvSubtitle.text = contentType
+            binding.tvSubtitle.text = contentTypeLabel()
             updatePlaybackChrome()
 
             if (resumePosition == 0L && contentId.isNotEmpty()) {
@@ -374,7 +374,7 @@ class PlayerActivity : BaseTvActivity() {
     
     private suspend fun initInternalPlayer() {
         binding.tvTitle.text = title
-        binding.tvSubtitle.text = contentType
+        binding.tvSubtitle.text = contentTypeLabel()
 
         if (resumePosition == 0L && contentId.isNotEmpty()) {
             resumePosition = loadSavedPositionSuspend()
@@ -2137,5 +2137,12 @@ class PlayerActivity : BaseTvActivity() {
             } catch (_: Exception) {
             }
         }.start()
+    }
+
+    /** Localised label for the header ("Movies", "Series", "Live") instead of the raw type code. */
+    private fun contentTypeLabel(): String = when (contentType.uppercase(java.util.Locale.ROOT)) {
+        "LIVE" -> getString(R.string.nav_live)
+        "SERIES", "EPISODE" -> getString(R.string.nav_series)
+        else -> getString(R.string.nav_movies)
     }
 }

@@ -44,7 +44,7 @@
     <dimen name="card_poster_height">156dp</dimen>
     <dimen name="card_content_height">202dp</dimen>
     <dimen name="content_row_items_height">238dp</dimen>
-    <dimen name="card_title_size">10sp</dimen>
+    <dimen name="card_title_size">11.5sp</dimen>
     
     <!-- Flip Clock - Larger for 4K -->
     <dimen name="flip_clock_digit_width">48dp</dimen>

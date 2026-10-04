@@ -3,31 +3,17 @@
      soft focus halo. Pairs with a dark icon tint for maximum on-TV contrast. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- FOCUSED -->
+    <!-- FOCUSED: a halo drawn outside the view bounds is clipped into a dark square, so the
+         focus state is a brighter fill with a thick white ring (the pop animator adds the lift). -->
     <item android:state_focused="true">
-        <layer-list>
-            <item android:left="-7dp" android:top="-7dp" android:right="-7dp" android:bottom="-7dp">
-                <shape android:shape="oval">
-                    <gradient
-                        android:type="radial"
-                        android:gradientRadius="74dp"
-                        android:centerX="0.5"
-                        android:centerY="0.5"
-                        android:startColor="#8000E5FF"
-                        android:endColor="#0000E5FF" />
-                </shape>
-            </item>
-            <item>
-                <shape android:shape="oval">
-                    <gradient
-                        android:type="linear"
-                        android:angle="90"
-                        android:startColor="@color/cinematic_cyan_light"
-                        android:endColor="@color/cinematic_cyan" />
-                    <stroke android:width="2.5dp" android:color="#F2FFFFFF" />
-                </shape>
-            </item>
-        </layer-list>
+        <shape android:shape="oval">
+            <gradient
+                android:type="linear"
+                android:angle="90"
+                android:startColor="@color/cinematic_cyan_light"
+                android:endColor="@color/cinematic_cyan" />
+            <stroke android:width="3dp" android:color="#FFFFFFFF" />
+        </shape>
     </item>
 
     <!-- PRESSED -->

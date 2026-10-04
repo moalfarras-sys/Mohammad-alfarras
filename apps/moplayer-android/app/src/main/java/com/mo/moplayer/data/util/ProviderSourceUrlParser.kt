@@ -79,4 +79,27 @@ object ProviderSourceUrlParser {
             else -> normalized.takeIf { it.matches(Regex("[a-z0-9_+-]{1,16}")) }
         }
     }
+
+    /** Script/file names that say nothing about the provider ("get.php" -> "get"). */
+    private val GENERIC_SOURCE_NAMES = setOf(
+        "get", "get.php", "player_api", "player_api.php", "playlist", "index", "m3u", "m3u8",
+        "tv", "iptv", "live", "list", "channels", "xmltv", "panel_api", "server", "my playlist"
+    )
+
+    fun isGenericSourceName(name: String?): Boolean =
+        name.isNullOrBlank() || name.trim().lowercase(Locale.ROOT) in GENERIC_SOURCE_NAMES
+
+    /**
+     * Readable name for a source: the playlist file name when it means something, otherwise the
+     * provider host ("http://m3ulink.site/get.php?..." -> "m3ulink.site").
+     */
+    fun displayName(name: String?, serverUrl: String?): String {
+        if (!isGenericSourceName(name)) return name!!.trim()
+        val host = serverUrl?.let { url ->
+            runCatching {
+                URI(if (url.contains("://")) url.trim() else "http://${url.trim()}").host
+            }.getOrNull()
+        }
+        return host?.removePrefix("www.")?.takeIf { it.isNotBlank() } ?: name?.trim().orEmpty().ifBlank { "IPTV" }
+    }
 }

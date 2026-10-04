@@ -269,6 +269,11 @@
     <string name="settings_language">اللغة</string>
     <string name="language_english">English</string>
     <string name="language_arabic">العربية</string>
+    <string name="language_system">لغة الجهاز</string>
+    <string name="settings_interface_size">حجم الواجهة</string>
+    <string name="settings_interface_size_compact">مضغوط</string>
+    <string name="settings_interface_size_standard">قياسي</string>
+    <string name="settings_interface_size_large">كبير</string>
     
     
     <string name="cd_logo">شعار MoPlayer</string>
@@ -456,12 +461,12 @@
     <string name="login_choice_xtream">إضافة Xtream</string>
     <string name="login_choice_xtream_subtitle">رابط السيرفر واسم المستخدم وكلمة المرور.</string>
     <string name="login_choice_m3u">إضافة M3U</string>
-    <string name="home_empty_title">نظام التلفزيون جاهز</string>
-    <string name="home_empty_subtitle">أضف محتوى أو حدّث المصدر النشط لملء لوحة التحكم.</string>
-    <string name="home_empty_eyebrow">متصل بنظام التلفزيون</string>
+    <string name="home_empty_title">MoPlayer جاهز</string>
+    <string name="home_empty_subtitle">حدّث المصدر من الإعدادات، أو أضف مصدراً من الإعدادات ← إدارة السيرفر.</string>
+    <string name="home_empty_eyebrow">MOPLAYER</string>
     <string name="home_source_ready_title">المصدر جاهز</string>
-    <string name="home_source_ready_subtitle">افتح Live أو Movies أو Series من الشريط. المحمّل: %1$d مباشر، %2$d أفلام، %3$d مسلسلات.</string>
-    <string name="home_source_ready_pending_subtitle">افتح Live أو Movies أو Series من الشريط. المصدر: %1$s.</string>
+    <string name="home_source_ready_subtitle">افتح البث المباشر أو الأفلام أو المسلسلات من الشريط في الأسفل. تم تحميل: %1$d قناة، %2$d فيلم، %3$d مسلسل.</string>
+    <string name="home_source_ready_pending_subtitle">جارٍ تحميل المكتبة من %1$s. يفتح البث المباشر والأفلام والمسلسلات فور جاهزيتها.</string>
     <string name="source_status_label_format">%1$s - %2$s</string>
     <string name="login_choice_m3u_subtitle">رابط playlist أو ملف M3U من الجهاز.</string>
     <string name="activation_title">تفعيل MoPlayer</string>
@@ -481,9 +486,13 @@
     <string name="activation_backend_waiting">بانتظار خدمة التفعيل</string>
     <string name="activation_backend_waiting_body">خدمة التفعيل لم ترد بعد. تحقق من الاتصال أو حاول مرة أخرى.</string>
     <string name="activation_service_unavailable">خدمة التفعيل غير متاحة</string>
-    <string name="activation_service_unavailable_body">يظهر كود محلي على الشاشة، لكن لم يتم إنشاء جلسة تفعيل من الخلفية. جرّب فحص الحالة مرة أخرى.</string>
+    <string name="activation_service_unavailable_body">تعذّر الوصول إلى moalfarras.space. يعيد MoPlayer المحاولة تلقائياً؛ تحقق من اتصال التلفزيون بالإنترنت أو اضغط فحص الحالة.</string>
     <string name="activation_completed_login_hint">تم التفعيل. اختر Xtream أو M3U لإضافة مصدر المحتوى.</string>
     <string name="website_source_received">تم استلام المصدر من الموقع. يقوم MoPlayer الآن بفحصه واستيراده…</string>
+    <string name="activation_code_placeholder">MO-····</string>
+    <string name="activation_expired_renewing">انتهت صلاحية الرمز. جارٍ إنشاء رمز جديد…</string>
+    <string name="error_stream_unavailable">لا يوجد رابط تشغيل لهذه الحلقة من المزوّد.</string>
+    <string name="live_preview_ok_to_watch">اضغط OK للمشاهدة</string>
     <string name="activation_refresh">فحص الحالة</string>
     <string name="activation_add_source">إضافة مصدر</string>
     <string name="activation_privacy">معرّف جهاز خاص بالتطبيق. لا يتم استخدام معرّفات الجهاز الحقيقية.</string>

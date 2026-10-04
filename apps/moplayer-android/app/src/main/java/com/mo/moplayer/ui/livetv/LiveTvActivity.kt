@@ -68,6 +68,8 @@ class LiveTvActivity : BaseTvActivity() {
     private var previewPlayer: MediaPlayer? = null
     private var previewChannel: ChannelEntity? = null
     private var isPreviewEnabled = true
+    /** Accounts limited to one stream: a preview next to a playing channel would cut one of them. */
+    private var singleConnectionAccount = false
 
     private lateinit var channelAdapter: ChannelTiviMateAdapter
     private lateinit var groupAdapter: GroupAdapter
@@ -183,6 +185,10 @@ class LiveTvActivity : BaseTvActivity() {
         isPreviewEnabled = playerPreferences.livePreviewEnabled.first() &&
             !api24SafePlayerMode &&
             performanceTier != DevicePerformance.Tier.LOW
+        singleConnectionAccount = runCatching {
+            val max = repository.getActiveServerSync()?.maxConnections
+            max != null && max in 1..1
+        }.getOrDefault(false)
     }
 
     private fun initAnimations() {
@@ -272,7 +278,6 @@ class LiveTvActivity : BaseTvActivity() {
     private var isSurfaceReadyForMain = true
 
     private var lastChannelFocusAtMs = 0L
-    private val FAST_FOCUS_SCROLL_WINDOW_MS = 450L
 
     private fun initVLC() {
         try {
@@ -441,6 +446,7 @@ class LiveTvActivity : BaseTvActivity() {
                             when (event.type) {
                                 MediaPlayer.Event.Playing -> {
                                     hasStartedPlayback = true
+                                    if (overlayVisible) resetOverlayTimeout()
                                     handler.removeCallbacks(rebufferShowRunnable)
                                     binding.vlcVideoLayout.visibility = View.VISIBLE
                                     binding.liveIdleBackdrop.visibility = View.GONE
@@ -655,11 +661,9 @@ class LiveTvActivity : BaseTvActivity() {
             return
         }
 
-        val now = SystemClock.uptimeMillis()
-        if (now - lastChannelFocusAtMs < FAST_FOCUS_SCROLL_WINDOW_MS) {
-            // Fast scrolling: skip preview startup to reduce decoder churn.
-            return
-        }
+        // Fast scrolling is handled by the PREVIEW_DELAY debounce below (each focus cancels the
+        // pending start). Comparing against lastChannelFocusAtMs here always matched, because the
+        // focus callback sets it just before calling this, so the preview never started.
 
         // Ensure overlay is visible for preview
         if (!overlayVisible) {
@@ -672,6 +676,13 @@ class LiveTvActivity : BaseTvActivity() {
 
         // Don't preview the currently playing channel
         if (channel.channelId == currentChannel?.channelId) {
+            stopVideoPreview()
+            return
+        }
+
+        // One-connection accounts: the provider drops the playing channel (or the preview) when a
+        // second stream opens, so the preview only runs while nothing else is playing.
+        if (singleConnectionAccount && (hasStartedPlayback || binding.loadingOverlay.visibility == View.VISIBLE)) {
             stopVideoPreview()
             return
         }
@@ -766,8 +777,7 @@ class LiveTvActivity : BaseTvActivity() {
             binding.previewLoading.visibility = View.GONE
             binding.noPreviewPlaceholder.visibility = View.VISIBLE
 
-            // Explicitly hide the preview container to ensure it's not visible
-            binding.miniPreviewContainer.visibility = View.GONE
+            // The 16:9 frame stays in place with the channel logo; only the video stops.
         } catch (e: Exception) {
             android.util.Log.e("LiveTvActivity", "Error stopping preview", e)
         }
@@ -1086,7 +1096,8 @@ class LiveTvActivity : BaseTvActivity() {
             Glide.with(this)
                     .load(channel.streamIcon)
                     .thumbnail(0.1f)
-                    .override(80, 80)
+                    .override(240, 136)
+                    .fitCenter()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .dontAnimate()
                     .placeholder(R.drawable.ic_placeholder_channel)
@@ -1117,8 +1128,7 @@ class LiveTvActivity : BaseTvActivity() {
 
         // Ensure preview container is visible
         if (overlayVisible) {
-            binding.miniPreviewContainer.visibility =
-                    if (isPreviewEnabled) View.VISIBLE else View.GONE
+            binding.miniPreviewContainer.visibility = View.VISIBLE
         }
 
         // Start video preview for this channel with debouncing
@@ -1290,7 +1300,9 @@ class LiveTvActivity : BaseTvActivity() {
             lastChannelSwitchStartedAtMs = SystemClock.uptimeMillis()
             currentChannel = channel
             binding.loadingOverlay.visibility = View.VISIBLE
-            binding.liveIdleBackdrop.visibility = View.VISIBLE
+            // The idle card ("Press OK to open the channel browser") is only for an empty screen;
+            // while a channel opens the loading spinner is shown instead.
+            binding.liveIdleBackdrop.visibility = View.GONE
             hasStartedPlayback = false
             binding.networkErrorView.hide()
 
@@ -1428,7 +1440,8 @@ class LiveTvActivity : BaseTvActivity() {
             Glide.with(this)
                     .load(channel.streamIcon)
                     .thumbnail(0.1f)
-                    .override(80, 80)
+                    .override(240, 136)
+                    .fitCenter()
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .dontAnimate()
                     .placeholder(R.drawable.ic_placeholder_channel)
@@ -1554,6 +1567,8 @@ class LiveTvActivity : BaseTvActivity() {
     private fun showOverlay() {
         overlayVisible = true
         binding.tvHint.visibility = View.GONE
+        // The glass panels are translucent; never let the idle card show through them.
+        binding.liveIdleBackdrop.visibility = View.GONE
         binding.channelInfoBar.visibility = View.GONE
 
         // Show dark overlay with fade
@@ -1564,13 +1579,9 @@ class LiveTvActivity : BaseTvActivity() {
         binding.fullScreenOverlay.visibility = View.VISIBLE
         binding.fullScreenOverlay.startAnimation(slideInAnimation)
 
-        // Make preview container visible again for browsing
-        if (isPreviewEnabled) {
-            binding.miniPreviewContainer.visibility = View.VISIBLE
-            binding.miniPreviewVlcLayout.visibility = View.VISIBLE
-        } else {
-            binding.miniPreviewContainer.visibility = View.GONE
-        }
+        // The preview frame is always shown (video when allowed, otherwise the channel logo).
+        binding.miniPreviewContainer.visibility = View.VISIBLE
+        binding.miniPreviewVlcLayout.visibility = if (isPreviewEnabled) View.VISIBLE else View.GONE
 
         // Focus on groups first (TiviMate style - left panel first)
         binding.rvGroups.post {
@@ -1615,6 +1626,9 @@ class LiveTvActivity : BaseTvActivity() {
         // Animate out
         binding.fullScreenOverlay.startAnimation(slideOutAnimation)
         binding.darkOverlay.startAnimation(fadeOutAnimation)
+        if (!hasStartedPlayback && binding.loadingOverlay.visibility != View.VISIBLE) {
+            binding.liveIdleBackdrop.visibility = View.VISIBLE
+        }
         binding.root.requestFocus()
     }
 
@@ -1718,7 +1732,9 @@ class LiveTvActivity : BaseTvActivity() {
 
     private fun resetOverlayTimeout() {
         handler.removeCallbacks(hideOverlayRunnable)
-        if (overlayAutoHideEnabled) {
+        // Only hide the browser over a playing channel; with nothing playing, hiding it would
+        // leave the viewer on an empty screen in the middle of choosing a channel.
+        if (overlayAutoHideEnabled && hasStartedPlayback) {
             handler.postDelayed(hideOverlayRunnable, OVERLAY_TIMEOUT)
         }
     }

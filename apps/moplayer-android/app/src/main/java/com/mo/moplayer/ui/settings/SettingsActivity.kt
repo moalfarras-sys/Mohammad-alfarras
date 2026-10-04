@@ -28,6 +28,7 @@ import com.mo.moplayer.util.CrashGuard
 import com.mo.moplayer.util.ParentalLockManager
 import com.mo.moplayer.util.PlayerPreferences
 import com.mo.moplayer.util.SmartRefreshManager
+import com.mo.moplayer.util.DisplayScale
 import com.mo.moplayer.util.ThemeManager
 import com.mo.moplayer.data.football.FootballService
 import com.mo.moplayer.data.update.AppUpdateInfo
@@ -61,6 +62,7 @@ class SettingsActivity : BaseTvActivity() {
     
     companion object {
         private const val REQUEST_CODE_IMAGE_PICKER = 1001
+        private const val EXTRA_OPEN_PANEL = "open_panel"
     }
 
     private lateinit var binding: ActivitySettingsBinding
@@ -122,8 +124,11 @@ class SettingsActivity : BaseTvActivity() {
         setupSettingsBackNavigation()
         observeViewModel()
 
-        // Show server panel by default
-        showPanel(SettingsPanel.SERVER, focusPanel = false)
+        // Server panel by default; a display change reopens the panel the viewer was on.
+        val initialPanel = intent.getStringExtra(EXTRA_OPEN_PANEL)
+            ?.let { name -> SettingsPanel.entries.firstOrNull { it.name == name } }
+            ?: SettingsPanel.SERVER
+        showPanel(initialPanel, focusPanel = false)
         binding.rvCategories.post { focusCurrentCategory() }
         binding.animatedBackground.pauseAnimation()
         if (com.mo.moplayer.util.DevicePerformance.allowAnimatedBackground(this)) {
@@ -1115,61 +1120,75 @@ class SettingsActivity : BaseTvActivity() {
     }
     
     private fun setupLanguageSelection() {
-        // Load current language
-        lifecycleScope.launch {
-            val currentLocale = java.util.Locale.getDefault().language
-            binding.tvLanguageValue.text = when (currentLocale) {
-                "ar" -> getString(R.string.language_arabic)
-                else -> getString(R.string.language_english)
-            }
-        }
-        
-        binding.optionLanguage.setOnClickListener {
-            showLanguageDialog()
-        }
+        binding.tvLanguageValue.text = languageLabel(DisplayScale.language(this))
+        binding.optionLanguage.setOnClickListener { showLanguageDialog() }
+
+        binding.tvInterfaceSizeValue.text = interfaceSizeLabel(DisplayScale.interfaceSize(this))
+        binding.optionInterfaceSize.setOnClickListener { showInterfaceSizeDialog() }
     }
-    
+
+    private fun languageLabel(code: String): String = when (code) {
+        DisplayScale.LANGUAGE_ARABIC -> getString(R.string.language_arabic)
+        DisplayScale.LANGUAGE_ENGLISH -> getString(R.string.language_english)
+        else -> getString(R.string.language_system)
+    }
+
+    private fun interfaceSizeLabel(size: DisplayScale.InterfaceSize): String = when (size) {
+        DisplayScale.InterfaceSize.COMPACT -> getString(R.string.settings_interface_size_compact)
+        DisplayScale.InterfaceSize.STANDARD -> getString(R.string.settings_interface_size_standard)
+        DisplayScale.InterfaceSize.LARGE -> getString(R.string.settings_interface_size_large)
+    }
+
     private fun showLanguageDialog() {
-        val languages = arrayOf(
-            getString(R.string.language_english),
-            getString(R.string.language_arabic)
-        )
-        val languageCodes = arrayOf("en", "ar")
-        
-        val currentLocale = java.util.Locale.getDefault().language
-        val currentIndex = if (currentLocale == "ar") 1 else 0
-        
-        android.app.AlertDialog.Builder(this, R.style.AlertDialogTheme)
+        val codes = arrayOf(DisplayScale.LANGUAGE_SYSTEM, DisplayScale.LANGUAGE_ENGLISH, DisplayScale.LANGUAGE_ARABIC)
+        val labels = codes.map { languageLabel(it) }.toTypedArray()
+        val currentIndex = codes.indexOf(DisplayScale.language(this)).coerceAtLeast(0)
+
+        val dialog = android.app.AlertDialog.Builder(this, R.style.AlertDialogTheme)
             .setTitle(R.string.settings_language)
-            .setSingleChoiceItems(languages, currentIndex) { dialog, which ->
-                val selectedCode = languageCodes[which]
-                setAppLocale(selectedCode)
-                binding.tvLanguageValue.text = languages[which]
+            .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
                 dialog.dismiss()
-                
-                // Recreate activity to apply language change
-                recreate()
+                if (which != currentIndex) {
+                    DisplayScale.setLanguage(this, codes[which])
+                    restartForDisplayChange()
+                }
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
+        applyDialogListFocusStyle(dialog)
     }
-    
-    private fun setAppLocale(languageCode: String) {
-        val locale = Locale.forLanguageTag(languageCode)
-        java.util.Locale.setDefault(locale)
-        
-        val config = resources.configuration
-        config.setLocale(locale)
-        config.setLayoutDirection(locale)
-        
-        // Save preference
-        getSharedPreferences("settings", MODE_PRIVATE)
-            .edit()
-            .putString("language", languageCode)
-            .apply()
-        
+
+    private fun showInterfaceSizeDialog() {
+        val sizes = DisplayScale.InterfaceSize.entries.toTypedArray()
+        val labels = sizes.map { interfaceSizeLabel(it) }.toTypedArray()
+        val currentIndex = sizes.indexOf(DisplayScale.interfaceSize(this)).coerceAtLeast(0)
+
+        val dialog = android.app.AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setTitle(R.string.settings_interface_size)
+            .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
+                dialog.dismiss()
+                if (which != currentIndex) {
+                    DisplayScale.setInterfaceSize(this, sizes[which])
+                    restartForDisplayChange()
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+        applyDialogListFocusStyle(dialog)
+    }
+
+    /**
+     * Language and interface size are applied when each screen attaches its context, so the
+     * whole back stack is rebuilt: Home first, then Settings on top, where the viewer was.
+     */
+    private fun restartForDisplayChange() {
+        val home = Intent(this, com.mo.moplayer.ui.home.HomeActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        val settings = Intent(this, SettingsActivity::class.java)
+            .putExtra(EXTRA_OPEN_PANEL, SettingsPanel.INTERFACE.name)
+        startActivities(arrayOf(home, settings))
         @Suppress("DEPRECATION")
-        resources.updateConfiguration(config, resources.displayMetrics)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
     }
 
     private fun setupColorChips() {
@@ -1883,7 +1902,7 @@ class SettingsActivity : BaseTvActivity() {
                 binding.btnRefreshServer.visibility = View.GONE
                 binding.btnDeleteServer.visibility = View.GONE
             } else {
-                binding.tvServerName.text = server.name
+                binding.tvServerName.text = com.mo.moplayer.data.util.ProviderSourceUrlParser.displayName(server.name, server.serverUrl)
                 binding.tvServerUrl.text = maskEndpointForDisplay(server)
                 binding.tvServerExpiry.text = buildActiveSourceMeta(server)
                 binding.tvServerExpiry.visibility = if (binding.tvServerExpiry.text.isNullOrBlank()) View.GONE else View.VISIBLE

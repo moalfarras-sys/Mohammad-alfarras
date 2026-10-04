@@ -159,7 +159,11 @@ class MovieDetailActivity : BaseTvActivity() {
             if (seconds > 0) {
                 val hours = seconds / 3600
                 val minutes = (seconds % 3600) / 60
-                binding.tvDuration.text = if (hours > 0) "${hours}h ${minutes}min" else "${minutes}min"
+                binding.tvDuration.text = if (hours > 0) {
+                    getString(R.string.duration_hours_minutes_short, hours, minutes)
+                } else {
+                    getString(R.string.duration_minutes_short, minutes)
+                }
             }
         } ?: movie.duration?.let { durationStr ->
             if (durationStr.isNotEmpty()) {
@@ -191,7 +195,7 @@ class MovieDetailActivity : BaseTvActivity() {
         // Director
         movie.director?.let { director ->
             if (director.isNotEmpty()) {
-                binding.tvDirector.text = "Director: $director"
+                binding.tvDirector.text = getString(R.string.preview_director, director)
                 binding.tvDirector.visibility = View.VISIBLE
             }
         }
@@ -199,7 +203,7 @@ class MovieDetailActivity : BaseTvActivity() {
         // Cast
         movie.cast?.let { cast ->
             if (cast.isNotEmpty()) {
-                binding.tvCast.text = "Cast: $cast"
+                binding.tvCast.text = getString(R.string.preview_cast, cast)
                 binding.tvCast.visibility = View.VISIBLE
             }
         }
@@ -309,7 +313,7 @@ class MovieDetailActivity : BaseTvActivity() {
             isFavorite = isFavorite,
             details = com.mo.moplayer.ui.common.ContentMenuDetails(
                 description = movie.plot,
-                duration = movie.duration ?: com.mo.moplayer.ui.common.ContentMenuDetails.formatDuration(movie.durationSeconds),
+                duration = movie.duration ?: com.mo.moplayer.ui.common.ContentMenuDetails.formatDuration(this@MovieDetailActivity, movie.durationSeconds),
                 rating = movie.rating,
                 year = movie.year ?: movie.releaseDate,
                 genre = movie.genre

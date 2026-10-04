@@ -55,7 +55,7 @@ object PlayerLauncher {
                         }
                     }
                     "org.videolan.vlc" -> {
-                        options.add("VLC (External)")
+                        options.add(context.getString(R.string.player_name_vlc_external))
                         playerTypes.add(PlayerPreferences.PLAYER_VLC_EXTERNAL)
                     }
                     "com.brouken.player" -> {
@@ -66,13 +66,13 @@ object PlayerLauncher {
             }
             
             // Add system default
-            options.add("System Default")
+            options.add(context.getString(R.string.player_name_system_default))
             playerTypes.add(PlayerPreferences.PLAYER_SYSTEM_DEFAULT)
             
             val currentIndex = playerTypes.indexOf(currentType).coerceAtLeast(0)
             
             AlertDialog.Builder(context, R.style.AlertDialogTheme)
-                .setTitle("Select Player")
+                .setTitle(context.getString(R.string.player_select_title))
                 .setSingleChoiceItems(options.toTypedArray(), currentIndex) { dialog, which ->
                     val selectedType = playerTypes[which]
                     onPlayerSelected?.invoke(selectedType)
@@ -89,7 +89,7 @@ object PlayerLauncher {
                     }
                     dialog.dismiss()
                 }
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.cancel, null)
                 .show()
         }
     }
@@ -123,14 +123,14 @@ object PlayerLauncher {
                 if (intent != null) {
                     context.startActivity(intent)
                 } else {
-                    Toast.makeText(context, "Player not available", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.player_not_available), Toast.LENGTH_SHORT).show()
                 }
                 
                 // Restore original type
                 playerPreferences.setPlayerType(originalType)
             }
         } catch (e: Exception) {
-            Toast.makeText(context, "Failed to launch player: ${e.message}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.player_launch_failed, e.message ?: ""), Toast.LENGTH_SHORT).show()
         }
     }
     

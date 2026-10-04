@@ -95,7 +95,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Contact Us"
+            android:text="@string/about_contact_us"
             android:textColor="@color/htc_text_primary"
             android:textSize="16sp"
             android:textStyle="bold" />
@@ -159,7 +159,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Email"
+                    android:text="@string/about_email"
                     android:textColor="@color/htc_text_secondary"
                     android:textSize="11sp" />
 
@@ -172,7 +172,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
-            android:text="Developed with ❤️ by Mohammad Al-Farras"
+            android:text="@string/about_developed_by"
             android:textColor="@color/htc_text_tertiary"
             android:textSize="12sp" />
 

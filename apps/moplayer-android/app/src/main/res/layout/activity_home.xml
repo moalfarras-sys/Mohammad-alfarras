@@ -182,7 +182,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:alpha="0.55"
-                    android:text="Premium TV"
+                    android:text="@string/home_brand_tagline"
                     android:textColor="@color/moplayer_orange_light"
                     android:textSize="@dimen/home_brand_tagline_size"
                     android:fontFamily="@font/dmsans_medium"

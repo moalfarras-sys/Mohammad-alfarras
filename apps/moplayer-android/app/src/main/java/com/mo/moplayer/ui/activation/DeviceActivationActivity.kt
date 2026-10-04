@@ -36,13 +36,28 @@ class DeviceActivationActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDeviceActivationBinding
     private lateinit var deviceCode: String
     private val activationBaseUrl = BuildConfig.WEB_API_BASE_URL.trimEnd('/')
-    private val allowedCodeChars = "ABCDEFGHJKLMNPQRTUVWXYZ2346789"
     private val activationPrefs by lazy { getSharedPreferences("activation", MODE_PRIVATE) }
     private val pollHandler = Handler(Looper.getMainLooper())
     private val pollRunnable = object : Runnable {
         override fun run() {
             checkActivationStatus(scheduleNext = true)
         }
+    }
+    private val createRetryRunnable = Runnable { createActivationCode() }
+    private var createAttempts = 0
+    private var createInFlight = false
+    private val codePattern = Regex("^MO-[A-HJ-NP-RT-Z2-46789]{4}$")
+
+    /** True only for a code the website actually registered (never a locally invented one). */
+    private fun hasServerCode(): Boolean = ::deviceCode.isInitialized && deviceCode.matches(codePattern)
+
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.mo.moplayer.util.DisplayScale.wrap(newBase))
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) com.mo.moplayer.util.ImmersiveMode.apply(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,7 +82,9 @@ class DeviceActivationActivity : AppCompatActivity() {
         setAddSourceEnabled(false)
         createActivationCode()
 
-        binding.btnCheckStatus.setOnClickListener { checkActivationStatus(scheduleNext = false) }
+        binding.btnCheckStatus.setOnClickListener {
+            if (hasServerCode()) checkActivationStatus(scheduleNext = false) else createActivationCode()
+        }
         binding.btnAddSource.setOnClickListener {
             if (activationPrefs.getString("activation_status", null) == "activated") {
                 openAddSource(finishOnly = false)
@@ -99,7 +116,16 @@ class DeviceActivationActivity : AppCompatActivity() {
     }
 
     private fun createActivationCode() {
+        if (createInFlight) return
+        createInFlight = true
+        pollHandler.removeCallbacks(createRetryRunnable)
+        pollHandler.removeCallbacks(pollRunnable)
+        binding.tvActivationStatus.setText(R.string.activation_creating)
+        binding.tvActivationBody.setText(R.string.activation_creating_body)
         lifecycleScope.launch {
+            // A fresh pull token per QR session: a token that leaked with an old code can never
+            // pull the source delivered for a new one.
+            rotateSourcePullToken()
             val result = withContext(Dispatchers.IO) {
                 runCatching {
                     val body = JSONObject().apply {
@@ -117,10 +143,15 @@ class DeviceActivationActivity : AppCompatActivity() {
                 }.getOrElse { ActivationCreateResult(-1, "", "") }
             }
 
-            if (result.code == 200 && result.deviceCode.matches(Regex("^MO-[A-HJ-NP-RT-Z2-46789]{4}$"))) {
+            createInFlight = false
+            if (isFinishing || isDestroyed) return@launch
+            if (result.code == 200 && result.deviceCode.matches(codePattern)) {
+                createAttempts = 0
                 deviceCode = result.deviceCode
                 binding.tvDeviceCode.text = deviceCode
-                binding.ivQrCode.setImageBitmap(createQrBitmap("$activationBaseUrl/activate?code=$deviceCode", 720))
+                val qrUrl = "$activationBaseUrl/activate?code=$deviceCode"
+                val qr = withContext(Dispatchers.Default) { createQrBitmap(qrUrl, 640) }
+                binding.ivQrCode.setImageBitmap(qr)
                 binding.ivQrCode.alpha = 1f
                 activationPrefs.edit()
                     .putString("public_device_code", deviceCode)
@@ -133,15 +164,29 @@ class DeviceActivationActivity : AppCompatActivity() {
                 setAddSourceEnabled(false)
                 schedulePolling()
             } else {
-                deviceCode = getLocalFallbackCode()
-                binding.tvDeviceCode.text = deviceCode
+                // Never show a code the website does not know: it could not be activated.
+                binding.tvDeviceCode.text = getString(R.string.activation_code_placeholder)
                 binding.ivQrCode.setImageDrawable(null)
                 binding.ivQrCode.alpha = 0.22f
                 binding.tvActivationStatus.setText(R.string.activation_service_unavailable)
                 binding.tvActivationBody.setText(R.string.activation_service_unavailable_body)
                 setAddSourceEnabled(false)
+                scheduleCreateRetry()
             }
         }
+    }
+
+    /** Retries code creation with a growing delay (5 s, 10 s, 20 s, then every 30 s). */
+    private fun scheduleCreateRetry() {
+        createAttempts += 1
+        val delayMs = when (createAttempts) {
+            1 -> 5_000L
+            2 -> 10_000L
+            3 -> 20_000L
+            else -> 30_000L
+        }
+        pollHandler.removeCallbacks(createRetryRunnable)
+        pollHandler.postDelayed(createRetryRunnable, delayMs)
     }
 
     private data class ActivationCreateResult(val code: Int, val deviceCode: String, val expiresAt: String)
@@ -152,7 +197,7 @@ class DeviceActivationActivity : AppCompatActivity() {
     }
 
     private fun checkActivationStatus(scheduleNext: Boolean) {
-        if (!::deviceCode.isInitialized) {
+        if (!hasServerCode()) {
             createActivationCode()
             return
         }
@@ -176,12 +221,18 @@ class DeviceActivationActivity : AppCompatActivity() {
                     setAddSourceEnabled(false)
                     if (scheduleNext) schedulePolling()
                 }
-                "expired" -> {
+                "expired", "invalid" -> {
+                    // The 15-minute code ran out (or the website no longer knows it): replace it
+                    // with a fresh one right away instead of leaving a dead QR on screen.
                     pollHandler.removeCallbacks(pollRunnable)
                     activationPrefs.edit().putString("activation_status", "expired").apply()
-                    binding.tvActivationStatus.setText(R.string.activation_expired)
-                    binding.tvActivationBody.setText(R.string.activation_expired_body)
                     setAddSourceEnabled(false)
+                    Toast.makeText(
+                        this@DeviceActivationActivity,
+                        R.string.activation_expired_renewing,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    createActivationCode()
                 }
                 else -> {
                     binding.tvActivationStatus.setText(R.string.activation_backend_waiting)
@@ -293,6 +344,13 @@ class DeviceActivationActivity : AppCompatActivity() {
         return id
     }
 
+    private suspend fun rotateSourcePullToken() = withContext(Dispatchers.IO) {
+        val bytes = ByteArray(32)
+        SecureRandom().nextBytes(bytes)
+        val token = Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+        activationPrefs.edit().putString("source_pull_token", token).commit()
+    }
+
     private fun getOrCreateSourcePullToken(): String {
         activationPrefs.getString("source_pull_token", null)?.let { existing ->
             if (existing.length >= 32) return existing
@@ -304,47 +362,20 @@ class DeviceActivationActivity : AppCompatActivity() {
         return token
     }
 
-    private fun getLocalFallbackCode(): String {
-        val now = System.currentTimeMillis()
-        val createdAt = activationPrefs.getLong("public_device_code_created_at", 0L)
-        val existing = activationPrefs.getString("public_device_code", null)
-        val isFresh = now - createdAt < 15 * 60 * 1000L
-        if (existing?.matches(Regex("^MO-[A-HJ-NP-RT-Z2-46789]{4}$")) == true && isFresh) {
-            return existing
-        }
-
-        val androidId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID).orEmpty()
-        val seed = "${packageName}:${androidId}:$now"
-        val digest = MessageDigest.getInstance("SHA-256")
-            .digest(seed.toByteArray())
-        val shortCode = buildString {
-            repeat(4) { index ->
-                val value = digest[index].toInt() and 0xFF
-                append(allowedCodeChars[value % allowedCodeChars.length])
-            }
-        }.uppercase(Locale.US)
-        val code = "MO-$shortCode"
-        activationPrefs.edit()
-            .putString("public_device_code", code)
-            .putLong("public_device_code_created_at", now)
-            .putString("activation_status", "local_fallback")
-            .apply()
-        return code
-    }
-
     private fun createQrBitmap(value: String, size: Int): Bitmap {
         val hints = EnumMap<EncodeHintType, Any>(EncodeHintType::class.java).apply {
             put(EncodeHintType.MARGIN, 1)
             put(EncodeHintType.CHARACTER_SET, "UTF-8")
         }
         val matrix = QRCodeWriter().encode(value, BarcodeFormat.QR_CODE, size, size, hints)
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        for (x in 0 until size) {
-            for (y in 0 until size) {
-                bitmap.setPixel(x, y, if (matrix[x, y]) Color.BLACK else Color.WHITE)
+        val pixels = IntArray(size * size)
+        for (y in 0 until size) {
+            val row = y * size
+            for (x in 0 until size) {
+                pixels[row + x] = if (matrix[x, y]) Color.BLACK else Color.WHITE
             }
         }
-        return bitmap
+        return Bitmap.createBitmap(pixels, size, size, Bitmap.Config.ARGB_8888)
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
@@ -357,6 +388,7 @@ class DeviceActivationActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         pollHandler.removeCallbacks(pollRunnable)
+        pollHandler.removeCallbacks(createRetryRunnable)
         super.onDestroy()
     }
 }

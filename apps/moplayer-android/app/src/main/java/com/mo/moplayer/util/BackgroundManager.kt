@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.Color
 import android.media.ExifInterface
+import com.mo.moplayer.R
 import com.mo.moplayer.data.background.CityWallpaperService
 import com.mo.moplayer.data.location.IpLocationService
 import androidx.datastore.core.DataStore
@@ -460,15 +461,15 @@ class BackgroundManager @Inject constructor(
     }
 
     fun getThemeName(theme: Int): String {
-        return when (normalizeTheme(theme)) {
-            THEME_SOLID -> "Solid Black"
-            THEME_STARFIELD -> "Starfield"
-            THEME_GALAXY -> "Galaxy"
-            THEME_NEBULA -> "Nebula"
-            THEME_CUSTOM_IMAGE -> "Custom Image"
-            THEME_CITY_WALLPAPER -> "City Wallpaper"
-            else -> "Solid Black"
+        val res = when (normalizeTheme(theme)) {
+            THEME_STARFIELD -> R.string.theme_starfield
+            THEME_GALAXY -> R.string.theme_galaxy
+            THEME_NEBULA -> R.string.theme_nebula
+            THEME_CUSTOM_IMAGE -> R.string.theme_custom_image
+            THEME_CITY_WALLPAPER -> R.string.theme_city_wallpaper
+            else -> R.string.theme_solid_black
         }
+        return DisplayScale.localized(context).getString(res)
     }
 
     /**
@@ -476,13 +477,13 @@ class BackgroundManager @Inject constructor(
      */
     fun getAvailableThemes(): List<Pair<Int, String>> {
         return listOf(
-            THEME_SOLID to "Solid Black",
-            THEME_STARFIELD to "Starfield",
-            THEME_GALAXY to "Galaxy",
-            THEME_NEBULA to "Nebula",
-            THEME_CITY_WALLPAPER to "City Wallpaper",
-            THEME_CUSTOM_IMAGE to "Custom Image"
-        )
+            THEME_SOLID,
+            THEME_STARFIELD,
+            THEME_GALAXY,
+            THEME_NEBULA,
+            THEME_CITY_WALLPAPER,
+            THEME_CUSTOM_IMAGE
+        ).map { it to getThemeName(it) }
     }
 
     /**

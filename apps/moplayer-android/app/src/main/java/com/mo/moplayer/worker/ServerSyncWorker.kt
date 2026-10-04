@@ -97,13 +97,14 @@ class ServerSyncWorker @AssistedInject constructor(
         /**
          * Run sync immediately (one-time)
          */
-        fun syncNow(context: Context) {
+        fun syncNow(context: Context, force: Boolean = false) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
             
             val syncRequest = OneTimeWorkRequestBuilder<ServerSyncWorker>()
                 .setConstraints(constraints)
+                .setInputData(androidx.work.workDataOf(KEY_FORCE to force))
                 .build()
             
             WorkManager.getInstance(context).enqueue(syncRequest)
@@ -113,6 +114,9 @@ class ServerSyncWorker @AssistedInject constructor(
         /**
          * Update sync interval (e.g., when app comes to foreground)
          */
+        /** Input flag: sync even if the content is still fresh (e.g. after an app update). */
+        const val KEY_FORCE = "force"
+
         fun updateInterval(context: Context, intervalMinutes: Long) {
             schedule(context, intervalMinutes)
         }
@@ -144,7 +148,8 @@ class ServerSyncWorker @AssistedInject constructor(
             val recentlySynced = lastState?.lastStatus == "SUCCESS" &&
                 hasLocalContent &&
                 System.currentTimeMillis() - lastSyncAt < SILENT_SYNC_COOLDOWN_MS
-            if (recentlySynced) {
+            val forced = inputData.getBoolean(KEY_FORCE, false)
+            if (recentlySynced && !forced) {
                 Log.d(TAG, "Skipping silent sync, content is still fresh enough")
                 return Result.success()
             }

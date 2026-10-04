@@ -19,7 +19,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.LoadControl
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.ui.PlayerView
+import com.mo.moplayer.R
 import com.mo.moplayer.util.DevicePerformance
+import com.mo.moplayer.util.DisplayScale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -237,7 +239,8 @@ class ExoPlayerEngine(
             if (group.type == trackType) {
                 for (i in 0 until group.length) {
                     val format = group.getTrackFormat(i)
-                    val label = format.label ?: format.language ?: "Track ${i + 1}"
+                    val label = format.label ?: format.language
+                        ?: DisplayScale.localized(appContext).getString(R.string.player_track_number, i + 1)
                     list.add(PlayerEngine.TrackInfo(index++, label, format.language))
                 }
             }

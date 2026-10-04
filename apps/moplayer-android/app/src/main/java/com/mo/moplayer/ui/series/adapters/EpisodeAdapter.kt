@@ -64,7 +64,7 @@ class EpisodeAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(episode: SeriesDetailViewModel.Episode) {
-            binding.tvEpisodeNumber.text = "E${episode.episodeNumber}"
+            binding.tvEpisodeNumber.text = binding.root.context.getString(R.string.series_episode_short_format, episode.episodeNumber)
             binding.tvEpisodeTitle.text = episode.title
             binding.tvDuration.text = episode.duration ?: ""
 
@@ -136,7 +136,7 @@ class EpisodeAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(episode: SeriesDetailViewModel.Episode) {
-            binding.tvEpisodeNumber.text = "Episode ${episode.episodeNumber}"
+            binding.tvEpisodeNumber.text = binding.root.context.getString(R.string.series_episode_format, episode.episodeNumber)
             binding.tvEpisodeTitle.text = episode.title
             binding.tvDuration.text = episode.duration ?: ""
 

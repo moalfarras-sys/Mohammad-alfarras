@@ -10,6 +10,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.mo.moplayer.BuildConfig
+import com.mo.moplayer.R
+import com.mo.moplayer.util.DisplayScale
 import com.mo.moplayer.data.location.IpLocationService
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -391,7 +393,7 @@ class WeatherService @Inject constructor(
             condition = "Cloudy",
             conditionCode = 1006,
             icon = "",
-            cityName = "Local weather",
+            cityName = DisplayScale.localized(context).getString(R.string.weather_city_unavailable),
             humidity = 55,
             windSpeed = 6.0,
             windDegree = 0,

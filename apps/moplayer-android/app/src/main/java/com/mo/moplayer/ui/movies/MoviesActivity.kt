@@ -91,7 +91,9 @@ class MoviesActivity : BaseTvActivity() {
         setupSearchButton()
         observeViewModel()
 
-        previewBinding.previewPanel.visibility = View.GONE
+        // Reserve the preview panel's space from the start: the grid keeps the same columns
+        // when the first card is focused instead of reflowing under the viewer.
+        previewBinding.previewPanel.visibility = View.INVISIBLE
         binding.animatedBackground.pauseAnimation()
         binding.root.postDelayed({ binding.animatedBackground.resumeAnimation() }, 320L)
     }
@@ -363,14 +365,7 @@ class MoviesActivity : BaseTvActivity() {
         )
 
         binding.rvMovies.apply {
-            layoutManager = LayoutHelper.createResponsiveGridLayoutManager(
-                context = this@MoviesActivity,
-                cardWidthDp = 180,
-                cardMarginDp = LayoutHelper.getCardMarginDp(this@MoviesActivity),
-                screenMarginHorizontalDp = LayoutHelper.getScreenMarginHorizontalDp(this@MoviesActivity),
-                minColumns = 4,
-                maxColumns = 9
-            )
+            layoutManager = posterGridLayoutManager(tvUiPreferences.posterMetrics(com.mo.moplayer.util.TvUiPreferences.PosterSize.MEDIUM).widthDp)
             adapter = movieAdapter
             setHasFixedSize(true)
             recyclerViewOptimizer.optimizeChannelList(this)
@@ -389,14 +384,7 @@ class MoviesActivity : BaseTvActivity() {
                 val metrics = tvUiPreferences.posterMetrics(posterSize)
                 binding.rvMovies.layoutManager =
                     if (layoutStyle == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.GRID) {
-                        LayoutHelper.createResponsiveGridLayoutManager(
-                            context = this@MoviesActivity,
-                            cardWidthDp = metrics.widthDp,
-                            cardMarginDp = LayoutHelper.getCardMarginDp(this@MoviesActivity),
-                            screenMarginHorizontalDp = LayoutHelper.getScreenMarginHorizontalDp(this@MoviesActivity),
-                            minColumns = 4,
-                            maxColumns = 9
-                        )
+                        posterGridLayoutManager(metrics.widthDp)
                     } else {
                         GridLayoutManager(this@MoviesActivity, 1)
                     }
@@ -434,7 +422,7 @@ class MoviesActivity : BaseTvActivity() {
                         })
                         errorView.showError(
                             title = getString(R.string.error_connection),
-                            message = networkErrorHandler.getErrorMessage(error),
+                            message = networkErrorHandler.getLocalizedErrorMessage(error),
                             showRetry = error.isRetryable
                         )
                     } else {
@@ -473,7 +461,11 @@ class MoviesActivity : BaseTvActivity() {
         }
 
         viewModel.selectedCategory.observe(this) { category ->
-            binding.tvCategoryTitle.text = category?.name ?: getString(R.string.movies_catalog)
+            binding.tvCategoryTitle.text = when {
+                category == null -> getString(R.string.movies_catalog)
+                category.categoryId == "all" -> getString(R.string.all_categories)
+                else -> category.name
+            }
             categoryAdapter.setSelectedCategory(category?.categoryId ?: "")
         }
     }
@@ -507,7 +499,7 @@ class MoviesActivity : BaseTvActivity() {
                 isFavorite = isFavorite,
                 details = ContentMenuDetails(
                     description = movie.plot,
-                    duration = movie.duration ?: ContentMenuDetails.formatDuration(movie.durationSeconds),
+                    duration = movie.duration ?: ContentMenuDetails.formatDuration(this@MoviesActivity, movie.durationSeconds),
                     rating = movie.rating,
                     year = movie.year ?: movie.releaseDate,
                     genre = movie.genre
@@ -574,5 +566,13 @@ class MoviesActivity : BaseTvActivity() {
         if (::movieAdapter.isInitialized) {
             movieAdapter.updateThemeColor(color)
         }
+    }
+
+    /** Grid whose column count follows the space it really has (the preview panel takes part). */
+    private fun posterGridLayoutManager(posterWidthDp: Int): com.mo.moplayer.ui.common.AutoFitGridLayoutManager {
+        val density = resources.displayMetrics.density
+        val marginPx = resources.getDimensionPixelSize(R.dimen.card_margin)
+        val columnWidth = (posterWidthDp * density).toInt() + marginPx * 2
+        return com.mo.moplayer.ui.common.AutoFitGridLayoutManager(this, columnWidth, minColumns = 3, maxColumns = 10)
     }
 }

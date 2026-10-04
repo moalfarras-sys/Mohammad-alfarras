@@ -2,7 +2,8 @@ import { readSiteSetting, upsertSiteSetting } from "@/lib/content/store";
 import { selectReleaseAsset } from "@/lib/release-asset-selection";
 import { hasDatabaseUrl, queryRows } from "@/lib/server-db";
 import { createSupabaseAdminClient, createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
-import { managedApps, resolveManagedAppSlug } from "@moalfarras/shared/app-products";
+import { managedApps, resolveManagedAppSlug, type ManagedAppSlug } from "@moalfarras/shared/app-products";
+import { currentAppReleases } from "@moalfarras/shared/app-releases";
 import type {
   AppEcosystemData,
   AppFaq,
@@ -17,16 +18,43 @@ import type {
 
 const now = new Date().toISOString();
 // APK binaries are served from GitHub Releases: free, with unlimited bandwidth
-// for a public repo, so downloads can never exhaust a paid quota. The repo has
-// gone private once before and took every link down with it, so each URL has a
-// Vercel Blob mirror in lib/download-mirror.ts that takes over automatically
-// when GitHub is unreachable.
-// NOTE: production download URLs come from Supabase (app_release_assets); this is
-// only the offline fallback used when Supabase is unreachable.
-const moplayerDownloadUrls = {
-  universal:
-    "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-android-2.4.0/app-sideload-universal-release.apk",
-};
+// for a public repo, so downloads can never exhaust a paid quota.
+// NOTE: production download URLs come from Supabase (app_release_assets) when the
+// tables exist; otherwise this offline fallback is built from the verified
+// release constants in @moalfarras/shared/app-releases (shared with admin).
+function fallbackReleaseFor(slug: ManagedAppSlug): AppRelease {
+  const release = currentAppReleases[slug];
+  return {
+    id: release.releaseId,
+    product_slug: release.productSlug,
+    slug: release.releaseSlug,
+    version_name: release.versionName,
+    version_code: release.versionCode,
+    release_notes: release.releaseNotes,
+    compatibility_notes: release.compatibilityNotes,
+    published_at: release.publishedAt,
+    is_published: true,
+    created_at: release.publishedAt,
+    updated_at: release.publishedAt,
+    assets: [
+      {
+        id: release.asset.id,
+        release_id: release.releaseId,
+        asset_type: "apk",
+        label: release.asset.label,
+        abi: release.asset.abi,
+        storage_bucket: null,
+        storage_path: null,
+        external_url: release.asset.url,
+        mime_type: "application/vnd.android.package-archive",
+        file_size_bytes: release.asset.fileSizeBytes,
+        checksum_sha256: release.asset.checksumSha256,
+        is_primary: true,
+        created_at: release.publishedAt,
+      },
+    ],
+  };
+}
 
 function parseFeatureList(value: unknown, fallback: AppFeatureItem[]): AppFeatureItem[] {
   if (!Array.isArray(value)) return fallback;
@@ -67,12 +95,12 @@ const fallbackProduct: AppProduct = {
   id: "moplayer-product",
   slug: "moplayer",
   product_name: "MoPlayer",
-  hero_badge: "Android TV + Android Media Experience",
-  tagline: "A focused media player surface for Android and Android TV.",
+  hero_badge: "Android TV + Android media player",
+  tagline: "Live TV, movies and series from your own Xtream or M3U source, built for the remote.",
   short_description:
-    "MoPlayer is a personal Android and Android TV media product with a clear release, support, and privacy story.",
+    "MoPlayer Classic is a player only: it reads the Xtream Codes account or M3U link you already have and organises it into Live TV, Movies and Series. It runs on Android 7.0 or newer and keeps your source on the device.",
   long_description:
-    "MoPlayer is presented as a serious product surface inside the Moalfarras ecosystem: product positioning, APK releases, installation guidance, support, privacy notes, and case-study context in one place.",
+    "MoPlayer Classic plays your own Xtream Codes or M3U source on Android TV boxes, TVs, phones and tablets in landscape: Live TV with an EPG guide, Movies, Series, Favorites and Search. Add your source by scanning a QR code with your phone at moalfarras.space/activate.",
   support_email: "Mohammad.Alfarras@gmail.com",
   support_whatsapp: "https://wa.me/4917623419358",
   support_url: null,
@@ -84,31 +112,33 @@ const fallbackProduct: AppProduct = {
   android_tv_ready: true,
   default_download_label: "Download APK",
   feature_highlights: [
-    { title: "Android and Android TV", body: "Presented as one product surface across phone and TV contexts.", icon: "tv" },
-    { title: "Release details", body: "Version, SDK, APK size, and architecture are shown from release data.", icon: "zap" },
-    { title: "Legal clarity", body: "The product states what it does not provide: channels, playlists, subscriptions, or copyrighted media.", icon: "shield" },
-    { title: "Integrated support", body: "Support and privacy live in the same site architecture as the product page.", icon: "shield" },
+    { title: "Live TV with EPG", body: "Channel groups, quick zapping and a programme guide for your Xtream or M3U source.", icon: "tv" },
+    { title: "Movies and Series", body: "Browse your provider's video library with posters, details, seasons and episodes.", icon: "zap" },
+    { title: "QR activation", body: "Scan the QR code on the TV and add your source from your phone at moalfarras.space/activate instead of typing long links with the remote.", icon: "shield" },
+    { title: "Favorites and Search", body: "Pin channels and titles to Favorites and search across Live TV, Movies and Series.", icon: "box" },
   ],
   how_it_works: [
-    { title: "Download the APK", body: "Use the latest release route from the product page." },
-    { title: "Install on Android", body: "Allow installation from this source only when you trust the download." },
-    { title: "Use permitted sources", body: "Connect only media sources you are allowed to use." },
+    { title: "Install the APK", body: "Download the universal APK from this page on any Android 7.0+ TV, box, phone or tablet." },
+    { title: "Add your source", body: "Scan the QR code shown in the app and send your Xtream or M3U details from moalfarras.space/activate." },
+    { title: "Watch", body: "Browse Live TV with the EPG guide, Movies and Series with the remote or touch." },
   ],
   install_steps: [
-    { title: "Download the APK", body: "Use the latest release below and choose the recommended build for your device." },
-    { title: "Allow installation", body: "Enable install from trusted sources if Android asks for permission." },
-    { title: "Open and configure", body: "Launch MoPlayer, add your provider details, and start browsing immediately." },
+    { title: "Download the APK", body: "Download the latest universal APK from this page. It runs on Android 7.0 or newer." },
+    { title: "Allow installation", body: "If Android asks, allow installs from your browser or file manager for this download." },
+    { title: "Activate with QR (recommended)", body: "Open MoPlayer Classic, scan the QR code on screen with your phone and add your Xtream or M3U source at moalfarras.space/activate. The source is sent to the TV once and saved only on the device." },
+    { title: "Or sign in on the TV", body: "You can also type your Xtream details or M3U link directly in the app." },
   ],
   compatibility_notes: [
-    "Android 7.0 or newer",
-    "Positioned for Android TV and remote-based navigation",
-    "Recommended TV download is the v2.2 full universal APK for Android 7.0+ TV devices",
+    "Android 7.0 or newer (API 24+)",
+    "Android TV, Google TV and Android boxes with a remote; phones and tablets in landscape",
+    "One universal APK for ARM 64-bit and 32-bit devices",
   ],
   legal_notes: [
     "MoPlayer is a playback interface. It does not provide channels, playlists, or copyrighted media.",
     "Users are responsible for the legality of the content sources they connect.",
+    "A source added through QR activation is delivered to your TV once and is not kept on the website.",
   ],
-  changelog_intro: "Each release keeps the product story focused on compatibility, installation clarity, and support.",
+  changelog_intro: "Release notes for each MoPlayer Classic version.",
   logo_path: "/images/moplayer-brand-logo-final.png",
   hero_image_path: "/images/moplayer-tv-hero.png",
   tv_banner_path: "/images/moplayer-tv-banner-final.png",
@@ -142,55 +172,31 @@ const fallbackFaqs: AppFaq[] = [
     id: "faq-2",
     product_slug: "moplayer",
     question: "Is the app built for Android TV?",
-    answer: "Yes. The interface and navigation flow are optimized for Android TV and remote control usage.",
+    answer: "Yes. MoPlayer Classic is built for Android TV and remote navigation, and also runs on Android phones and tablets in landscape. It needs Android 7.0 or newer.",
     sort_order: 2,
     created_at: now,
   },
   {
     id: "faq-3",
     product_slug: "moplayer",
-    question: "Is there a Google Play release already?",
-    answer: "No public Google Play release is shown until a real listing exists.",
+    question: "Is MoPlayer on Google Play?",
+    answer: "No. MoPlayer Classic is distributed as an APK from this page only.",
     sort_order: 3,
+    created_at: now,
+  },
+  {
+    id: "faq-4",
+    product_slug: "moplayer",
+    question: "How do I add my Xtream or M3U source?",
+    answer: "Open the app, scan the QR code on the TV with your phone and enter your source at moalfarras.space/activate. You can also type it directly in the app.",
+    sort_order: 4,
     created_at: now,
   },
 ];
 
 const fallbackSupportRequests: AppSupportRequest[] = [];
 
-const fallbackReleases: AppRelease[] = [
-  {
-    id: "release-moplayer-2-4-0",
-    product_slug: "moplayer",
-    slug: "moplayer-2.4.0",
-    version_name: "2.4.0",
-    version_code: 24,
-    release_notes:
-      "MoPlayer Classic 2.4.0 is a premium visual + performance pass: a brand typography system (Outfit headings, DM Sans body), bigger and bolder content posters with an unmistakable cyan D-pad focus, larger and clearer bottom dock, and a clean cinematic gradient background that replaces the old animated particle layers — much smoother on weak Android TV boxes. Live TV and the top widgets get stronger focus, the home poster rows no longer overlap, and the sign-in screen drops a heavy redundant background image to cut memory use on low-RAM devices.",
-    compatibility_notes: "Recommended universal TV APK for Android 7.0+ with arm64-v8a and armeabi-v7a native code included.",
-    published_at: now,
-    is_published: true,
-    created_at: now,
-    updated_at: now,
-    assets: [
-      {
-        id: "asset-moplayer-2-4-0-universal",
-        release_id: "release-moplayer-2-4-0",
-        asset_type: "apk",
-        label: "Recommended TV APK",
-        abi: "universal",
-        storage_bucket: null,
-        storage_path: null,
-        external_url: moplayerDownloadUrls.universal,
-        mime_type: "application/vnd.android.package-archive",
-        file_size_bytes: 53204181,
-        checksum_sha256: "8528124db43df511973d9e0764ce66250efe34e63c9adbd2ede1bfc291a6c946",
-        is_primary: true,
-        created_at: now,
-      },
-    ],
-  },
-];
+const fallbackReleases: AppRelease[] = [fallbackReleaseFor("moplayer")];
 
 const fallbackProductBySlug: Record<string, AppProduct> = {
   moplayer: fallbackProduct,
@@ -204,29 +210,35 @@ const fallbackProductBySlug: Record<string, AppProduct> = {
     short_description:
       "MoPlayer Pro is the new Android and Android TV app line in the Moalfarras ecosystem, separated from the classic MoPlayer release channel.",
     long_description:
-      "MoPlayer Pro keeps the same domain and management foundation while giving the new app its own public page, screenshots, releases, FAQs, support queue, runtime controls, and QR activation flow.",
+      "A premium warm-glass interface, remote-first navigation, and a powerful playback engine bring live TV, movies, and series into one elegant surface — without clutter.",
     package_name: "com.moalfarras.moplayerpro",
+    android_min_sdk: currentAppReleases.moplayer2.minSdk,
+    android_target_sdk: currentAppReleases.moplayer2.targetSdk,
     default_download_label: "Download MoPlayer Pro APK",
     feature_highlights: [
-      { title: "Pro product line", body: "MoPlayer Pro has its own page, release channel, activation flow, and admin records.", icon: "box" },
-      { title: "Same trusted website", body: "Users still download and verify through moalfarras.space.", icon: "shield" },
-      { title: "TV-first direction", body: "Built for Android TV navigation and long-session media browsing.", icon: "tv" },
-      { title: "Ready for growth", body: "The structure supports future activation, runtime config, and support per app.", icon: "zap" },
+      { title: "Android TV Optimized", body: "Full D-Pad navigation, large focus states, and a lean-back interface designed for remote control.", icon: "tv" },
+      { title: "Private Playlist Support", body: "Add your own playlist link or file, then browse clean categories without clutter.", icon: "list" },
+      { title: "Provider Account Login", body: "Connect your provider details once and enjoy organized live TV, movies, and series.", icon: "key" },
+      { title: "QR Code Activation", body: "Display a QR code on your TV and activate the app from your phone or computer.", icon: "qr" },
+      { title: "Smooth Playback", body: "A fast player surface with clear controls, stable playback, and a helpful external-player fallback.", icon: "zap" },
+      { title: "Favorites & Continue", body: "Save your favorite channels and pick up where you left off with continue watching.", icon: "heart" },
+      { title: "Smart Search", body: "Find channels, movies, and series quickly with a TV-optimized search experience.", icon: "search" },
+      { title: "Multi-Playlist", body: "Manage multiple playlists and switch between providers seamlessly.", icon: "layers" },
     ],
     how_it_works: [
-      { title: "Choose MoPlayer Pro", body: "Open the MoPlayer Pro product page from the Apps section." },
-      { title: "Download the correct APK", body: "Use the latest MoPlayer Pro release when it is published." },
-      { title: "Manage separately", body: "Control MoPlayer Pro from the same admin with its own product switch." },
+      { title: "Install MoPlayer Pro", body: "Download the universal APK from this page on any Android 6.0+ TV, box or phone." },
+      { title: "Activate with QR", body: "Scan the QR code shown in the app and add your source from moalfarras.space/activate." },
+      { title: "Watch", body: "Browse live TV, movies and series with the remote." },
     ],
     install_steps: [
       { title: "Download MoPlayer Pro", body: "Use the MoPlayer Pro release card on this page." },
       { title: "Allow installation", body: "Enable install from trusted sources if Android asks." },
-      { title: "Open and configure", body: "Launch MoPlayer Pro and connect only sources you are allowed to use." },
+      { title: "Activate with QR", body: "Open MoPlayer Pro, scan the QR code with your phone and add a source you are allowed to use at moalfarras.space/activate." },
     ],
     compatibility_notes: [
-    "Android 7.0 or newer",
-      "Separated from the classic MoPlayer public release channel",
+      "Android 6.0 or newer (API 23+)",
       "Designed for Android TV and remote-first navigation",
+      "One universal APK for ARM 64-bit and 32-bit devices",
     ],
     changelog_intro: "MoPlayer Pro releases are tracked separately from the classic MoPlayer app.",
     logo_path: "/images/moplayer-icon-512.png",
@@ -250,43 +262,23 @@ const fallbackScreenshotsBySlug: Record<string, AppScreenshot[]> = {
 
 const fallbackFaqsBySlug: Record<string, AppFaq[]> = {
   moplayer: fallbackFaqs,
-  moplayer2: fallbackFaqs.map((item, index) => ({
+  moplayer2: [
+    { question: "Does MoPlayer Pro include channels or playlists?", answer: "No. MoPlayer Pro is a private player only. You connect your own authorized sources; the app does not provide channels or media." },
+    { question: "How do I activate MoPlayer Pro?", answer: "Open the app on your TV, show the QR / activation code, then finish activation from your phone or from this website." },
+    { question: "Which Android version do I need?", answer: "Android 6.0 or newer. MoPlayer Pro is built for Android TV and also runs on Android phones." },
+    { question: "Is it on Google Play?", answer: "No. Download the official APK directly from this page." },
+  ].map((item, index) => ({
     ...item,
     id: `moplayer2-faq-${index + 1}`,
     product_slug: "moplayer2",
-    question: item.question.replace("MoPlayer", "MoPlayer Pro"),
-    answer: item.answer.replace("MoPlayer", "MoPlayer Pro"),
+    sort_order: index + 1,
+    created_at: now,
   })),
 };
 
 const fallbackReleasesBySlug: Record<string, AppRelease[]> = {
   moplayer: fallbackReleases,
-  moplayer2: [
-    {
-      ...fallbackReleases[0],
-      id: "release-moplayer2-v2-7-2",
-      product_slug: "moplayer2",
-      slug: "moplayer2-2.7.2",
-      version_name: "2.7.2",
-      version_code: 71,
-      release_notes:
-        "MoPlayer Pro 2.7.2 makes the TV interface the same size on every TV: TVs and boxes that report a different screen density or use a larger system font no longer get an oversized interface with cut-off names. Group lists are wider and show full names, long channel names scroll when focused, and Settings > Look & Home has a new Interface size option (Compact, Standard, Large). Includes everything from 2.7.1.",
-      compatibility_notes: "Recommended universal MoPlayer Pro APK for Android 6.0+ and Android TV devices with ARM 32-bit or 64-bit processors.",
-      assets: [
-        {
-          ...fallbackReleases[0].assets[0],
-          id: "asset-moplayer2-v2-7-2-universal",
-          release_id: "release-moplayer2-v2-7-2",
-          label: "MoPlayer Pro Universal Android TV APK",
-          abi: "universal",
-          external_url:
-            "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.7.2/app-universal-release.apk",
-          file_size_bytes: 56178347,
-          checksum_sha256: "8b5595ec9cc399a500f52896c4d7f7a09ba89951167a1e810c3d10c762ab677a",
-        },
-      ],
-    },
-  ],
+  moplayer2: [fallbackReleaseFor("moplayer2")],
 };
 
 function fallbackFor(productSlug: string) {

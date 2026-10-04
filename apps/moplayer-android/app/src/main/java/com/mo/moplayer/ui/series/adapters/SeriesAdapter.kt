@@ -61,6 +61,7 @@ class SeriesAdapter(
         val binding = ItemContentCardBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
+        com.mo.moplayer.ui.common.PosterCardSizing.fitGridCell(binding.root, parent)
         return SeriesViewHolder(binding)
     }
 
@@ -81,7 +82,7 @@ class SeriesAdapter(
 
         fun bind(series: SeriesEntity?, position: Int) {
             // Reset all visible state so recycled views never show previous item data
-            binding.tvTitle.text = series?.name?.takeIf { it.isNotBlank() } ?: "Unknown title"
+            binding.tvTitle.text = series?.name?.takeIf { it.isNotBlank() } ?: binding.root.context.getString(R.string.unknown_title)
             binding.ratingBadge.visibility = View.GONE
 
             // Clear previous Glide request and image so we never show wrong poster on reuse
@@ -100,7 +101,7 @@ class SeriesAdapter(
                     Glide.with(binding.root.context)
                         .load(series.cover)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .override(90, 135)
+                        .override(240, 360)
                         .thumbnail(0.1f)
                         .placeholder(R.drawable.ic_content_placeholder)
                         .error(R.drawable.ic_content_placeholder)

@@ -109,7 +109,7 @@
                     android:drawablePadding="6dp"
                     android:paddingHorizontal="11dp"
                     android:paddingVertical="4dp"
-                    android:text="● LIVE"
+                    android:text="@string/player_live_badge"
                     android:textColor="@android:color/white"
                     android:textSize="11sp"
                     android:textStyle="bold"
@@ -151,6 +151,7 @@
     <!-- ══════════════════ BOTTOM CONTROL DECK (floating frosted glass) ══════════════════ -->
     <LinearLayout
         android:id="@+id/bottomControlsBar"
+        android:layoutDirection="ltr"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
@@ -192,7 +193,7 @@
                 android:layout_marginHorizontal="16dp"
                 android:layout_weight="1"
                 android:max="100"
-                android:progress="35"
+                android:progress="0"
                 android:secondaryProgress="55"
                 android:maxHeight="8dp"
                 android:minHeight="8dp"
@@ -613,7 +614,7 @@
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_button_secondary"
                 android:stateListAnimator="@animator/player_focus_pop"
-                android:text="Other"
+                android:text="@string/player_external_other"
                 android:textAllCaps="false"
                 android:textColor="@color/cinematic_text_primary" />
 

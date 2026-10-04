@@ -187,14 +187,14 @@ constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
             .take(8)
             .joinToString(separator = "\n") { match ->
                 val status = when {
-                    match.isLive -> match.minute?.let { "${it}'" } ?: (match.statusShort ?: "LIVE")
+                    match.isLive -> match.minute?.let { "${it}'" } ?: (match.statusShort ?: context.getString(R.string.football_widget_live))
                     match.isFinished -> "FT"
                     else -> match.displayTime
                 }
                 val score = if (match.isLive || match.isFinished) {
                     "${match.homeScore}-${match.awayScore}"
                 } else {
-                    "vs"
+                    context.getString(R.string.football_vs)
                 }
                 "$status  ${match.homeTeam} $score ${match.awayTeam}"
             }

@@ -283,7 +283,7 @@ class PlayerActivity : BaseTvActivity() {
             loadPlayerSettings()
 
             binding.tvTitle.text = title
-            binding.tvSubtitle.text = contentType
+            binding.tvSubtitle.text = contentTypeLabel()
             updatePlaybackChrome()
 
             if (resumePosition == 0L && contentId.isNotEmpty()) {
@@ -374,7 +374,7 @@ class PlayerActivity : BaseTvActivity() {
     
     private suspend fun initInternalPlayer() {
         binding.tvTitle.text = title
-        binding.tvSubtitle.text = contentType
+        binding.tvSubtitle.text = contentTypeLabel()
 
         if (resumePosition == 0L && contentId.isNotEmpty()) {
             resumePosition = loadSavedPositionSuspend()
@@ -454,9 +454,11 @@ class PlayerActivity : BaseTvActivity() {
                         TvRecommendationHelper(this@PlayerActivity).publishWatchNext(
                             contentId = contentId,
                             title = title,
-                            subtitle = if (seasonNumber != null && episodeNumber != null) {
-                                "S${seasonNumber}:E${episodeNumber}"
-                            } else null,
+                            subtitle = seasonNumber?.let { season ->
+                                episodeNumber?.let { episode ->
+                                    getString(R.string.series_season_episode_short_format, season, episode)
+                                }
+                            },
                             posterUrl = posterUrl,
                             type = if (contentType.equals("MOVIE", ignoreCase = true)) "movie" else "series",
                             progressMs = currentPosition,
@@ -1186,10 +1188,10 @@ class PlayerActivity : BaseTvActivity() {
         engineManager?.let { manager ->
             val tracks = manager.audioTracks
             if (tracks.isEmpty()) {
-                Toast.makeText(this, getString(R.string.player_audio_track_format, "Default"), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.player_audio_track_format, getString(R.string.player_track_default)), Toast.LENGTH_SHORT).show()
                 return
             }
-            showOptionSheet("Audio Tracks", tracks.mapIndexed { index, track ->
+            showOptionSheet(getString(R.string.player_audio_tracks), tracks.mapIndexed { index, track ->
                 OptionItem(
                     label = track.label,
                     selected = index == currentAudioTrack
@@ -1204,12 +1206,12 @@ class PlayerActivity : BaseTvActivity() {
         }
         val tracks = mediaPlayer?.audioTracks.orEmpty()
         if (tracks.isEmpty()) {
-            Toast.makeText(this, getString(R.string.player_audio_track_format, "Default"), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.player_audio_track_format, getString(R.string.player_track_default)), Toast.LENGTH_SHORT).show()
             return
         }
-        showOptionSheet("Audio Tracks", tracks.mapIndexed { index, track ->
+        showOptionSheet(getString(R.string.player_audio_tracks), tracks.mapIndexed { index, track ->
             OptionItem(
-                label = track.name ?: "Track ${index + 1}",
+                label = track.name ?: getString(R.string.player_track_number, index + 1),
                 selected = mediaPlayer?.audioTrack == track.id
             ) {
                 mediaPlayer?.audioTrack = track.id
@@ -1265,7 +1267,7 @@ class PlayerActivity : BaseTvActivity() {
                     resetControlsTimeout()
                 }
             }
-            showOptionSheet("Subtitles", subtitleItems)
+            showOptionSheet(getString(R.string.player_subtitles), subtitleItems)
             return
         }
         val tracks = mediaPlayer?.spuTracks.orEmpty()
@@ -1281,7 +1283,7 @@ class PlayerActivity : BaseTvActivity() {
         )
         subtitleItems += tracks.mapIndexed { index, track ->
             OptionItem(
-                label = track.name ?: "Subtitle ${index + 1}",
+                label = track.name ?: getString(R.string.player_subtitle_number, index + 1),
                 selected = mediaPlayer?.spuTrack == track.id
             ) {
                 mediaPlayer?.spuTrack = track.id
@@ -1289,7 +1291,7 @@ class PlayerActivity : BaseTvActivity() {
                 resetControlsTimeout()
             }
         }
-        showOptionSheet("Subtitles", subtitleItems)
+        showOptionSheet(getString(R.string.player_subtitles), subtitleItems)
     }
 
     private var currentSubtitleTrack = -1
@@ -1438,7 +1440,7 @@ class PlayerActivity : BaseTvActivity() {
             }
             "other" -> {
                 try {
-                    val chooser = Intent.createChooser(intent, "Open with...")
+                    val chooser = Intent.createChooser(intent, getString(R.string.player_open_with))
                     startActivity(chooser)
                 } catch (e: ActivityNotFoundException) {
                     Toast.makeText(this, getString(R.string.player_no_video_player_found), Toast.LENGTH_SHORT).show()
@@ -1516,9 +1518,9 @@ class PlayerActivity : BaseTvActivity() {
                 val currentProgram = repository.getCurrentProgram(streamId, activeServer.id)
                 val nextProgram = repository.getNextProgram(streamId, activeServer.id)
                 binding.tvCurrentProgram.text =
-                    currentProgram?.title?.let { "Now • $it" } ?: "Now • $title"
+                    getString(R.string.player_epg_now_format, currentProgram?.title ?: title)
                 binding.tvNextProgram.text =
-                    nextProgram?.title?.let { "Next • $it" } ?: "Next • No upcoming EPG"
+                    getString(R.string.player_epg_next_format, nextProgram?.title ?: getString(R.string.player_epg_no_upcoming))
                 binding.tvPlaybackMeta.text =
                     currentProgram?.title?.takeIf { it.isNotBlank() } ?: getString(R.string.nav_live)
             }
@@ -1529,7 +1531,7 @@ class PlayerActivity : BaseTvActivity() {
     private fun populateChannelDrawer() {
         binding.channelListContainer.removeAllViews()
         if (channelList.isEmpty()) {
-            binding.channelListContainer.addView(createChannelRow(title = "No channels available", selected = false, onClick = {}))
+            binding.channelListContainer.addView(createChannelRow(title = getString(R.string.player_no_channels_available), selected = false, onClick = {}))
             return
         }
 
@@ -2137,5 +2139,12 @@ class PlayerActivity : BaseTvActivity() {
             } catch (_: Exception) {
             }
         }.start()
+    }
+
+    /** Localised label for the header ("Movies", "Series", "Live") instead of the raw type code. */
+    private fun contentTypeLabel(): String = when (contentType.uppercase(java.util.Locale.ROOT)) {
+        "LIVE" -> getString(R.string.nav_live)
+        "SERIES", "EPISODE" -> getString(R.string.nav_series)
+        else -> getString(R.string.nav_movies)
     }
 }

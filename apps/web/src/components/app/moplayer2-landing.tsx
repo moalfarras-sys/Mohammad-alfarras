@@ -27,8 +27,9 @@ import { useRef } from "react";
 
 import { CoverflowGallery } from "@/components/site/coverflow-gallery";
 import { normalizePublicImagePath } from "@/lib/asset-url";
-import { downloadSinceLabel, formatDownloadNumber, type DownloadStatsView } from "@/lib/download-display";
+import { downloadSinceLabel, formatDownloadNumber, hasPublicDownloadCount, type DownloadStatsView } from "@/lib/download-display";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
+import { androidVersionForApi } from "@moalfarras/shared/app-releases";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
 
@@ -203,10 +204,12 @@ export function MoPlayer2Landing({
   const unavailableMessage = ecosystem.runtimeConfig?.message?.trim();
   const hasDownload = !appUnavailable && latest && latest.assets.some((a) => a.external_url || a.storage_path);
   const downloadHref = hasDownload ? `/api/app/releases/${latest.slug}/download` : null;
+  const showDownloadCount = hasPublicDownloadCount(downloadStats);
   const downloadCount = formatDownloadNumber(downloadStats?.value ?? 0, locale);
   const downloadSince = downloadSinceLabel(downloadStats, locale);
   const activateHref = `/${locale}/activate?product=moplayer2`;
   const size = formatBytes(primaryAsset?.file_size_bytes);
+  const minAndroid = androidVersionForApi(ecosystem.product.android_min_sdk);
   const downloaderCode = ecosystem.runtimeConfig?.downloaderCode || "4608937";
   const productName = ecosystem.product.product_name || c.heroTitle;
   const heroBadge = isAr ? c.badge : ecosystem.product.hero_badge || c.badge;
@@ -313,16 +316,18 @@ export function MoPlayer2Landing({
             </motion.div>
           ) : null}
 
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.38 }} className="mb-4 md:mb-6 inline-flex items-center gap-4 rounded-3xl border border-[#f4b860]/25 bg-[#f4b860]/10 px-5 py-4 text-start backdrop-blur-xl shadow-[0_22px_68px_rgba(244,184,96,0.16)]">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#f4b860]/18 text-[#f4b860]">
-              <Download className="h-6 w-6" />
-            </div>
-            <div>
-              <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#f4b860]/80">{isAr ? "تحميلات رسمية" : "Official downloads"}</span>
-              <strong className="block text-3xl font-black text-white tabular-nums">{downloadCount}</strong>
-              <span className="block text-xs font-semibold text-white/45">{downloadSince}</span>
-            </div>
-          </motion.div>
+          {showDownloadCount ? (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.38 }} className="mb-4 md:mb-6 inline-flex items-center gap-4 rounded-3xl border border-[#f4b860]/25 bg-[#f4b860]/10 px-5 py-4 text-start backdrop-blur-xl shadow-[0_22px_68px_rgba(244,184,96,0.16)]">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#f4b860]/18 text-[#f4b860]">
+                <Download className="h-6 w-6" />
+              </div>
+              <div>
+                <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-[#f4b860]/80">{isAr ? "تحميلات رسمية" : "Official downloads"}</span>
+                <strong className="block text-3xl font-black text-white tabular-nums">{downloadCount}</strong>
+                <span className="block text-xs font-semibold text-white/45">{downloadSince}</span>
+              </div>
+            </motion.div>
+          ) : null}
           
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }} className="flex flex-col sm:flex-row gap-3 sm:gap-5 items-center justify-center lg:justify-start">
             {downloadHref ? (
@@ -354,12 +359,12 @@ export function MoPlayer2Landing({
       <section className="relative py-12 border-y border-white/10 bg-white/[0.02] backdrop-blur-sm z-10">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 flex flex-wrap justify-around items-center gap-8">
           {[
-            { label: isAr ? "الإصدار" : "Version", value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
-            { label: isAr ? "التحميلات" : "Downloads", value: downloadCount },
-            { label: isAr ? "الحجم" : "Size", value: size ?? "APK" },
+            latest?.version_name ? { label: isAr ? "الإصدار" : "Version", value: `v${latest.version_name}` } : null,
+            showDownloadCount ? { label: isAr ? "التحميلات" : "Downloads", value: downloadCount } : null,
+            size ? { label: isAr ? "الحجم" : "Size", value: size } : null,
+            minAndroid ? { label: isAr ? "أندرويد" : "Android", value: `${minAndroid}+` } : null,
             { label: isAr ? "المنصة" : "Platform", value: "Android TV" },
-            { label: isAr ? "الشاشة الكبيرة" : "Big Screen", value: ecosystem.product.android_tv_ready ? (isAr ? "جاهز" : "Ready") : "Android" },
-          ].map((s) => (
+          ].filter((item): item is { label: string; value: string } => Boolean(item)).map((s) => (
             <div key={s.label} className="text-center">
               <span className="block text-white/50 text-sm font-bold uppercase tracking-widest mb-2">{s.label}</span>
               <strong className="block text-3xl font-black text-white">{s.value}</strong>

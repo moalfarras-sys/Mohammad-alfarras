@@ -69,18 +69,12 @@ class FavoritesActivity : BaseTvActivity() {
         )
 
         binding.rvFavorites.apply {
-            // Use responsive grid layout that adapts to screen size
-            val cardWidthDp = LayoutHelper.getCardWidthDp(this@FavoritesActivity)
-            val cardMarginDp = LayoutHelper.getCardMarginDp(this@FavoritesActivity)
-            val screenMarginDp = LayoutHelper.getScreenMarginHorizontalDp(this@FavoritesActivity)
-            
-            layoutManager = LayoutHelper.createResponsiveGridLayoutManager(
-                context = this@FavoritesActivity,
-                cardWidthDp = cardWidthDp,
-                cardMarginDp = cardMarginDp,
-                screenMarginHorizontalDp = screenMarginDp,
-                minColumns = 2,
-                maxColumns = 8
+            // Columns follow the grid's real width; each card fills its cell at poster ratio.
+            val density = resources.displayMetrics.density
+            val columnWidth = (FAVORITE_POSTER_WIDTH_DP * density).toInt() +
+                resources.getDimensionPixelSize(com.mo.moplayer.R.dimen.card_margin) * 2
+            layoutManager = com.mo.moplayer.ui.common.AutoFitGridLayoutManager(
+                this@FavoritesActivity, columnWidth, minColumns = 3, maxColumns = 10
             )
             adapter = favoritesAdapter
             recyclerViewOptimizer.optimizeChannelList(this)
@@ -157,7 +151,7 @@ class FavoritesActivity : BaseTvActivity() {
                 "movie" -> repository.getMovieById(favorite.contentId)?.let {
                     ContentMenuDetails(
                         description = it.plot,
-                        duration = it.duration ?: ContentMenuDetails.formatDuration(it.durationSeconds),
+                        duration = it.duration ?: ContentMenuDetails.formatDuration(this@FavoritesActivity, it.durationSeconds),
                         rating = it.rating,
                         year = it.year ?: it.releaseDate,
                         genre = it.genre
@@ -220,5 +214,9 @@ class FavoritesActivity : BaseTvActivity() {
         if (::favoritesAdapter.isInitialized) {
             favoritesAdapter.updateThemeColor(color)
         }
+    }
+
+    private companion object {
+        const val FAVORITE_POSTER_WIDTH_DP = 104
     }
 }

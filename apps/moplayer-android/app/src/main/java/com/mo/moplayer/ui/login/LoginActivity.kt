@@ -155,6 +155,15 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.mo.moplayer.util.DisplayScale.wrap(newBase))
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) com.mo.moplayer.util.ImmersiveMode.apply(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         val splashScreen = installSplashScreen()
@@ -248,10 +257,10 @@ class LoginActivity : AppCompatActivity() {
         }
 
         val blockedMessage = when {
-            !config.enabled -> config.message.ifBlank { "MoPlayer is temporarily unavailable. Please try again later." }
-            config.maintenanceMode -> config.message.ifBlank { "MoPlayer is in maintenance mode. Please check back soon." }
+            !config.enabled -> config.message.ifBlank { getString(R.string.remote_config_unavailable_retry_later) }
+            config.maintenanceMode -> config.message.ifBlank { getString(R.string.remote_config_maintenance_check_back) }
             config.forceUpdate && BuildConfig.VERSION_CODE < config.minimumVersionCode ->
-                config.message.ifBlank { "A newer MoPlayer version is required. Download the latest APK from moalfarras.space." }
+                config.message.ifBlank { getString(R.string.remote_config_update_required) }
             else -> null
         }
 
@@ -839,7 +848,11 @@ class LoginActivity : AppCompatActivity() {
             }
             "m3u" -> {
                 showSourceForm(LoginViewModel.LoginTab.M3U)
-                viewModel.importM3uFromUrl(source.optString("playlistUrl"), name)
+                viewModel.importM3uFromUrl(
+                    source.optString("playlistUrl"),
+                    name,
+                    source.optString("epgUrl").takeIf { it.startsWith("http", ignoreCase = true) }
+                )
             }
             else -> {
                 binding.tvErrorClean.text = getString(R.string.website_source_failed)
@@ -1260,7 +1273,7 @@ class LoginActivity : AppCompatActivity() {
             lower.contains("illegal character")
 
         return if (mayContainSourceSecret) {
-            "Could not import this source. Check the URL or credentials and try again."
+            getString(R.string.login_error_source_import_failed)
         } else {
             message
         }
@@ -1412,7 +1425,7 @@ class LoginActivity : AppCompatActivity() {
     
     private fun handleM3uFile(uri: Uri) {
         try {
-            viewModel.importM3uFromFile(uri, "Local Playlist")
+            viewModel.importM3uFromFile(uri, getString(R.string.login_local_playlist_name))
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, getString(R.string.login_error_reading_file, e.message ?: ""), Toast.LENGTH_SHORT).show()

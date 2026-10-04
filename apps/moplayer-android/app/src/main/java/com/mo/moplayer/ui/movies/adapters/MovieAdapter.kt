@@ -61,6 +61,7 @@ class MovieAdapter(
         val binding = ItemContentCardBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
+        com.mo.moplayer.ui.common.PosterCardSizing.fitGridCell(binding.root, parent)
         return MovieViewHolder(binding)
     }
 
@@ -81,7 +82,7 @@ class MovieAdapter(
 
         fun bind(movie: MovieEntity?, position: Int) {
             // Reset all visible state so recycled views never show previous item data
-            binding.tvTitle.text = movie?.name?.takeIf { it.isNotBlank() } ?: "Unknown title"
+            binding.tvTitle.text = movie?.name?.takeIf { it.isNotBlank() } ?: binding.root.context.getString(R.string.unknown_title)
             binding.ratingBadge.visibility = View.GONE
 
             // Clear previous Glide request and image so we never show wrong poster on reuse
@@ -102,7 +103,7 @@ class MovieAdapter(
                     Glide.with(binding.root.context)
                         .load(movie.streamIcon)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .override(90, 135)
+                        .override(240, 360)
                         .thumbnail(0.1f)
                         .placeholder(R.drawable.ic_content_placeholder)
                         .error(R.drawable.ic_content_placeholder)

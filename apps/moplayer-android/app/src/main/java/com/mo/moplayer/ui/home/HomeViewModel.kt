@@ -72,6 +72,7 @@ class HomeViewModel @Inject constructor(
         "continue_watching",
         "recent_movies",
         "recent_series",
+        "live_channels",
         "favorites"
     )
     
@@ -81,10 +82,21 @@ class HomeViewModel @Inject constructor(
 
     private fun observeContent() {
         viewModelScope.launch {
+            var observedServerId: Long? = null
+            var observedOnce = false
             repository.getActiveServer().collectLatest { server ->
-                contentObserverJob?.cancel()
                 _activeServer.value = server
                 _activeServerLiveData.value = server
+                // The server row also changes when its subscription info or sync status is
+                // refreshed; only a different source should rebuild the rows (otherwise Home
+                // flickers empty and loses focus every time the account is re-checked).
+                if (observedOnce && server?.id == observedServerId) {
+                    server?.let { loadDashboardState(it) }
+                    return@collectLatest
+                }
+                observedOnce = true
+                observedServerId = server?.id
+                contentObserverJob?.cancel()
 
                 if (server == null) {
                     rowCache.clear()
@@ -107,7 +119,8 @@ class HomeViewModel @Inject constructor(
                         "continue_watching",
                         "favorites",
                         "recent_movies",
-                        "recent_series"
+                        "recent_series",
+                        "live_channels"
                     )
 
                     launch {
@@ -119,7 +132,7 @@ class HomeViewModel @Inject constructor(
                                     row = if (continueWatching.isNotEmpty()) {
                                         ContentRow(
                                             id = "continue_watching",
-                                            title = context.getString(R.string.section_continue_watching),
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_continue_watching),
                                             items = continueWatching.map { it.toContentItem() },
                                             type = ContentRowType.CONTINUE_WATCHING
                                         )
@@ -139,7 +152,7 @@ class HomeViewModel @Inject constructor(
                                     row = if (favorites.isNotEmpty()) {
                                         ContentRow(
                                             id = "favorites",
-                                            title = context.getString(R.string.section_favorites),
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_favorites),
                                             items = favorites.take(20).map { it.toContentItem() },
                                             type = ContentRowType.FAVORITES
                                         )
@@ -152,14 +165,14 @@ class HomeViewModel @Inject constructor(
 
                     launch {
                         repository.getRecentlyAddedMovies(server.id, 20)
-                            .distinctUntilChangedBy { rows -> rows.map { it.movieId } }
+                            .distinctUntilChanged()
                             .collect { recentMovies ->
                                 updateRow(
                                     key = "recent_movies",
                                     row = if (recentMovies.isNotEmpty()) {
                                         ContentRow(
                                             id = "recent_movies",
-                                            title = context.getString(R.string.section_recently_added_movies),
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_recently_added_movies),
                                             items = recentMovies.map { it.toContentItem() },
                                             type = ContentRowType.MOVIES
                                         )
@@ -170,16 +183,38 @@ class HomeViewModel @Inject constructor(
                             }
                     }
 
+                    // Live channels in playlist order: the only row a live-only M3U source has,
+                    // so Home never sits on a "loading" card for those sources.
+                    launch {
+                        repository.getAllChannelsLimited(server.id, 24)
+                            .distinctUntilChangedBy { rows -> rows.map { it.channelId } }
+                            .collect { channels ->
+                                updateRow(
+                                    key = "live_channels",
+                                    row = if (channels.isNotEmpty()) {
+                                        ContentRow(
+                                            id = "live_channels",
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_live_tv),
+                                            items = channels.map { it.toContentItem() },
+                                            type = ContentRowType.CHANNELS
+                                        )
+                                    } else null
+                                )
+                                pendingSections.remove("live_channels")
+                                if (pendingSections.isEmpty()) setLoading(false)
+                            }
+                    }
+
                     launch {
                         repository.getRecentlyAddedSeries(server.id, 20)
-                            .distinctUntilChangedBy { rows -> rows.map { it.seriesId } }
+                            .distinctUntilChanged()
                             .collect { recentSeries ->
                                 updateRow(
                                     key = "recent_series",
                                     row = if (recentSeries.isNotEmpty()) {
                                         ContentRow(
                                             id = "recent_series",
-                                            title = context.getString(R.string.section_recently_added_series),
+                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_recently_added_series),
                                             items = recentSeries.map { it.toContentItem() },
                                             type = ContentRowType.SERIES
                                         )
@@ -218,7 +253,7 @@ class HomeViewModel @Inject constructor(
             val snapshot = repository.getContentSnapshot(server.id)
             val syncState = repository.getServerSyncState(server.id)
             _dashboardState.value = HomeDashboardState(
-                sourceName = server.name,
+                sourceName = com.mo.moplayer.data.util.ProviderSourceUrlParser.displayName(server.name, server.serverUrl),
                 sourceType = server.serverType,
                 isActive = server.isActive,
                 liveCount = syncState?.totalChannels?.takeIf { it > 0 } ?: snapshot.channelsCount,

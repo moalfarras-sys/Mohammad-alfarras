@@ -33,10 +33,10 @@ export const appsPageCopy = {
 
 export const moPlayerCopy = {
   en: {
-    badge: "Android and Android TV media product",
-    heroTitle: "MoPlayer is a cinematic Android TV-first media player shell.",
+    badge: "Android TV + Android media player",
+    heroTitle: "MoPlayer Classic: a lightweight player for Android TV and Android.",
     heroBody:
-      "Built as a serious product surface: remote-friendly TV UI, source setup, website activation, release downloads, installation guidance, support, privacy, and case-study context in one trusted place.",
+      "MoPlayer Classic plays your own Xtream Codes or M3U source on Android TV boxes, TVs, phones and tablets in landscape: Live TV with an EPG guide, Movies, Series, Favorites and Search. Add your source by scanning a QR code with your phone at moalfarras.space/activate.",
     download: "Download APK",
     support: "Get support",
     caseStudy: "Read case study",
@@ -51,53 +51,53 @@ export const moPlayerCopy = {
       checksum: "File check",
       tv: "Android TV",
     },
-    featuresEyebrow: "Product decisions",
-    featuresTitle: "Built around TV clarity, safe setup, and product ownership.",
+    featuresEyebrow: "Features",
+    featuresTitle: "Live TV, movies and series from your own source, built for the remote.",
     features: [
       {
-        title: "TV-first product direction",
-        body: "The experience is designed around remote control, focus visibility, readable TV spacing, and adaptive phone layouts.",
+        title: "Live TV with EPG",
+        body: "Channel groups, quick zapping and a programme guide for your Xtream or M3U source.",
       },
       {
-        title: "Official release path",
-        body: "Download, version details, support, privacy, and legal clarity stay inside moalfarras.space.",
+        title: "Movies and Series",
+        body: "Browse your provider's video library with posters, details, seasons and episodes.",
       },
       {
-        title: "Legal source clarity",
-        body: "MoPlayer is a player shell. Users connect only media sources they are allowed to use; the app does not provide channels.",
+        title: "QR activation",
+        body: "Scan the QR code on the TV and add your source from your phone at moalfarras.space/activate instead of typing long links with the remote.",
       },
       {
-        title: "Bilingual product documentation",
-        body: "Arabic and English users get the same installation, FAQ, support, and legal clarity.",
+        title: "Favorites and Search",
+        body: "Pin channels and titles to Favorites and search across Live TV, Movies and Series.",
       },
     ],
-    philosophyTitle: "Product philosophy",
+    philosophyTitle: "What MoPlayer Classic does",
     philosophy:
-      "MoPlayer is presented as a product Mohammad owns end to end: identity, product page, release packaging, support path, privacy language, and the surrounding case study. The goal is a calmer media experience, not a louder marketing claim.",
+      "MoPlayer Classic is a player only: it reads the Xtream Codes account or M3U link you already have and organises it into Live TV, Movies and Series. It runs on Android 7.0 or newer and keeps your source on the device.",
     privacyTitle: "Privacy and legal clarity",
     privacyBullets: [
       "MoPlayer does not provide channels, playlists, subscriptions, or copyrighted media.",
       "Users are responsible for the legality of the media sources they connect.",
+      "A source added through QR activation is delivered to your TV once and is not kept on the website.",
       "The website support form stores only information intentionally submitted for follow-up.",
-      "No ratings, reviews, awards, or performance numbers are shown unless they are verified in source content.",
     ],
     installTitle: "Installation steps",
     installSteps: [
       {
         title: "Download the APK",
-        body: "Use the latest official download link from this page. If more than one option appears, choose the one recommended for your device.",
+        body: "Download the latest universal APK from this page. It runs on Android 7.0 or newer.",
       },
       {
-        title: "Allow installation from this source",
-        body: "Android may ask you to allow installation from the browser or file manager. Only enable it for sources you trust.",
+        title: "Allow installation",
+        body: "If Android asks, allow installs from your browser or file manager for this download.",
       },
       {
-        title: "Open MoPlayer",
-        body: "Launch the app and connect only media sources you are allowed to use.",
+        title: "Activate with QR (recommended)",
+        body: "Open MoPlayer Classic, scan the QR code on screen with your phone and add your Xtream or M3U source at moalfarras.space/activate. The source is sent to the TV once and saved only on the device.",
       },
       {
-        title: "Use support if needed",
-        body: "For installation or compatibility issues, use the support page so the request stays connected to the product record.",
+        title: "Or sign in on the TV",
+        body: "You can also type your Xtream details or M3U link directly in the app.",
       },
     ],
     faqTitle: "FAQ",
@@ -108,11 +108,15 @@ export const moPlayerCopy = {
       },
       {
         question: "Is MoPlayer made for Android TV?",
-        answer: "The product is positioned for Android and Android TV, with release details shown from the current product data.",
+        answer: "Yes. MoPlayer Classic is built for Android TV and remote navigation, and also runs on Android phones and tablets in landscape. It needs Android 7.0 or newer.",
+      },
+      {
+        question: "How do I add my Xtream or M3U source?",
+        answer: "Open the app, scan the QR code on the TV with your phone and enter your source at moalfarras.space/activate. You can also type it directly in the app.",
       },
       {
         question: "Is the app on Google Play?",
-        answer: "No public Google Play listing is shown unless a real listing exists.",
+        answer: "No. MoPlayer Classic is distributed as an APK from this page only.",
       },
       {
         question: "Where do support requests go?",
@@ -124,10 +128,10 @@ export const moPlayerCopy = {
     disclaimerTitle: "Legal disclaimer",
   },
   ar: {
-    badge: "منتج وسائط لـ Android و Android TV",
-    heroTitle: "MoPlayer واجهة وسائط سينمائية موجهة أولاً لـ Android TV.",
+    badge: "مشغّل وسائط لـ Android TV وأندرويد",
+    heroTitle: "MoPlayer Classic: مشغّل خفيف لـ Android TV وأندرويد.",
     heroBody:
-      "منتج جدي بواجهة تلفزيون مناسبة للريموت، إعداد مصادر، تفعيل عبر الموقع، تنزيل APK، إرشادات تثبيت، دعم، خصوصية، وسياق دراسة حالة داخل مكان موثوق واحد.",
+      "يشغّل MoPlayer Classic مصدرك الخاص من Xtream Codes أو M3U على أجهزة وصناديق Android TV والهواتف والأجهزة اللوحية بالوضع الأفقي: بث مباشر مع دليل البرامج EPG، أفلام، مسلسلات، مفضلة وبحث. أضف مصدرك بمسح رمز QR من هاتفك عبر moalfarras.space/activate.",
     download: "تنزيل APK",
     support: "الحصول على الدعم",
     caseStudy: "اقرأ دراسة الحالة",
@@ -142,53 +146,53 @@ export const moPlayerCopy = {
       checksum: "فحص الملف",
       tv: "Android TV",
     },
-    featuresEyebrow: "قرارات المنتج",
-    featuresTitle: "مبني حول وضوح التلفزيون، الإعداد الآمن، وملكية المنتج.",
+    featuresEyebrow: "الميزات",
+    featuresTitle: "بث مباشر وأفلام ومسلسلات من مصدرك الخاص، مصمم للتحكم بالريموت.",
     features: [
       {
-        title: "توجه تلفزيون أولاً",
-        body: "التجربة مصممة حول الريموت، وضوح التركيز، مسافات قابلة للقراءة من بعيد، وتخطيط مناسب للهاتف أيضاً.",
+        title: "بث مباشر مع EPG",
+        body: "مجموعات القنوات، تنقّل سريع بين القنوات، ودليل برامج لمصدر Xtream أو M3U الخاص بك.",
       },
       {
-        title: "مسار إصدار رسمي",
-        body: "التحميل، تفاصيل النسخة، الدعم، الخصوصية، والتنبيه القانوني تبقى داخل moalfarras.space.",
+        title: "أفلام ومسلسلات",
+        body: "تصفّح مكتبة الفيديو لدى مزوّدك مع الملصقات والتفاصيل والمواسم والحلقات.",
       },
       {
-        title: "وضوح قانوني للمصادر",
-        body: "MoPlayer واجهة تشغيل فقط. المستخدم يربط فقط المصادر التي يملك حق استخدامها، والتطبيق لا يوفّر قنوات.",
+        title: "تفعيل عبر QR",
+        body: "امسح رمز QR الظاهر على التلفزيون وأضف مصدرك من هاتفك عبر moalfarras.space/activate بدل كتابة الروابط الطويلة بالريموت.",
       },
       {
-        title: "توثيق منتج ثنائي اللغة",
-        body: "المستخدم العربي والإنجليزي يحصلان على نفس الوضوح في التثبيت، الأسئلة، الدعم، والجانب القانوني.",
+        title: "المفضلة والبحث",
+        body: "أضف القنوات والعناوين إلى المفضلة وابحث في البث المباشر والأفلام والمسلسلات.",
       },
     ],
-    philosophyTitle: "فلسفة المنتج",
+    philosophyTitle: "ماذا يقدّم MoPlayer Classic",
     philosophy:
-      "MoPlayer يُعرض كمنتج يملكه محمد من البداية إلى النهاية: الهوية، صفحة المنتج، تجهيز الإصدارات، مسار الدعم، لغة الخصوصية، ودراسة الحالة المحيطة به. الهدف تجربة وسائط أهدأ، وليس ادعاءً تسويقياً أعلى صوتاً.",
+      "MoPlayer Classic مشغّل فقط: يقرأ حساب Xtream Codes أو رابط M3U الذي تملكه أصلاً وينظّمه في بث مباشر وأفلام ومسلسلات. يعمل على Android 7.0 أو أحدث، ويبقى مصدرك محفوظاً على الجهاز.",
     privacyTitle: "وضوح الخصوصية والقانون",
     privacyBullets: [
       "MoPlayer لا يوفّر قنوات أو قوائم تشغيل أو اشتراكات أو محتوى محمي الحقوق.",
       "المستخدم مسؤول عن قانونية مصادر الوسائط التي يربطها بالتطبيق.",
+      "المصدر المُضاف عبر تفعيل QR يُرسَل إلى تلفزيونك مرة واحدة ولا يُحفظ على الموقع.",
       "نموذج الدعم في الموقع يخزّن فقط المعلومات التي يرسلها المستخدم عمداً للمتابعة.",
-      "لا تُعرض تقييمات أو مراجعات أو جوائز أو أرقام أداء ما لم تكن موثقة في المصدر.",
     ],
     installTitle: "خطوات التثبيت",
     installSteps: [
       {
         title: "نزّل ملف APK",
-        body: "استخدم رابط آخر إصدار رسمي من هذه الصفحة. إذا ظهرت أكثر من نسخة، اختر الخيار الموصى به لجهازك.",
+        body: "نزّل أحدث ملف APK موحّد من هذه الصفحة. يعمل على Android 7.0 أو أحدث.",
       },
       {
-        title: "اسمح بالتثبيت من هذا المصدر",
-        body: "قد يطلب Android السماح بالتثبيت من المتصفح أو مدير الملفات. فعّل ذلك فقط للمصادر التي تثق بها.",
+        title: "اسمح بالتثبيت",
+        body: "إذا طلب Android ذلك، اسمح بالتثبيت من المتصفح أو مدير الملفات لهذا الملف.",
       },
       {
-        title: "افتح MoPlayer",
-        body: "شغّل التطبيق واربط فقط مصادر الوسائط التي تملك حق استخدامها.",
+        title: "فعّل عبر QR (الطريقة الموصى بها)",
+        body: "افتح MoPlayer Classic، امسح رمز QR الظاهر على الشاشة بهاتفك، ثم أضف مصدر Xtream أو M3U عبر moalfarras.space/activate. يُرسَل المصدر إلى التلفزيون مرة واحدة ويُحفظ على الجهاز فقط.",
       },
       {
-        title: "استخدم الدعم عند الحاجة",
-        body: "لمشكلات التثبيت أو التوافق، استخدم صفحة الدعم حتى تبقى الرسالة مرتبطة بسجل المنتج.",
+        title: "أو سجّل الدخول من التلفزيون",
+        body: "يمكنك أيضاً كتابة بيانات Xtream أو رابط M3U مباشرة داخل التطبيق.",
       },
     ],
     faqTitle: "الأسئلة الشائعة",
@@ -199,11 +203,15 @@ export const moPlayerCopy = {
       },
       {
         question: "هل MoPlayer مخصص لـ Android TV؟",
-        answer: "المنتج موجه لـ Android و Android TV، وتُعرض تفاصيل الإصدار من بيانات المنتج الحالية.",
+        answer: "نعم. صُمّم MoPlayer Classic لـ Android TV والتنقل بالريموت، ويعمل أيضاً على هواتف وأجهزة أندرويد اللوحية بالوضع الأفقي. يحتاج إلى Android 7.0 أو أحدث.",
+      },
+      {
+        question: "كيف أضيف مصدر Xtream أو M3U؟",
+        answer: "افتح التطبيق، امسح رمز QR الظاهر على التلفزيون بهاتفك، ثم أدخل مصدرك عبر moalfarras.space/activate. يمكنك أيضاً كتابته مباشرة داخل التطبيق.",
       },
       {
         question: "هل التطبيق موجود على Google Play؟",
-        answer: "لا تُعرض أي صفحة Google Play عامة إلا إذا وُجد رابط حقيقي وموثّق.",
+        answer: "لا. يُوزَّع MoPlayer Classic كملف APK من هذه الصفحة فقط.",
       },
       {
         question: "إلى أين تذهب طلبات الدعم؟",

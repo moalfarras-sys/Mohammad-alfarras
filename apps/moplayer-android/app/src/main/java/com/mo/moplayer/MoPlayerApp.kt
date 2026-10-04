@@ -55,6 +55,30 @@ class MoPlayerApp : Application(), Configuration.Provider {
         // Schedule a conservative periodic sync; the worker skips fresh/local-only sources.
         runCatching { ServerSyncWorker.schedule(this) }
             .onFailure { android.util.Log.e("MoPlayerApp", "Server sync schedule failed: ${it.message}", it) }
+        refreshLibraryAfterUpdate()
+    }
+
+    /**
+     * 2.5.0 stores ratings on a 10-point scale and cleans provider plots. Libraries synced by an
+     * older version are refreshed once on the first launch after the update so every screen shows
+     * the corrected data right away instead of after the next scheduled sync.
+     */
+    private fun refreshLibraryAfterUpdate() {
+        val prefs = getSharedPreferences("app_version", MODE_PRIVATE)
+        val policy = StrictMode.allowThreadDiskReads()
+        val lastCode = try { prefs.getInt("last_version_code", 0) } finally { StrictMode.setThreadPolicy(policy) }
+        val current = BuildConfig.VERSION_CODE
+        if (lastCode in 1 until LIBRARY_FORMAT_VERSION_CODE || (lastCode == 0 && hasExistingInstallData())) {
+            runCatching { ServerSyncWorker.syncNow(this, force = true) }
+        }
+        if (lastCode != current) prefs.edit().putInt("last_version_code", current).apply()
+    }
+
+    /** An update from a version that did not record its code still has the Room database. */
+    private fun hasExistingInstallData(): Boolean = getDatabasePath("moplayer_database").exists()
+
+    private companion object {
+        const val LIBRARY_FORMAT_VERSION_CODE = 25
     }
 
     override val workManagerConfiguration: Configuration

@@ -5,7 +5,9 @@ import android.net.Uri
 import android.view.SurfaceView
 import android.view.TextureView
 import android.view.View
+import com.mo.moplayer.R
 import com.mo.moplayer.util.DevicePerformance
+import com.mo.moplayer.util.DisplayScale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -331,11 +333,12 @@ class VlcPlayerEngine(
 
     private fun refreshTracks() {
         val player = mediaPlayer ?: return
+        val strings = DisplayScale.localized(appContext)
         _audioTracks = player.audioTracks
-            ?.mapIndexed { idx, td -> PlayerEngine.TrackInfo(idx, td.name ?: "Track ${idx + 1}", null) }
+            ?.mapIndexed { idx, td -> PlayerEngine.TrackInfo(idx, td.name ?: strings.getString(R.string.player_track_number, idx + 1), null) }
             ?: emptyList()
         _subtitleTracks = player.spuTracks
-            ?.mapIndexed { idx, td -> PlayerEngine.TrackInfo(idx, td.name ?: "Subtitle ${idx + 1}", null) }
+            ?.mapIndexed { idx, td -> PlayerEngine.TrackInfo(idx, td.name ?: strings.getString(R.string.player_subtitle_number, idx + 1), null) }
             ?: emptyList()
         callbacks.forEach { it.onTracksChanged(_audioTracks, _subtitleTracks) }
     }

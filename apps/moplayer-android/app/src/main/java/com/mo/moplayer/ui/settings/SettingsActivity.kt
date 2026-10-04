@@ -28,6 +28,7 @@ import com.mo.moplayer.util.CrashGuard
 import com.mo.moplayer.util.ParentalLockManager
 import com.mo.moplayer.util.PlayerPreferences
 import com.mo.moplayer.util.SmartRefreshManager
+import com.mo.moplayer.util.DisplayScale
 import com.mo.moplayer.util.ThemeManager
 import com.mo.moplayer.data.football.FootballService
 import com.mo.moplayer.data.update.AppUpdateInfo
@@ -61,6 +62,7 @@ class SettingsActivity : BaseTvActivity() {
     
     companion object {
         private const val REQUEST_CODE_IMAGE_PICKER = 1001
+        private const val EXTRA_OPEN_PANEL = "open_panel"
     }
 
     private lateinit var binding: ActivitySettingsBinding
@@ -122,8 +124,11 @@ class SettingsActivity : BaseTvActivity() {
         setupSettingsBackNavigation()
         observeViewModel()
 
-        // Show server panel by default
-        showPanel(SettingsPanel.SERVER, focusPanel = false)
+        // Server panel by default; a display change reopens the panel the viewer was on.
+        val initialPanel = intent.getStringExtra(EXTRA_OPEN_PANEL)
+            ?.let { name -> SettingsPanel.entries.firstOrNull { it.name == name } }
+            ?: SettingsPanel.SERVER
+        showPanel(initialPanel, focusPanel = false)
         binding.rvCategories.post { focusCurrentCategory() }
         binding.animatedBackground.pauseAnimation()
         if (com.mo.moplayer.util.DevicePerformance.allowAnimatedBackground(this)) {
@@ -457,7 +462,12 @@ class SettingsActivity : BaseTvActivity() {
     }
     
     private fun showBufferSizeDialog() {
-        val sizes = arrayOf("Low (1s)", "Medium (2s)", "High (4s)", "Very High (8s)")
+        val sizes = arrayOf(
+            getString(R.string.buffer_size_low_format, 1),
+            getString(R.string.buffer_size_medium_format, 2),
+            getString(R.string.buffer_size_high_format, 4),
+            getString(R.string.buffer_size_very_high_format, 8)
+        )
         val values = arrayOf(
             PlayerPreferences.BUFFER_LOW,
             PlayerPreferences.BUFFER_MEDIUM,
@@ -501,7 +511,7 @@ class SettingsActivity : BaseTvActivity() {
             Toast.makeText(this, getString(R.string.settings_no_external_players), Toast.LENGTH_SHORT).show()
         } else {
             val names = installed.joinToString(", ") { it.name }
-            Toast.makeText(this, "Installed: $names", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.settings_installed_players_format, names), Toast.LENGTH_LONG).show()
         }
     }
     
@@ -611,20 +621,22 @@ class SettingsActivity : BaseTvActivity() {
                 binding.animatedBackground.setAnimationEnabled(allowed)
                 if (!allowed && isChecked) {
                     binding.switchAnimationEnabled.isChecked = false
-                    Toast.makeText(this@SettingsActivity, "Animations reduced automatically for this device.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@SettingsActivity, getString(R.string.settings_animations_reduced_auto), Toast.LENGTH_SHORT).show()
                 }
             }
         }
 
         lifecycleScope.launch {
             tvUiPreferences.posterSize.collect { size ->
-                binding.tvPosterSizeValue.text = size.name.lowercase().replaceFirstChar { it.titlecase(Locale.getDefault()) }
+                binding.tvPosterSizeValue.text = posterSizeLabel(size)
             }
         }
 
         lifecycleScope.launch {
             tvUiPreferences.layoutStyle.collect { style ->
-                binding.tvLayoutStyleValue.text = if (style == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.ROWS) "Rows" else "Grid"
+                binding.tvLayoutStyleValue.text = getString(
+                    if (style == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.ROWS) R.string.layout_style_rows else R.string.layout_style_grid
+                )
             }
         }
 
@@ -1064,18 +1076,18 @@ class SettingsActivity : BaseTvActivity() {
                 if (location != null) {
                     binding.tvDetectedLocation.text = location.getDisplayName()
                 } else {
-                    binding.tvDetectedLocation.text = "Detecting location..."
+                    binding.tvDetectedLocation.text = getString(R.string.settings_detecting_location)
                     // Try to fetch location
                     val result = locationService.fetchLocation()
                     result.onSuccess { loc ->
                         binding.tvDetectedLocation.text = loc.getDisplayName()
                     }.onFailure {
-                        binding.tvDetectedLocation.text = "Location unavailable"
+                        binding.tvDetectedLocation.text = getString(R.string.settings_location_unavailable)
                     }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
-                binding.tvDetectedLocation.text = "Error detecting location"
+                binding.tvDetectedLocation.text = getString(R.string.settings_location_detect_error)
             }
         }
     }
@@ -1115,61 +1127,75 @@ class SettingsActivity : BaseTvActivity() {
     }
     
     private fun setupLanguageSelection() {
-        // Load current language
-        lifecycleScope.launch {
-            val currentLocale = java.util.Locale.getDefault().language
-            binding.tvLanguageValue.text = when (currentLocale) {
-                "ar" -> getString(R.string.language_arabic)
-                else -> getString(R.string.language_english)
-            }
-        }
-        
-        binding.optionLanguage.setOnClickListener {
-            showLanguageDialog()
-        }
+        binding.tvLanguageValue.text = languageLabel(DisplayScale.language(this))
+        binding.optionLanguage.setOnClickListener { showLanguageDialog() }
+
+        binding.tvInterfaceSizeValue.text = interfaceSizeLabel(DisplayScale.interfaceSize(this))
+        binding.optionInterfaceSize.setOnClickListener { showInterfaceSizeDialog() }
     }
-    
+
+    private fun languageLabel(code: String): String = when (code) {
+        DisplayScale.LANGUAGE_ARABIC -> getString(R.string.language_arabic)
+        DisplayScale.LANGUAGE_ENGLISH -> getString(R.string.language_english)
+        else -> getString(R.string.language_system)
+    }
+
+    private fun interfaceSizeLabel(size: DisplayScale.InterfaceSize): String = when (size) {
+        DisplayScale.InterfaceSize.COMPACT -> getString(R.string.settings_interface_size_compact)
+        DisplayScale.InterfaceSize.STANDARD -> getString(R.string.settings_interface_size_standard)
+        DisplayScale.InterfaceSize.LARGE -> getString(R.string.settings_interface_size_large)
+    }
+
     private fun showLanguageDialog() {
-        val languages = arrayOf(
-            getString(R.string.language_english),
-            getString(R.string.language_arabic)
-        )
-        val languageCodes = arrayOf("en", "ar")
-        
-        val currentLocale = java.util.Locale.getDefault().language
-        val currentIndex = if (currentLocale == "ar") 1 else 0
-        
-        android.app.AlertDialog.Builder(this, R.style.AlertDialogTheme)
+        val codes = arrayOf(DisplayScale.LANGUAGE_SYSTEM, DisplayScale.LANGUAGE_ENGLISH, DisplayScale.LANGUAGE_ARABIC)
+        val labels = codes.map { languageLabel(it) }.toTypedArray()
+        val currentIndex = codes.indexOf(DisplayScale.language(this)).coerceAtLeast(0)
+
+        val dialog = android.app.AlertDialog.Builder(this, R.style.AlertDialogTheme)
             .setTitle(R.string.settings_language)
-            .setSingleChoiceItems(languages, currentIndex) { dialog, which ->
-                val selectedCode = languageCodes[which]
-                setAppLocale(selectedCode)
-                binding.tvLanguageValue.text = languages[which]
+            .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
                 dialog.dismiss()
-                
-                // Recreate activity to apply language change
-                recreate()
+                if (which != currentIndex) {
+                    DisplayScale.setLanguage(this, codes[which])
+                    restartForDisplayChange()
+                }
             }
             .setNegativeButton(R.string.cancel, null)
             .show()
+        applyDialogListFocusStyle(dialog)
     }
-    
-    private fun setAppLocale(languageCode: String) {
-        val locale = Locale.forLanguageTag(languageCode)
-        java.util.Locale.setDefault(locale)
-        
-        val config = resources.configuration
-        config.setLocale(locale)
-        config.setLayoutDirection(locale)
-        
-        // Save preference
-        getSharedPreferences("settings", MODE_PRIVATE)
-            .edit()
-            .putString("language", languageCode)
-            .apply()
-        
+
+    private fun showInterfaceSizeDialog() {
+        val sizes = DisplayScale.InterfaceSize.entries.toTypedArray()
+        val labels = sizes.map { interfaceSizeLabel(it) }.toTypedArray()
+        val currentIndex = sizes.indexOf(DisplayScale.interfaceSize(this)).coerceAtLeast(0)
+
+        val dialog = android.app.AlertDialog.Builder(this, R.style.AlertDialogTheme)
+            .setTitle(R.string.settings_interface_size)
+            .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
+                dialog.dismiss()
+                if (which != currentIndex) {
+                    DisplayScale.setInterfaceSize(this, sizes[which])
+                    restartForDisplayChange()
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+        applyDialogListFocusStyle(dialog)
+    }
+
+    /**
+     * Language and interface size are applied when each screen attaches its context, so the
+     * whole back stack is rebuilt: Home first, then Settings on top, where the viewer was.
+     */
+    private fun restartForDisplayChange() {
+        val home = Intent(this, com.mo.moplayer.ui.home.HomeActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        val settings = Intent(this, SettingsActivity::class.java)
+            .putExtra(EXTRA_OPEN_PANEL, SettingsPanel.INTERFACE.name)
+        startActivities(arrayOf(home, settings))
         @Suppress("DEPRECATION")
-        resources.updateConfiguration(config, resources.displayMetrics)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
     }
 
     private fun setupColorChips() {
@@ -1224,7 +1250,12 @@ class SettingsActivity : BaseTvActivity() {
             applyThemeToViews(accentColor)
             updateAllAccentChipVisuals(accentId)
              
-            val themeName = themeManager.getThemeDisplayName(themeId)
+            val themeName = getString(
+                when (themeId) {
+                    ThemeManager.AppThemeId.LIQUID_BLUE -> R.string.theme_ink_blue
+                    ThemeManager.AppThemeId.HTC_ORANGE -> R.string.theme_cinematic_cyan
+                }
+            )
             Toast.makeText(
                 this@SettingsActivity,
                 getString(R.string.theme_applied_format, themeName),
@@ -1363,7 +1394,7 @@ class SettingsActivity : BaseTvActivity() {
                         type = "image/*"
                         addCategory(Intent.CATEGORY_OPENABLE)
                     }
-                    val chooser = Intent.createChooser(intent, "Select Image")
+                    val chooser = Intent.createChooser(intent, getString(R.string.settings_select_image))
                     @Suppress("DEPRECATION")
                     startActivityForResult(chooser, REQUEST_CODE_IMAGE_PICKER)
                 } catch (e3: android.content.ActivityNotFoundException) {
@@ -1599,7 +1630,7 @@ class SettingsActivity : BaseTvActivity() {
                 putExtra(Intent.EXTRA_EMAIL, arrayOf("Mohammad.alfarras@gmail.com"))
                 putExtra(Intent.EXTRA_SUBJECT, "MoPlayer IPTV - Feedback")
             }
-            startActivity(Intent.createChooser(intent, "Send Email"))
+            startActivity(Intent.createChooser(intent, getString(R.string.about_send_email)))
         } catch (e: Exception) {
             Toast.makeText(this, getString(R.string.about_no_email_app), Toast.LENGTH_SHORT).show()
         }
@@ -1883,7 +1914,7 @@ class SettingsActivity : BaseTvActivity() {
                 binding.btnRefreshServer.visibility = View.GONE
                 binding.btnDeleteServer.visibility = View.GONE
             } else {
-                binding.tvServerName.text = server.name
+                binding.tvServerName.text = com.mo.moplayer.data.util.ProviderSourceUrlParser.displayName(server.name, server.serverUrl)
                 binding.tvServerUrl.text = maskEndpointForDisplay(server)
                 binding.tvServerExpiry.text = buildActiveSourceMeta(server)
                 binding.tvServerExpiry.visibility = if (binding.tvServerExpiry.text.isNullOrBlank()) View.GONE else View.VISIBLE
@@ -2197,14 +2228,23 @@ class SettingsActivity : BaseTvActivity() {
         updateAllAccentChipVisuals(themeManager.currentAccentId.value)
     }
 
+    private fun posterSizeLabel(size: com.mo.moplayer.util.TvUiPreferences.PosterSize): String =
+        getString(
+            when (size) {
+                com.mo.moplayer.util.TvUiPreferences.PosterSize.SMALL -> R.string.poster_size_small
+                com.mo.moplayer.util.TvUiPreferences.PosterSize.MEDIUM -> R.string.poster_size_medium
+                com.mo.moplayer.util.TvUiPreferences.PosterSize.LARGE -> R.string.poster_size_large
+            }
+        )
+
     private fun showPosterSizeDialog() {
-        val labels = arrayOf("Small", "Medium", "Large")
         val values = com.mo.moplayer.util.TvUiPreferences.PosterSize.entries.toTypedArray()
+        val labels = values.map { posterSizeLabel(it) }.toTypedArray()
         lifecycleScope.launch {
             val current = tvUiPreferences.posterSize.first()
             val currentIndex = values.indexOf(current).coerceAtLeast(0)
             val dialog = AlertDialog.Builder(this@SettingsActivity, R.style.AlertDialogTheme)
-                .setTitle("Poster Size")
+                .setTitle(R.string.settings_poster_size)
                 .setSingleChoiceItems(labels, currentIndex) { d, which ->
                     lifecycleScope.launch {
                         tvUiPreferences.setPosterSize(values[which])
@@ -2219,13 +2259,13 @@ class SettingsActivity : BaseTvActivity() {
     }
 
     private fun showLayoutStyleDialog() {
-        val labels = arrayOf("Rows", "Grid")
+        val labels = arrayOf(getString(R.string.layout_style_rows), getString(R.string.layout_style_grid))
         val values = com.mo.moplayer.util.TvUiPreferences.LayoutStyle.entries.toTypedArray()
         lifecycleScope.launch {
             val current = tvUiPreferences.layoutStyle.first()
             val currentIndex = values.indexOf(current).coerceAtLeast(0)
             val dialog = AlertDialog.Builder(this@SettingsActivity, R.style.AlertDialogTheme)
-                .setTitle("Layout Style")
+                .setTitle(R.string.settings_layout_style)
                 .setSingleChoiceItems(labels, currentIndex) { d, which ->
                     lifecycleScope.launch {
                         tvUiPreferences.setLayoutStyle(values[which])

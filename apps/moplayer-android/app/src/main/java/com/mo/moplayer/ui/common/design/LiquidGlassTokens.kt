@@ -10,6 +10,9 @@ object LiquidGlassTokens {
     const val FOCUS_SCALE = 1.12f
     const val BUTTON_FOCUS_SCALE = 1.06f
     const val DOCK_FOCUS_SCALE = 1.14f
+    // Full-width list rows (channels, groups) must stay inside their glass panel: a wide row
+    // scaled by FOCUS_SCALE would spill 50+ px past both edges.
+    const val LIST_ROW_FOCUS_SCALE = 1.02f
     const val FOCUS_IN_DURATION_MS = 200L
     const val FOCUS_OUT_DURATION_MS = 180L
     const val ENTER_EXIT_DURATION_MS = 280L

@@ -89,6 +89,8 @@
             <!-- Channel Name -->
             <TextView
                 android:id="@+id/tvChannelName"
+        android:textDirection="locale"
+        android:textAlignment="viewStart"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
@@ -128,6 +130,8 @@
 
                 <TextView
                     android:id="@+id/tvEpgTitle"
+        android:textDirection="locale"
+        android:textAlignment="viewStart"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"

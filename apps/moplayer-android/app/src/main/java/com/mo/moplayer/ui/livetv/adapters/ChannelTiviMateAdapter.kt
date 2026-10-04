@@ -353,9 +353,10 @@ class ChannelTiviMateAdapter(
                 focusRing = null,
                 focusedElevation = 12f,
                 restingElevation = 2f,
-                translationYFocused = 0f
+                translationYFocused = 0f,
+                focusedScale = com.mo.moplayer.ui.common.design.LiquidGlassTokens.LIST_ROW_FOCUS_SCALE
             )
-            binding.channelContainer.translationX = if (hasFocus) -2f else 0f
+
 
             // Glow animation (no interpolator needed for alpha)
             binding.focusGlow.animate().cancel()

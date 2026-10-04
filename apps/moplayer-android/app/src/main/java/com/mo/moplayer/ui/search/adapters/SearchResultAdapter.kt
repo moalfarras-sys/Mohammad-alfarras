@@ -27,6 +27,7 @@ class SearchResultAdapter(
         val binding = ItemSearchResultBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
         )
+        com.mo.moplayer.ui.common.PosterCardSizing.fitGridCell(binding.root, parent)
         return SearchResultViewHolder(binding)
     }
 
@@ -92,17 +93,17 @@ class SearchResultAdapter(
         private fun bindChannel(result: SearchResult.Channel) {
             val channel = result.channel
             binding.tvTitle.text = channel.name
-            binding.tvType.text = "LIVE"
+            binding.tvType.setText(R.string.nav_live)
             binding.tvType.setBackgroundResource(R.drawable.bg_type_badge_live)
             binding.ratingBadge.visibility = View.GONE
 
-            loadImage(channel.streamIcon)
+            loadImage(channel.streamIcon, isLogo = true)
         }
 
         private fun bindMovie(result: SearchResult.Movie) {
             val movie = result.movie
             binding.tvTitle.text = movie.name
-            binding.tvType.text = "MOVIE"
+            binding.tvType.setText(R.string.nav_movies)
             binding.tvType.setBackgroundResource(R.drawable.bg_type_badge)
 
             if (movie.rating != null && movie.rating > 0) {
@@ -118,7 +119,7 @@ class SearchResultAdapter(
         private fun bindSeries(result: SearchResult.Series) {
             val series = result.series
             binding.tvTitle.text = series.name
-            binding.tvType.text = "SERIES"
+            binding.tvType.setText(R.string.nav_series)
             binding.tvType.setBackgroundResource(R.drawable.bg_type_badge_series)
 
             if (series.rating != null && series.rating > 0) {
@@ -131,16 +132,31 @@ class SearchResultAdapter(
             loadImage(series.cover)
         }
 
-        private fun loadImage(url: String?) {
-            if (!url.isNullOrEmpty() && com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.root.context)) {
-                Glide.with(binding.root.context)
+        /**
+         * Posters fill the 2:3 frame; channel logos are shown whole on a dark plate (cropping a
+         * wide logo into a poster shape cut most channel names off).
+         */
+        private fun loadImage(url: String?, isLogo: Boolean = false) {
+            val context = binding.root.context
+            val pad = if (isLogo) (context.resources.displayMetrics.density * 14).toInt() else 0
+            binding.ivPoster.setPadding(pad, pad, pad, pad)
+            binding.ivPoster.scaleType =
+                if (isLogo) android.widget.ImageView.ScaleType.FIT_CENTER else android.widget.ImageView.ScaleType.CENTER_CROP
+            binding.ivPoster.setBackgroundColor(
+                if (isLogo) android.graphics.Color.parseColor("#0E1A2E") else android.graphics.Color.TRANSPARENT
+            )
+            if (!url.isNullOrEmpty() && com.mo.moplayer.util.GlideHelper.isValidContextForGlide(context)) {
+                val request = Glide.with(context)
                     .load(url)
-                    .placeholder(R.drawable.ic_content_placeholder)
-                    .error(R.drawable.ic_content_placeholder)
-                    .centerCrop()
-                    .into(binding.ivPoster)
+                    .override(240, 360)
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                    .placeholder(if (isLogo) R.drawable.ic_placeholder_channel else R.drawable.ic_content_placeholder)
+                    .error(if (isLogo) R.drawable.ic_placeholder_channel else R.drawable.ic_content_placeholder)
+                (if (isLogo) request.fitCenter() else request.centerCrop()).into(binding.ivPoster)
             } else {
-                binding.ivPoster.setImageResource(R.drawable.ic_content_placeholder)
+                binding.ivPoster.setImageResource(
+                    if (isLogo) R.drawable.ic_placeholder_channel else R.drawable.ic_content_placeholder
+                )
             }
         }
 

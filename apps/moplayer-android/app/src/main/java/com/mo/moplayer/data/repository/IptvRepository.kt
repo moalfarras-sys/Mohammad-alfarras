@@ -202,6 +202,45 @@ class IptvRepository @Inject constructor(
         }
     }
 
+    /** What the provider says about the active account, used to explain a stream that will not open. */
+    enum class AccountCheck { ACTIVE, REJECTED, EXPIRED, LIMIT_REACHED, UNREACHABLE, NOT_APPLICABLE }
+
+    /**
+     * Asks the provider about the active Xtream account. A channel that keeps failing is usually a
+     * changed password, an expired subscription or a one-connection line already in use elsewhere;
+     * telling these apart lets the player say so at once instead of retrying on a black screen.
+     */
+    suspend fun checkActiveAccount(): AccountCheck = withContext(Dispatchers.IO) {
+        val server = serverDao.getActiveServer() ?: return@withContext AccountCheck.NOT_APPLICABLE
+        if (!server.serverType.equals("xtream", ignoreCase = true) || server.serverUrl.isBlank()) {
+            return@withContext AccountCheck.NOT_APPLICABLE
+        }
+        val (username, password) = resolveCredentials(server)
+        if (username.isBlank()) return@withContext AccountCheck.NOT_APPLICABLE
+        try {
+            val response = xtreamApi.authenticate(buildApiUrl(server.serverUrl), username, password)
+            if (!response.isSuccessful) {
+                return@withContext if (response.code() in 401..403) AccountCheck.REJECTED else AccountCheck.UNREACHABLE
+            }
+            val info = response.body()?.userInfo ?: return@withContext AccountCheck.REJECTED
+            if (info.auth != 1) return@withContext AccountCheck.REJECTED
+            val status = info.status?.trim()?.lowercase()
+            if (!status.isNullOrEmpty() && status != "active") return@withContext AccountCheck.EXPIRED
+            val expiresAt = info.expDate?.trim()?.toLongOrNull()
+            if (expiresAt != null && expiresAt > 0 && expiresAt * 1000 < System.currentTimeMillis()) {
+                return@withContext AccountCheck.EXPIRED
+            }
+            val max = info.maxConnections?.trim()?.toIntOrNull()
+            val active = info.activeConnections?.trim()?.toIntOrNull()
+            if (max != null && active != null && max > 0 && active >= max) {
+                return@withContext AccountCheck.LIMIT_REACHED
+            }
+            AccountCheck.ACTIVE
+        } catch (e: Exception) {
+            AccountCheck.UNREACHABLE
+        }
+    }
+
     private fun existingPreferredOutputFormat(serverInfo: String?): String? {
         val json = serverInfo?.takeIf { it.isNotBlank() } ?: return null
         return runCatching {
@@ -744,7 +783,7 @@ class IptvRepository @Inject constructor(
                     containerExtension = dto.containerExtension,
                     streamIcon = normalizeImageUrl(dto.streamIcon),
                     categoryId = categoryId,
-                    rating = dto.rating5Based,
+                    rating = tenPointRating(dto.rating, dto.rating5Based),
                     addedTimestamp = parseTimestamp(dto.added),
                     isAdult = dto.isAdult == "1"
                 )
@@ -893,8 +932,8 @@ class IptvRepository @Inject constructor(
                     name = name,
                     cover = normalizeImageUrl(dto.cover),
                     categoryId = categoryId,
-                    rating = dto.rating5Based,
-                    plot = dto.plot,
+                    rating = tenPointRating(dto.rating, dto.rating5Based),
+                    plot = cleanProviderText(dto.plot),
                     cast = dto.cast,
                     director = dto.director,
                     genre = dto.genre,
@@ -1008,8 +1047,8 @@ class IptvRepository @Inject constructor(
                 streamIcon = poster,
                 categoryId = movieData?.categoryId?.takeIf { it.isNotBlank() }?.let { "${server.id}_movie_$it" }
                     ?: movie.categoryId,
-                rating = parseRating(info?.rating) ?: movie.rating,
-                plot = firstNonBlank(info?.plot, movie.plot),
+                rating = tenPointRating(info?.rating, null) ?: movie.rating,
+                plot = cleanProviderText(firstNonBlank(info?.plot, movie.plot)),
                 cast = firstNonBlank(info?.cast, movie.cast),
                 director = firstNonBlank(info?.director, movie.director),
                 genre = firstNonBlank(info?.genre, movie.genre),
@@ -1068,13 +1107,13 @@ class IptvRepository @Inject constructor(
                     val enriched = series.copy(
                         name = firstNonBlank(info?.name, series.name) ?: series.name,
                         cover = normalizeImageUrl(firstNonBlank(info?.cover, series.cover)) ?: series.cover,
-                        plot = firstNonBlank(info?.plot, series.plot),
+                        plot = cleanProviderText(firstNonBlank(info?.plot, series.plot)),
                         cast = firstNonBlank(info?.cast, series.cast),
                         director = firstNonBlank(info?.director, series.director),
                         genre = firstNonBlank(info?.genre, series.genre),
                         releaseDate = releaseDate,
                         lastModified = series.lastModified,
-                        rating = info?.rating5Based ?: parseRating(info?.rating) ?: series.rating,
+                        rating = tenPointRating(info?.rating, info?.rating5Based) ?: series.rating,
                         backdrop = normalizeImageUrl(info?.backdropPath?.firstOrNull()) ?: series.backdrop,
                         youtubeTrailer = firstNonBlank(info?.youtubeTrailer, series.youtubeTrailer),
                         tmdbId = info?.tmdbId ?: series.tmdbId
@@ -1352,10 +1391,12 @@ class IptvRepository @Inject constructor(
     suspend fun importM3uPlaylist(
         inputStream: InputStream,
         serverName: String,
+        playlistUrl: String? = null,
+        epgUrl: String? = null,
         onProgress: (Int) -> Unit = {}
     ): Resource<Long> = withContext(Dispatchers.IO) {
         try {
-            importLargeM3uPlaylist(inputStream, serverName, onProgress)
+            importLargeM3uPlaylist(inputStream, serverName, playlistUrl, epgUrl, onProgress)
         } catch (e: Exception) {
             Resource.Error("Failed to import M3U: ${e.message}")
         }
@@ -1364,6 +1405,8 @@ class IptvRepository @Inject constructor(
     private suspend fun importLargeM3uPlaylist(
         inputStream: InputStream,
         serverName: String,
+        playlistUrl: String?,
+        epgUrl: String?,
         onProgress: (Int) -> Unit
     ): Resource<Long> {
         val serverId = saveServer(
@@ -1516,6 +1559,8 @@ class IptvRepository @Inject constructor(
 
             flushPendingImport()
             onProgress(importedItems)
+            // Guide link from the website handoff wins; otherwise the playlist's own url-tvg header.
+            credentialManager.saveSourceLinks(serverId, playlistUrl, epgUrl?.takeIf { it.isNotBlank() } ?: summary.epgUrl)
 
             serverSyncStateDao.upsert(
                 ServerSyncStateEntity(
@@ -2005,7 +2050,7 @@ class IptvRepository @Inject constructor(
                         streamUrl = dto.directSource?.takeIf { it.isNotBlank() }
                             ?: buildStreamUrl(server, streamId, "series", extension),
                         containerExtension = extension,
-                        plot = dto.info?.plot,
+                        plot = cleanProviderText(dto.info?.plot),
                         duration = dto.info?.duration,
                         durationSeconds = dto.info?.durationSecs,
                         releaseDate = dto.info?.releaseDate,
@@ -2023,6 +2068,30 @@ class IptvRepository @Inject constructor(
             !series.backdrop.isNullOrBlank() ||
             !series.genre.isNullOrBlank() ||
             series.rating != null
+
+    /**
+     * Providers send `rating` (usually 0-10, sometimes a percentage) and `rating_5based`. Every
+     * screen shows a 10-point rating, so both are normalised to it; 0 means "no rating".
+     */
+    private fun tenPointRating(raw: String?, fiveBased: Double?): Double? {
+        val parsed = parseRating(raw)
+        val tenPoint = when {
+            parsed == null || parsed <= 0.0 -> null
+            parsed <= 10.0 -> parsed
+            parsed <= 100.0 -> parsed / 10.0
+            else -> null
+        }
+        return tenPoint ?: fiveBased?.takeIf { it > 0.0 && it <= 5.0 }?.times(2.0)
+    }
+
+    /** Providers often double-escape line breaks (a literal `\r\n` in the plot) and pad with spaces. */
+    private fun cleanProviderText(value: String?): String? =
+        value
+            ?.replace(Regex("""\+r\+n"""), "\n")
+            ?.replace(Regex("""\+[rn]"""), "\n")
+            ?.replace(Regex("\n{3,}"), "\n\n")
+            ?.trim()
+            ?.takeIf { it.isNotBlank() }
 
     private fun parseRating(value: String?): Double? =
         value

@@ -65,7 +65,7 @@
                 android:minWidth="@dimen/activation_badge_min_width"
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
-                android:text="WEBSITE PAIRING"
+                android:text="@string/activation_eyebrow"
                 android:textColor="@color/login_white"
                 android:textSize="@dimen/activation_badge_text_size"
                 android:textStyle="bold" />

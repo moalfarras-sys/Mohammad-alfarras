@@ -364,7 +364,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_8"
-                        android:text="Tune playback for smooth live zapping, weak Android TV boxes, and external player fallback."
+                        android:text="@string/settings_player_intro"
                         android:textColor="@color/htc_text_secondary"
                         android:textSize="14sp"
                         android:lineSpacingExtra="2dp" />
@@ -796,7 +796,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_8"
-                        android:text="Choose a cinematic background, city wallpaper, local image, accent color, and TV layout behavior."
+                        android:text="@string/settings_ui_intro"
                         android:textColor="@color/htc_text_secondary"
                         android:textSize="14sp"
                         android:lineSpacingExtra="2dp" />
@@ -903,7 +903,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Enable or disable background animations"
+                                android:text="@string/settings_background_animation_desc"
                                 android:textColor="@color/htc_text_tertiary"
                                 android:textSize="14sp" />
 
@@ -984,7 +984,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Poster Size"
+                                android:text="@string/settings_poster_size"
                                 android:textColor="@color/htc_text_primary"
                                 android:textSize="16sp" />
 
@@ -1023,7 +1023,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Layout Style"
+                                android:text="@string/settings_layout_style"
                                 android:textColor="@color/htc_text_primary"
                                 android:textSize="16sp" />
 
@@ -1047,7 +1047,7 @@
                         android:background="@drawable/bg_settings_stat_tile"
                         android:paddingHorizontal="@dimen/spacing_md"
                         android:paddingVertical="@dimen/spacing_sm"
-                        android:text="App Accent Color"
+                        android:text="@string/settings_accent_color"
                         android:textColor="@color/htc_text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -1056,7 +1056,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_xs"
-                        android:text="Changes buttons, focus rings, cards, badges, dock icons, and background accents"
+                        android:text="@string/settings_accent_color_desc"
                         android:textColor="@color/htc_text_tertiary"
                         android:textSize="13sp" />
 
@@ -1175,7 +1175,7 @@
                         android:background="@drawable/bg_settings_stat_tile"
                         android:paddingHorizontal="@dimen/spacing_md"
                         android:paddingVertical="@dimen/spacing_sm"
-                        android:text="Custom Background Image"
+                        android:text="@string/settings_custom_background"
                         android:textColor="@color/htc_text_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -1184,7 +1184,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_xs"
-                        android:text="Set background from URL (leave empty for animated)"
+                        android:text="@string/settings_custom_background_desc"
                         android:textColor="@color/htc_text_tertiary"
                         android:textSize="13sp" />
 
@@ -1221,7 +1221,7 @@
                             android:layout_marginStart="@dimen/spacing_sm"
                             android:background="@drawable/bg_button_primary"
                             android:paddingHorizontal="@dimen/settings_panel_padding"
-                            android:text="Apply"
+                            android:text="@string/action_apply"
                             android:textAllCaps="false"
                             android:textColor="@color/cinematic_text_primary"
                             android:textSize="13sp"
@@ -1369,6 +1369,50 @@
                                 android:textColor="@color/htc_text_tertiary"
                                 android:textSize="14sp"
                                 tools:text="English" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_arrow_right"
+                            app:tint="@color/htc_text_tertiary"
+                            tools:ignore="ContentDescription" />
+
+                    </LinearLayout>
+
+                    <!-- Interface size: one grid on every TV, adjustable by the viewer -->
+                    <LinearLayout
+                        android:id="@+id/optionInterfaceSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_md"
+                        android:background="@drawable/selector_card_focus"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="@dimen/settings_card_padding"
+                        android:focusable="true">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/settings_interface_size"
+                                android:textColor="@color/htc_text_primary"
+                                android:textSize="16sp" />
+
+                            <TextView
+                                android:id="@+id/tvInterfaceSizeValue"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/htc_text_tertiary"
+                                android:textSize="14sp"
+                                tools:text="Standard" />
 
                         </LinearLayout>
 

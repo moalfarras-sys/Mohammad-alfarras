@@ -20,6 +20,7 @@ import com.mo.moplayer.databinding.ItemContentCardBinding
 import com.mo.moplayer.ui.common.RemoteShortcutManager
 import com.mo.moplayer.ui.common.focus.LiquidFocusDelegate
 import com.mo.moplayer.ui.home.ContentItem
+import com.mo.moplayer.ui.home.ContentType
 import com.mo.moplayer.util.FocusStyleHelper
 
 class ContentItemAdapter(
@@ -114,7 +115,7 @@ class ContentItemAdapter(
             binding.contentLayout.scaleY = 1f
 
             // Reset all bindings so recycled views never show previous item data
-            binding.tvTitle.text = item.title?.takeIf { it.isNotBlank() } ?: "Unknown title"
+            binding.tvTitle.text = item.title?.takeIf { it.isNotBlank() } ?: binding.root.context.getString(R.string.unknown_title)
 
             // Clear previous Glide request and image so we never show wrong poster on reuse
             if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.ivPoster.context)) {
@@ -129,7 +130,7 @@ class ContentItemAdapter(
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.logo)
                     .error(R.drawable.logo)
-                    .centerCrop()
+                    .let { if (item.type == ContentType.CHANNEL) it.fitCenter() else it.centerCrop() }
                     .addListener(object : RequestListener<Drawable> {
                         override fun onResourceReady(
                             resource: Drawable,
@@ -138,9 +139,17 @@ class ContentItemAdapter(
                             dataSource: DataSource,
                             isFirstResource: Boolean
                         ): Boolean {
-                            binding.ivPoster.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-                            binding.ivPoster.setPadding(0, 0, 0, 0)
-                            binding.ivPoster.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                            if (item.type == ContentType.CHANNEL) {
+                                // Channel logos are shown whole on a dark plate, not cropped like posters.
+                                val pad = (binding.ivPoster.resources.displayMetrics.density * 14).toInt()
+                                binding.ivPoster.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                                binding.ivPoster.setPadding(pad, pad, pad, pad)
+                                binding.ivPoster.setBackgroundColor(android.graphics.Color.parseColor("#0E1A2E"))
+                            } else {
+                                binding.ivPoster.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+                                binding.ivPoster.setPadding(0, 0, 0, 0)
+                                binding.ivPoster.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                            }
                             return bindingAdapterPosition != position
                         }
                         override fun onLoadFailed(
@@ -269,12 +278,11 @@ class ContentItemAdapter(
         private fun applyPosterMetrics() {
             val metrics = tvUiPreferences.posterMetrics(posterSize)
             val density = binding.root.resources.displayMetrics.density
+            // Width comes from the poster size setting; the poster keeps 2:3 (AspectRatioFrameLayout)
+            // and the two-line title sits below it, so nothing is clipped at any size.
             binding.root.layoutParams = binding.root.layoutParams.apply {
                 width = (metrics.widthDp * density).toInt()
-                height = (metrics.contentHeightDp * density).toInt()
-            }
-            binding.posterCard?.layoutParams = binding.posterCard?.layoutParams?.apply {
-                height = (metrics.heightDp * density).toInt()
+                height = android.view.ViewGroup.LayoutParams.WRAP_CONTENT
             }
             binding.tvTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, metrics.titleTextSp)
         }

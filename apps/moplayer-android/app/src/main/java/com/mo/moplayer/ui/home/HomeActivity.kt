@@ -118,6 +118,12 @@ class HomeActivity : BaseTvActivity() {
     private var homeRowsLoading = true
     private var newContentObserverJob: Job? = null
     private var initialContentFocusApplied = false
+    /** Set on the viewer's first D-pad press; until then Home may move focus to the content. */
+    private var userHasNavigated = false
+
+    // Home picks its own focus target (first or last-focused card); the generic id-based restore
+    // would land on a dock item or a header widget instead.
+    override val restoreFocusOnResume: Boolean = false
     private var homeEmptyDockFocusApplied = false
     private var lastFocusedContentRowIndex = 0
     private var lastFocusedContentCenterX = -1
@@ -129,7 +135,6 @@ class HomeActivity : BaseTvActivity() {
     private var updateCheckStarted = false
     private var appRemoteConfig = AppRemoteConfig()
     private var appRemoteConfigUsingCached = true
-    private var appRemoteConfigStatusLabel = "Using cached Control Center config"
     private var homeCityWallpaperSelected = false
     private var cityWallpaperRefreshInFlight = false
     private var activeSourceName: String? = null
@@ -172,7 +177,30 @@ class HomeActivity : BaseTvActivity() {
             TvNavigationManager.restoreFocusState(screenId, binding.root)
             ensureHomeFocus()
         }
+        installFocusGuard()
         scheduleDeferredStartup()
+    }
+
+    private var lastKeyAtMs = 0L
+
+    /**
+     * When a row is refreshed (new ratings or posters after a sync) its focused card can be
+     * rebound, and Android then hands focus to the first focusable view, the weather widget. If
+     * focus leaves the content without a key press, put it back on the content.
+     */
+    private fun installFocusGuard() {
+        binding.root.viewTreeObserver.addOnGlobalFocusChangeListener { oldFocus, newFocus ->
+            val keyDriven = android.os.SystemClock.uptimeMillis() - lastKeyAtMs < 400
+            if (keyDriven || newFocus == null) return@addOnGlobalFocusChangeListener
+            // A rebound card is already detached when focus moves, so its parent chain is gone.
+            val leftContent = oldFocus == null || !oldFocus.isAttachedToWindow ||
+                isViewInParent(oldFocus, binding.rvContent)
+            val landedInHeader = isViewInParent(newFocus, binding.topSignalBar) || isViewInParent(newFocus, binding.topBar)
+            val untouchedStart = !userHasNavigated
+            if ((leftContent || untouchedStart) && landedInHeader && homeRowsEmpty.not()) {
+                binding.rvContent.post { requestPrimaryContentFocus() }
+            }
+        }
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -210,7 +238,8 @@ class HomeActivity : BaseTvActivity() {
     }
     
     private fun updateDockColors(accentColor: Int) {
-        val selectedIndex = currentDockIndex
+        // This screen is Home: the dock always marks Home, whichever item has focus.
+        val selectedIndex = 0
         dockItems.forEachIndexed { index, dockItem ->
             val iconView = dockItem.getChildAt(0) as? ImageView
             val labelView = dockItem.getChildAt(1) as? android.widget.TextView
@@ -369,11 +398,9 @@ class HomeActivity : BaseTvActivity() {
         lifecycleScope.launch {
             appRemoteConfig = withContext(Dispatchers.IO) { appRemoteConfigService.cachedConfig() }
             appRemoteConfigUsingCached = withContext(Dispatchers.IO) { appRemoteConfigService.isUsingCachedConfig() }
-            appRemoteConfigStatusLabel = withContext(Dispatchers.IO) { appRemoteConfigService.connectionStatusLabel() }
             applyRemoteConfigState()
             appRemoteConfig = appRemoteConfigService.fetchConfig()
             appRemoteConfigUsingCached = withContext(Dispatchers.IO) { appRemoteConfigService.isUsingCachedConfig() }
-            appRemoteConfigStatusLabel = withContext(Dispatchers.IO) { appRemoteConfigService.connectionStatusLabel() }
             applyRemoteConfigState()
         }
     }
@@ -383,18 +410,18 @@ class HomeActivity : BaseTvActivity() {
         binding.footballWidget.visibility = if (appRemoteConfig.footballEnabled) View.VISIBLE else View.GONE
 
         val message = when {
-            !appRemoteConfig.enabled -> appRemoteConfig.message.ifBlank { "MoPlayer is temporarily unavailable." }
-            appRemoteConfig.maintenanceMode -> appRemoteConfig.message.ifBlank { "MoPlayer is in maintenance mode." }
+            !appRemoteConfig.enabled -> appRemoteConfig.message.ifBlank { getString(R.string.remote_config_unavailable) }
+            appRemoteConfig.maintenanceMode -> appRemoteConfig.message.ifBlank { getString(R.string.remote_config_maintenance) }
             appRemoteConfig.message.isNotBlank() -> appRemoteConfig.message
             else -> null
         }
 
         if (!message.isNullOrBlank()) {
             binding.tvPreviewTitle.text = message
-            binding.tvPreviewDescription.text = "Managed from the Moalfarras control center."
+            binding.tvPreviewDescription.text = getString(R.string.remote_config_managed_by_control_center)
             binding.tvPreviewDescription.isVisible = true
         } else if (appRemoteConfigUsingCached) {
-            binding.tvPreviewDescription.text = appRemoteConfigStatusLabel
+            binding.tvPreviewDescription.text = getString(R.string.remote_config_using_cached)
             binding.tvPreviewDescription.isVisible = true
         }
         binding.root.post { setupFocusMap() }
@@ -833,10 +860,8 @@ class HomeActivity : BaseTvActivity() {
         dockItems.forEachIndexed { index, view ->
             view.setOnFocusChangeListener { v, hasFocus ->
                 animateDockItem(v, hasFocus)
-                if (hasFocus) {
-                    currentDockIndex = index
-                    updateDockSelection(index)
-                }
+                // The dock shows where the viewer is (always Home here); focus only lifts the item.
+                if (hasFocus) currentDockIndex = index
             }
         }
     }
@@ -918,22 +943,26 @@ class HomeActivity : BaseTvActivity() {
         return false
     }
 
-    private fun scheduleInitialContentFocus() {
+    private fun scheduleInitialContentFocus(attempt: Int = 0) {
         binding.rvContent.postDelayed({
             if (initialContentFocusApplied || !::contentAdapter.isInitialized || contentAdapter.itemCount == 0) {
                 return@postDelayed
             }
 
             val focused = currentFocus
+            // Until the viewer presses a key, the first card owns focus (the window otherwise
+            // gives it to the first header widget, e.g. the weather card).
             val shouldShiftToContent = focused == null ||
-                dockItems.any { it == focused } ||
-                isViewInParent(focused, binding.topBar) ||
-                isViewInParent(focused, binding.topSignalBar)
+                (!userHasNavigated && !isViewInParent(focused, binding.rvContent)) ||
+                dockItems.any { it == focused }
 
             if (shouldShiftToContent && requestPrimaryContentFocus()) {
                 initialContentFocusApplied = true
+            } else if (shouldShiftToContent && attempt < 20) {
+                // The nested row lists may not be laid out yet on the first pass.
+                scheduleInitialContentFocus(attempt + 1)
             }
-        }, 280)
+        }, if (attempt == 0) 280L else 250L)
     }
 
     private fun homeContentLayoutManager(): LinearLayoutManager? =
@@ -1231,6 +1260,11 @@ class HomeActivity : BaseTvActivity() {
             if (!rows.isNullOrEmpty() && !initialContentFocusApplied) {
                 scheduleInitialContentFocus()
             }
+            // Give the hero a real title straight away (first item of the first row) instead of
+            // the "source ready" placeholder copy.
+            if (!rows.isNullOrEmpty() && currentBackdropUrl == null) {
+                rows.first().items.firstOrNull()?.let { showPreviewBackdrop(it) }
+            }
         }
         
         viewModel.isLoading.observe(this) { isLoading ->
@@ -1404,6 +1438,8 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun renderDashboardStatus(state: HomeDashboardState) {
+        // Once a real title is in the hero, the dashboard copy must not overwrite it.
+        if (currentBackdropUrl != null) return
         val sourceName = state.sourceName?.takeIf { it.isNotBlank() } ?: activeSourceName
         val hasSource = !sourceName.isNullOrBlank()
         // binding.dashboardStatusStrip.isVisible = hasSource
@@ -1702,7 +1738,7 @@ class HomeActivity : BaseTvActivity() {
                         isFavorite = isFavorite,
                         details = movie?.let { ContentMenuDetails(
                             description = it.plot,
-                            duration = it.duration ?: ContentMenuDetails.formatDuration(it.durationSeconds),
+                            duration = it.duration ?: ContentMenuDetails.formatDuration(this@HomeActivity, it.durationSeconds),
                             rating = it.rating,
                             year = it.year ?: it.releaseDate,
                             genre = it.genre
@@ -1977,6 +2013,10 @@ class HomeActivity : BaseTvActivity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            userHasNavigated = true
+            lastKeyAtMs = android.os.SystemClock.uptimeMillis()
+        }
         if (event.action == KeyEvent.ACTION_DOWN &&
             (event.keyCode == KeyEvent.KEYCODE_DPAD_UP ||
                 event.keyCode == KeyEvent.KEYCODE_DPAD_DOWN ||
@@ -2111,10 +2151,17 @@ class HomeActivity : BaseTvActivity() {
             binding.weatherOverlay.startAnimation()
         }
         updateDockSelection(0)
+        // A dock item that had focus when another screen opened keeps its lifted look otherwise.
+        dockItems.forEach { if (!it.hasFocus()) animateDockItem(it, false) }
         observeNewContent()
 
         binding.root.post {
-            ensureHomeFocus()
+            val focused = currentFocus
+            if (focused == null || dockItems.any { it == focused } || !isViewInParent(focused, binding.rvContent)) {
+                if (!requestPrimaryContentFocus()) ensureHomeFocus()
+            } else {
+                ensureHomeFocus()
+            }
         }
     }
     

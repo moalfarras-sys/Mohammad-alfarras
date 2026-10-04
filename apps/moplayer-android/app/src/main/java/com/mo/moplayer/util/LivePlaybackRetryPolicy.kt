@@ -75,9 +75,13 @@ object LivePlaybackRetryPolicy {
     val isCircuitOpen: Boolean
         get() = System.currentTimeMillis() < circuitOpenUntil
 
-    /** Human-readable description of why retry was blocked. */
+    /** Seconds left before retry is allowed again (for the localized UI message). */
+    fun circuitBlockRemainingSeconds(): Long =
+        (circuitOpenUntil - System.currentTimeMillis()) / 1000
+
+    /** Human-readable description of why retry was blocked (English, for logs). */
     fun circuitBlockReason(): String {
-        val remaining = (circuitOpenUntil - System.currentTimeMillis()) / 1000
+        val remaining = circuitBlockRemainingSeconds()
         return "Too many errors. Retry blocked for ${remaining}s to protect device battery."
     }
 

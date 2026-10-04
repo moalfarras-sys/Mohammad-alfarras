@@ -116,6 +116,13 @@ export function AppControl({ slug, data, updated, mediaAssets = [] }: { slug: Ma
   const openSupport = supportRequests.filter((r) => r.status === "new").length;
   const openDiagnostics = diagnostics.filter((item) => !["resolved", "archived"].includes(item.status)).length;
   const latestRelease = [...releases].sort((a, b) => b.version_code - a.version_code)[0];
+  // New releases must use a higher version code than the current build of this product.
+  const nextVersionCode = latestRelease ? String(latestRelease.version_code + 1) : "";
+  const nextVersionName = (() => {
+    const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(latestRelease?.version_name ?? "");
+    return match ? `${match[1]}.${match[2]}.${Number(match[3]) + 1}` : "";
+  })();
+  const releaseSlugPlaceholder = `${slug}-${nextVersionName || "x.y.z"}`;
   const downloadHint = downloadStats.since
     ? `${t({ en: "Since", ar: "منذ" })} ${new Date(downloadStats.since).toLocaleDateString("en-GB")}`
     : t({ en: "From first live download", ar: "من أول تحميل مباشر" });
@@ -513,12 +520,27 @@ export function AppControl({ slug, data, updated, mediaAssets = [] }: { slug: Ma
             ar: "ارفع APK الخاص بهذا التطبيق فقط. تحميل كلاسيك وبرو يبقى منفصلاً عبر slug وسجل الإصدار.",
           })}
         />
-        <form action={saveReleaseAction} className="mb-6 grid gap-4 lg:grid-cols-2">
+        <form key={`release-form-${slug}`} action={saveReleaseAction} className="mb-6 grid gap-4 lg:grid-cols-2">
           <input type="hidden" name="product_slug" value={slug} />
-          <Field label={t({ en: "Release slug", ar: "معرّف الإصدار" })} name="slug" placeholder="moplayer-v2-1-0" required />
+          <Field label={t({ en: "Release slug", ar: "معرّف الإصدار" })} name="slug" placeholder={releaseSlugPlaceholder} required />
           <Field label={t({ en: "Hardware ABI", ar: "معمارية" })} name="abi" defaultValue="universal" required />
-          <Field label={t({ en: "Version name", ar: "اسم الإصدار" })} name="version_name" placeholder="2.1.0" required />
-          <Field label={t({ en: "Version code", ar: "كود الإصدار" })} name="version_code" type="number" defaultValue="3" required />
+          <Field label={t({ en: "Version name", ar: "اسم الإصدار" })} name="version_name" placeholder={nextVersionName || "x.y.z"} required />
+          <Field
+            label={t({ en: "Version code", ar: "كود الإصدار" })}
+            name="version_code"
+            type="number"
+            defaultValue={nextVersionCode}
+            placeholder={latestRelease ? String(latestRelease.version_code + 1) : undefined}
+            help={
+              latestRelease
+                ? t({
+                    en: `Current build: ${latestRelease.version_name} (code ${latestRelease.version_code}). The new code must be higher.`,
+                    ar: `الإصدار الحالي: ${latestRelease.version_name} (كود ${latestRelease.version_code}). يجب أن يكون الكود الجديد أكبر.`,
+                  })
+                : undefined
+            }
+            required
+          />
           <Field label={t({ en: "Publish time", ar: "وقت النشر" })} name="published_at" type="datetime-local" />
           <label className="switch">
             <span><strong>{t({ en: "Publish now", ar: "نشر الآن" })}</strong></span>

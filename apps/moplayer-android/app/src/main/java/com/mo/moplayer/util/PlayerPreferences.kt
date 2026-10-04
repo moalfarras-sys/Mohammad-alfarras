@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.mo.moplayer.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -230,35 +231,37 @@ class PlayerPreferences @Inject constructor(
     }
     
     fun getPlayerName(type: Int): String {
+        val res = DisplayScale.localized(context)
         return when (type) {
-            PLAYER_INTERNAL_EXOPLAYER -> "ExoPlayer (Internal)"
+            PLAYER_INTERNAL_EXOPLAYER -> res.getString(R.string.player_name_exoplayer_internal)
             PLAYER_MX_PLAYER -> "MX Player"
-            PLAYER_VLC_EXTERNAL -> "VLC (External)"
+            PLAYER_VLC_EXTERNAL -> res.getString(R.string.player_name_vlc_external)
             PLAYER_JUST_PLAYER -> "Just Player"
-            PLAYER_SYSTEM_DEFAULT -> "System Default"
-            else -> "Internal Player"
+            PLAYER_SYSTEM_DEFAULT -> res.getString(R.string.player_name_system_default)
+            else -> res.getString(R.string.player_name_internal)
         }
     }
     
     fun getBufferSizeName(size: Int): String {
+        val res = DisplayScale.localized(context)
         return when (size) {
-            BUFFER_LOW -> "Low (2s)"
-            BUFFER_MEDIUM -> "Medium (4s)"
-            BUFFER_HIGH -> "High (8s)"
-            BUFFER_VERY_HIGH -> "Very High (15s)"
-            BUFFER_4K -> "4K Optimized (20s)"
-            BUFFER_8K -> "8K Optimized (30s)"
-            BUFFER_ULTRA -> "Ultra (45s)"
-            else -> "Medium"
+            BUFFER_LOW -> res.getString(R.string.buffer_size_low_format, 2)
+            BUFFER_MEDIUM -> res.getString(R.string.buffer_size_medium_format, 4)
+            BUFFER_HIGH -> res.getString(R.string.buffer_size_high_format, 8)
+            BUFFER_VERY_HIGH -> res.getString(R.string.buffer_size_very_high_format, 15)
+            BUFFER_4K -> res.getString(R.string.buffer_size_4k_format, 20)
+            BUFFER_8K -> res.getString(R.string.buffer_size_8k_format, 30)
+            BUFFER_ULTRA -> res.getString(R.string.buffer_size_ultra_format, 45)
+            else -> res.getString(R.string.buffer_size_medium)
         }
     }
 
     fun getPlaybackProfileName(profile: Int): String {
+        val res = DisplayScale.localized(context)
         return when (profile) {
-            PLAYBACK_PROFILE_BALANCED -> "Balanced"
-            PLAYBACK_PROFILE_PERFORMANCE -> "Performance"
-            PLAYBACK_PROFILE_QUALITY -> "Quality"
-            else -> "Balanced"
+            PLAYBACK_PROFILE_PERFORMANCE -> res.getString(R.string.playback_profile_performance)
+            PLAYBACK_PROFILE_QUALITY -> res.getString(R.string.playback_profile_quality)
+            else -> res.getString(R.string.playback_profile_balanced)
         }
     }
     

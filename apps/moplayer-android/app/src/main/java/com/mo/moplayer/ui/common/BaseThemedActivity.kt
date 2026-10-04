@@ -62,6 +62,10 @@ abstract class BaseThemedActivity : AppCompatActivity() {
     private val exitHelper: ExitHelper by lazy { ExitHelper(this) }
     private var themeAndBackgroundObserversStarted: Boolean = false
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.mo.moplayer.util.DisplayScale.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         // Keep the TV screen awake for the entire app lifetime — IPTV users browse for
@@ -77,6 +81,12 @@ abstract class BaseThemedActivity : AppCompatActivity() {
         }
         super.onCreate(savedInstanceState)
         setupBackPressHandler()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // Dialogs and the keyboard can bring the bars back; hide them again on return.
+        if (hasFocus) com.mo.moplayer.util.ImmersiveMode.apply(this)
     }
 
     private fun setupBackPressHandler() {
@@ -145,6 +155,7 @@ abstract class BaseThemedActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        com.mo.moplayer.util.ImmersiveMode.apply(this)
         // Start observers once (onResume runs often on TV).
         if (!themeAndBackgroundObserversStarted) {
             themeAndBackgroundObserversStarted = true

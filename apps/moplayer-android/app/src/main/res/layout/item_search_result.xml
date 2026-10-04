@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="@dimen/card_poster_width"
     android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/card_margin"
     android:layout_marginEnd="@dimen/card_margin"
-    android:layout_marginBottom="@dimen/card_margin"
+    android:layout_marginBottom="@dimen/spacing_md"
     android:background="@drawable/selector_card_focus"
     android:focusable="true"
     android:clickable="true"
@@ -16,10 +17,10 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Poster/Thumbnail -->
-        <FrameLayout
+        <!-- Poster/Thumbnail: 2:3 at any card width -->
+        <com.mo.moplayer.ui.common.AspectRatioFrameLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/card_poster_height">
+            android:layout_height="wrap_content">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
@@ -76,16 +77,19 @@
 
             </FrameLayout>
 
-        </FrameLayout>
+        </com.mo.moplayer.ui.common.AspectRatioFrameLayout>
 
         <!-- Title -->
         <TextView
             android:id="@+id/tvTitle"
+        android:textDirection="locale"
+        android:textAlignment="viewStart"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:ellipsize="end"
             android:maxLines="2"
+            android:lines="2"
             android:textColor="@color/htc_text_primary"
             android:textSize="12sp"
             android:shadowColor="#80000000"

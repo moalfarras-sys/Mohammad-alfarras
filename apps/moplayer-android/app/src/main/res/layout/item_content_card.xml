@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/cardContainer"
     android:layout_width="@dimen/card_poster_width"
-    android:layout_height="@dimen/card_content_height"
+    android:layout_height="wrap_content"
     android:layout_marginStart="@dimen/card_margin"
     android:layout_marginEnd="@dimen/card_margin"
     android:focusable="true"
@@ -13,11 +13,14 @@
     android:clipToPadding="false"
     android:background="@android:color/transparent">
 
-    <View
+    <!-- ImageView, not View: a plain View measured inside a wrap_content card takes the whole
+         row height and stretches the glow far below the poster. An empty ImageView wraps. -->
+    <ImageView
         android:id="@+id/focusGlow"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:alpha="0"
+        android:importantForAccessibility="no"
         android:background="@drawable/bg_liquid_focus_glow" />
 
     <LinearLayout
@@ -26,9 +29,10 @@
         android:layout_height="match_parent"
         android:orientation="vertical">
 
-        <FrameLayout
+        <com.mo.moplayer.ui.common.AspectRatioFrameLayout
+            android:id="@+id/posterFrame"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/card_poster_height">
+            android:layout_height="wrap_content">
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/posterCard"
@@ -132,15 +136,17 @@
                 android:layout_height="3dp"
                 android:layout_gravity="bottom"
                 android:max="100"
-                android:progress="35"
+                android:progress="0"
                 android:progressTint="@color/moplayer_orange"
                 android:progressBackgroundTint="#200B0F1A"
                 android:visibility="gone"
                 tools:visibility="visible" />
-        </FrameLayout>
+        </com.mo.moplayer.ui.common.AspectRatioFrameLayout>
 
         <TextView
             android:id="@+id/tvTitle"
+        android:textDirection="locale"
+        android:textAlignment="viewStart"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
@@ -148,8 +154,8 @@
             android:layout_marginEnd="4dp"
             android:ellipsize="end"
             android:gravity="start"
-            android:maxLines="3"
-            android:minLines="1"
+            android:maxLines="2"
+            android:lines="2"
             android:includeFontPadding="false"
             android:textColor="@color/cinematic_text_primary"
             android:textSize="@dimen/card_title_size"

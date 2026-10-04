@@ -68,11 +68,12 @@ object LiquidFocusDelegate {
         focusRing: View? = null,
         focusedElevation: Float = LiquidGlassTokens.FOCUS_ELEVATION_FOCUSED,
         restingElevation: Float = LiquidGlassTokens.FOCUS_ELEVATION_REST,
-        translationYFocused: Float = LiquidGlassTokens.TRANSLATION_Y_FOCUSED
+        translationYFocused: Float = LiquidGlassTokens.TRANSLATION_Y_FOCUSED,
+        focusedScale: Float = LiquidGlassTokens.FOCUS_SCALE
     ) {
         val lowEnd = DevicePerformance.isLow(target.context)
         val scale = if (hasFocus) {
-            if (lowEnd) 1.025f else LiquidGlassTokens.FOCUS_SCALE
+            if (lowEnd) minOf(1.025f, focusedScale) else focusedScale
         } else 1f
         val ty = if (hasFocus && !lowEnd) translationYFocused else 0f
         val duration = if (lowEnd) 90L else if (hasFocus) {

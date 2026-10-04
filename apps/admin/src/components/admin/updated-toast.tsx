@@ -15,6 +15,11 @@ const MESSAGES: Record<string, { en: string; ar: string; error?: boolean }> = {
   release_deleted: { en: "Release deleted.", ar: "تم حذف الإصدار." },
   support: { en: "Support request updated.", ar: "تم تحديث طلب الدعم." },
   runtime_config: { en: "Runtime configuration synced.", ar: "تمت مزامنة إعدادات التشغيل." },
+  save_failed: {
+    en: "Not saved: the admin cannot reach the database right now. Nothing was changed on the live site.",
+    ar: "لم يتم الحفظ: لا يستطيع لوحة التحكم الوصول إلى قاعدة البيانات حالياً. لم يتغيّر شيء في الموقع.",
+    error: true,
+  },
   website_hero: { en: "Homepage copy saved.", ar: "تم حفظ نص الصفحة الرئيسية." },
   website_services: { en: "Services copy saved.", ar: "تم حفظ نص الخدمات." },
   website_page: { en: "Page settings saved.", ar: "تم حفظ إعدادات الصفحة." },

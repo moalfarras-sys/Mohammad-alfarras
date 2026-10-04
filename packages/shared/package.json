@@ -7,6 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./app-ecosystem": "./src/app-ecosystem.ts",
-    "./app-products": "./src/app-products.ts"
+    "./app-products": "./src/app-products.ts",
+    "./app-releases": "./src/app-releases.ts"
   }
 }

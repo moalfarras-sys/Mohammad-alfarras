@@ -40,7 +40,7 @@ vi.stubEnv("MOPLAYER_PROVIDER_ENCRYPTION_KEY", "unit-test-provider-key");
 const { GET: statusGET } = await import("@/app/api/app/activation/status/route");
 const { POST: confirmPOST } = await import("@/app/api/app/activation/confirm/route");
 const { POST: ackPOST } = await import("@/app/api/app/activation/source/ack/route");
-const { POST: sourcePOST } = await import("@/app/api/app/activation/source/route");
+const { POST: sourcePOST, GET: sourceGET } = await import("@/app/api/app/activation/source/route");
 const store = await import("@/lib/activation-store");
 const security = await import("@/lib/provider-source-security");
 
@@ -224,5 +224,47 @@ describe("source import acknowledgement (F047)", () => {
     });
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({ ok: false, status: "device_not_ready" });
+  });
+});
+
+describe("Classic M3U source handoff keeps the EPG URL", () => {
+  beforeEach(() => {
+    request(CLASSIC_CODE, "activated", CLASSIC_DEVICE, "moplayer");
+    authorize(CLASSIC_DEVICE);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(["#EXTM3U", "#EXTINF:-1,Demo", "http://cdn.example.com/1.ts", ""].join("\n"), { status: 200 })),
+    );
+  });
+
+  it("delivers epgUrl to a moplayer device exactly like moplayer2", async () => {
+    const queued = await post(sourcePOST, {
+      code: CLASSIC_CODE,
+      productSlug: "moplayer",
+      source: {
+        type: "m3u",
+        name: "Demo list",
+        playlistUrl: "https://cdn.example.com/list.m3u",
+        epgUrl: "https://epg.example.com/guide.xml",
+      },
+    });
+    expect(queued.status).toBe(200);
+
+    const pulled = await sourceGET(
+      new Request(
+        `https://moalfarras.space/api/app/activation/source?publicDeviceId=${CLASSIC_DEVICE}&token=${TOKEN}&product=moplayer`,
+      ),
+    );
+    expect(pulled.status).toBe(200);
+    expect(await pulled.json()).toMatchObject({
+      status: "source_available",
+      source: {
+        type: "m3u",
+        name: "Demo list",
+        playlistUrl: "https://cdn.example.com/list.m3u",
+        epgUrl: "https://epg.example.com/guide.xml",
+      },
+    });
+    vi.unstubAllGlobals();
   });
 });

@@ -14,6 +14,7 @@ import {
   softwareApplicationJsonLd,
 } from "@/lib/seo-jsonld";
 import type { Locale } from "@/types/cms";
+import { androidRequirementLabel, androidVersionForApi, currentAppReleases } from "@moalfarras/shared/app-releases";
 
 const SITE_URL = "https://moalfarras.space";
 
@@ -126,9 +127,11 @@ export default async function MoPlayerClassicRoute({
     path: "apps/moplayer/classic",
     name: "MoPlayer Classic",
     description: meta.description,
-    version: latest?.version_name || "v2 full",
+    version: latest?.version_name || currentAppReleases.moplayer.versionName,
     fileSize,
     targetSdk: normalizedEcosystem.product.android_target_sdk,
+    operatingSystem: `Android ${androidVersionForApi(normalizedEcosystem.product.android_min_sdk) ?? "7.0"}+, Android TV`,
+    requirements: androidRequirementLabel(normalizedEcosystem.product.android_min_sdk),
     downloadUrl: latest ? `${SITE_URL}/api/app/releases/${latest.slug}/download` : undefined,
   });
   const faq = faqPageJsonLd(getMoPlayerFaqs(loc));

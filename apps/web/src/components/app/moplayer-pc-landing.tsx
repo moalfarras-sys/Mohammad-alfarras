@@ -20,7 +20,7 @@ import { useRef } from "react";
 
 import { CoverflowGallery } from "@/components/site/coverflow-gallery";
 import { normalizePublicImagePath, unoptimizedImage } from "@/lib/asset-url";
-import { downloadSinceLabel, formatDownloadNumber, type DownloadStatsView } from "@/lib/download-display";
+import { downloadSinceLabel, formatDownloadNumber, hasPublicDownloadCount, type DownloadStatsView } from "@/lib/download-display";
 import { moPlayerCopy } from "@/content/apps";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
@@ -99,6 +99,7 @@ export function MoPlayerPcLanding({
   const downloadHref = hasInstaller ? "/api/app/download/latest?product=moplayer-pc&platform=windows" : "";
   const portableHref = hasPortable ? "/api/app/download/latest?product=moplayer-pc&platform=windows&portable=1" : "";
   const activateHref = `/${locale}/activate?product=moplayer-pc&platform=windows`;
+  const showDownloadCount = hasPublicDownloadCount(downloadStats);
   const downloadCount = formatDownloadNumber(downloadStats?.value ?? 0, locale);
   const downloadSince = downloadSinceLabel(downloadStats, locale);
   const pcShots = windowsRelease?.screenshotItems?.length
@@ -131,7 +132,7 @@ export function MoPlayerPcLanding({
     windowsRelease?.file ? { label: isAr ? "اسم الملف" : "File name", value: windowsRelease.file } : null,
     windowsRelease?.fileSizeBytes ? { label: isAr ? "الحجم" : "Size", value: formatBytes(windowsRelease.fileSizeBytes) } : null,
     windowsRelease?.sha256 ? { label: "SHA-256", value: windowsRelease.sha256, mono: true } : null,
-    { label: isAr ? "التحميلات" : "Downloads", value: `${downloadCount} · ${downloadSince}` },
+    showDownloadCount ? { label: isAr ? "التحميلات" : "Downloads", value: `${downloadCount} · ${downloadSince}` } : null,
   ].filter(Boolean) as Array<{ label: string; value: string; mono?: boolean }>;
 
   const pcFeatures = isAr ? [
@@ -237,16 +238,18 @@ export function MoPlayerPcLanding({
             </div>
           ) : null}
 
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.24 }} className="mb-4 md:mb-6 inline-flex items-center gap-4 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] px-5 py-4 text-start backdrop-blur-md shadow-[0_18px_54px_rgba(230,74,25,0.12)]">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-300">
-              <Download className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-orange-200/70">{isAr ? "تحميلات Windows" : "Windows downloads"}</span>
-              <strong className="block text-3xl font-black text-white tabular-nums">{downloadCount}</strong>
-              <span className="block text-xs font-semibold text-white/45">{downloadSince}</span>
-            </div>
-          </motion.div>
+          {showDownloadCount ? (
+            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, delay: 0.24 }} className="mb-4 md:mb-6 inline-flex items-center gap-4 rounded-2xl border border-orange-500/20 bg-orange-500/[0.08] px-5 py-4 text-start backdrop-blur-md shadow-[0_18px_54px_rgba(230,74,25,0.12)]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 text-orange-300">
+                <Download className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-orange-200/70">{isAr ? "تحميلات Windows" : "Windows downloads"}</span>
+                <strong className="block text-3xl font-black text-white tabular-nums">{downloadCount}</strong>
+                <span className="block text-xs font-semibold text-white/45">{downloadSince}</span>
+              </div>
+            </motion.div>
+          ) : null}
 
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.25 }} className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             {windowsRelease?.maintenance ? (
@@ -293,10 +296,12 @@ export function MoPlayerPcLanding({
               <span className="text-white/40 font-medium uppercase tracking-wider text-xs">{isAr ? "جاهز" : "Ready"}</span>
             </div>
           ))}
-          <div className="flex flex-col items-center">
-            <span className="text-orange-400 font-extrabold text-lg mb-1 tabular-nums">{downloadCount}</span>
-            <span className="text-white/40 font-medium uppercase tracking-wider text-xs">{isAr ? "تحميل" : "Downloads"}</span>
-          </div>
+          {showDownloadCount ? (
+            <div className="flex flex-col items-center">
+              <span className="text-orange-400 font-extrabold text-lg mb-1 tabular-nums">{downloadCount}</span>
+              <span className="text-white/40 font-medium uppercase tracking-wider text-xs">{isAr ? "تحميل" : "Downloads"}</span>
+            </div>
+          ) : null}
         </div>
       </section>
 

@@ -18,6 +18,8 @@ export type DownloadCounts = {
   total: number;
   since?: string;
   updatedAt?: string;
+  /** False when no counter store could be read, so a 0 means "unknown", not "no downloads". */
+  available?: boolean;
 };
 
 export type PublicDownloadStats = {
@@ -25,6 +27,7 @@ export type PublicDownloadStats = {
   total: number;
   since?: string;
   updatedAt?: string;
+  available: boolean;
 };
 
 export type DownloadEventInput = {
@@ -72,6 +75,7 @@ export function publicDownloadStats(counts: DownloadCounts, slug: string, platfo
     total: Math.max(0, Number(counts.total) || 0),
     since: counts.since,
     updatedAt: counts.updatedAt,
+    available: counts.available !== false,
   };
 }
 
@@ -203,7 +207,7 @@ async function readDownloadCountsView(): Promise<DownloadCounts | null> {
     }
   }
 
-  return { counts, total, since, updatedAt };
+  return { counts, total, since, updatedAt, available: true };
 }
 
 export async function readDownloadCounts(): Promise<DownloadCounts> {
@@ -216,16 +220,18 @@ export async function readDownloadCounts(): Promise<DownloadCounts> {
 
   try {
     const supabase = createSupabaseAdminClient();
-    const { data } = await supabase.from("site_settings").select("value_json").eq("key", SETTING_KEY).maybeSingle();
-    const v = (data?.value_json && typeof data.value_json === "object" ? data.value_json : {}) as Partial<DownloadCounts>;
+    const { data, error } = await supabase.from("site_settings").select("value_json").eq("key", SETTING_KEY).maybeSingle();
+    const hasStoredCounts = !error && Boolean(data?.value_json && typeof data.value_json === "object");
+    const v = (hasStoredCounts ? data?.value_json : {}) as Partial<DownloadCounts>;
     return {
       counts: v.counts && typeof v.counts === "object" ? v.counts : {},
       total: Number(v.total) || 0,
       since: typeof v.since === "string" ? v.since : undefined,
       updatedAt: typeof v.updatedAt === "string" ? v.updatedAt : undefined,
+      available: hasStoredCounts,
     };
   } catch {
-    return { counts: {}, total: 0 };
+    return { counts: {}, total: 0, available: false };
   }
 }
 

@@ -4,6 +4,10 @@ import { readAppEcosystem } from "@/lib/app-ecosystem";
 import { releaseAssetDownloadUrl, selectReleaseAsset } from "@/lib/release-asset-selection";
 import { createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { resolveManagedAppSlug } from "@moalfarras/shared/app-products";
+import { currentAppReleases } from "@moalfarras/shared/app-releases";
+
+const classicRelease = currentAppReleases.moplayer;
+const proRelease = currentAppReleases.moplayer2;
 
 const fallbackConfigs = {
   moplayer: {
@@ -11,8 +15,8 @@ const fallbackConfigs = {
     maintenanceMode: false,
     forceUpdate: false,
     minimumVersionCode: 18,
-    latestVersionName: "2.4.0",
-    latestVersionCode: 24,
+    latestVersionName: classicRelease.versionName,
+    latestVersionCode: classicRelease.versionCode,
     downloaderCode: "2418397",
     message: "",
     accentColor: "#00e5ff",
@@ -20,13 +24,12 @@ const fallbackConfigs = {
     backgroundUrl: "/images/moplayer-tv-banner-final.png",
     widgets: { weather: true, football: true },
     update: {
-      latestVersionName: "2.4.0",
-      latestVersionCode: 24,
+      latestVersionName: classicRelease.versionName,
+      latestVersionCode: classicRelease.versionCode,
       downloadUrl: "/api/app/download/latest?product=moplayer",
-      apkSizeBytes: 53204181,
-      checksumSha256: "8528124db43df511973d9e0764ce66250efe34e63c9adbd2ede1bfc291a6c946",
-      releaseNotes:
-        "MoPlayer Classic 2.4.0 is a premium visual + performance pass: brand typography, bolder posters with a clear cyan D-pad focus, a larger bottom dock, and a clean cinematic gradient background (no particle layers) that runs much smoother on weak Android TV boxes.",
+      apkSizeBytes: classicRelease.asset.fileSizeBytes,
+      checksumSha256: classicRelease.asset.checksumSha256,
+      releaseNotes: classicRelease.updateNotes,
     },
     supportUrl: "https://moalfarras.space/en/contact",
     privacyUrl: "https://moalfarras.space/privacy",
@@ -36,8 +39,8 @@ const fallbackConfigs = {
     maintenanceMode: false,
     forceUpdate: false,
     minimumVersionCode: 50,
-    latestVersionName: "2.6.5",
-    latestVersionCode: 68,
+    latestVersionName: proRelease.versionName,
+    latestVersionCode: proRelease.versionCode,
     downloaderCode: "4608937",
     appName: "MoPlayer Pro",
     packageName: "com.moalfarras.moplayerpro",
@@ -73,13 +76,12 @@ const fallbackConfigs = {
     },
     widgets: { weather: true, football: true, weatherCity: "Berlin", footballMaxMatches: 8 },
     update: {
-      latestVersionName: "2.6.5",
-      latestVersionCode: 68,
+      latestVersionName: proRelease.versionName,
+      latestVersionCode: proRelease.versionCode,
       downloadUrl: "/api/app/download/latest?product=moplayer2",
-      apkSizeBytes: 49443176,
-      checksumSha256: "4ab045fa64e9e77bbc791a11e6c03a8916fdeb01baf699ef76a2d707e66f1de1",
-      releaseNotes:
-        "MoPlayer Pro 2.6.5: trailers fixed and faster — a broken empty-result id no longer blocks playback or the provider fallback, trailers start after 2 seconds (was 4), they now work on ALL devices including weak boxes, and a new Settings switch (Live TV → Trailer previews) lets you turn them on/off. Includes 2.6.4's subtitle import and all earlier fixes.",
+      apkSizeBytes: proRelease.asset.fileSizeBytes,
+      checksumSha256: proRelease.asset.checksumSha256,
+      releaseNotes: proRelease.updateNotes,
     },
     ios: {
       enabled: true,
@@ -102,8 +104,8 @@ const legacyFallbackConfig = {
   maintenanceMode: false,
   forceUpdate: false,
   minimumVersionCode: 18,
-  latestVersionName: "2.4.0",
-  latestVersionCode: 24,
+  latestVersionName: classicRelease.versionName,
+  latestVersionCode: classicRelease.versionCode,
   downloaderCode: "2418397",
   message: "",
   accentColor: "#00e5ff",
@@ -111,13 +113,12 @@ const legacyFallbackConfig = {
   backgroundUrl: "/images/moplayer-tv-banner-final.png",
   widgets: { weather: true, football: true },
   update: {
-    latestVersionName: "2.4.0",
-    latestVersionCode: 24,
+    latestVersionName: classicRelease.versionName,
+    latestVersionCode: classicRelease.versionCode,
     downloadUrl: "/api/app/download/latest?product=moplayer",
-    apkSizeBytes: 53204181,
-    checksumSha256: "8528124db43df511973d9e0764ce66250efe34e63c9adbd2ede1bfc291a6c946",
-    releaseNotes:
-      "MoPlayer Classic 2.4.0 is a premium visual + performance pass: brand typography, bolder posters with a clear cyan D-pad focus, a larger bottom dock, and a clean cinematic gradient background (no particle layers) that runs much smoother on weak Android TV boxes.",
+    apkSizeBytes: classicRelease.asset.fileSizeBytes,
+    checksumSha256: classicRelease.asset.checksumSha256,
+    releaseNotes: classicRelease.updateNotes,
   },
   supportUrl: "https://moalfarras.space/en/contact",
   privacyUrl: "https://moalfarras.space/privacy",

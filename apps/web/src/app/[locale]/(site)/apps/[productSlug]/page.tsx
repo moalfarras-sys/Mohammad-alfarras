@@ -15,6 +15,7 @@ import {
 } from "@/lib/seo-jsonld";
 import type { Locale } from "@/types/cms";
 import { isManagedAppSlug, managedApps } from "@moalfarras/shared/app-products";
+import { androidRequirementLabel, androidVersionForApi } from "@moalfarras/shared/app-releases";
 
 const SITE_URL = "https://moalfarras.space";
 
@@ -169,6 +170,8 @@ export default async function AppProductRoute({
     version: latest?.version_name || normalizedEcosystem.product.default_download_label,
     fileSize,
     targetSdk: normalizedEcosystem.product.android_target_sdk,
+    operatingSystem: `Android ${androidVersionForApi(normalizedEcosystem.product.android_min_sdk) ?? "7.0"}+, Android TV`,
+    requirements: androidRequirementLabel(normalizedEcosystem.product.android_min_sdk),
     downloadUrl: latest ? `${SITE_URL}/api/app/releases/${latest.slug}/download` : undefined,
   });
   const faq = faqPageJsonLd(

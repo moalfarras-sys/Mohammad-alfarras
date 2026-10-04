@@ -53,13 +53,13 @@ export async function resolveDownloadTarget(primary: string, mirror?: string | n
 /**
  * Mirrors for the URLs shipped in the offline fallback data. Keyed by the
  * primary URL so a CMS-managed URL that happens to match still gets a mirror.
+ *
+ * Only list a mirror after it answers HTTP 200 with the exact size and SHA-256
+ * of the primary file. The previous Vercel Blob mirrors (Classic 2.4.0 and
+ * Pro 2.6.5) returned HTTP 403 and were removed so a GitHub outage can never
+ * redirect visitors to a broken link.
  */
-export const DOWNLOAD_MIRRORS: Record<string, string> = {
-  "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-android-2.4.0/app-sideload-universal-release.apk":
-    "https://s9vdysvgolro0yuu.public.blob.vercel-storage.com/moplayer/android/2.4.0/app-sideload-universal-release.apk",
-  "https://github.com/moalfarras-sys/Mohammad-alfarras/releases/download/moplayer-pro-v2.6.5/app-universal-release.apk":
-    "https://s9vdysvgolro0yuu.public.blob.vercel-storage.com/moplayer-pro/android/2.6.5/app-universal-release.apk",
-};
+export const DOWNLOAD_MIRRORS: Record<string, string> = {};
 
 export function mirrorFor(url: string | null | undefined): string | undefined {
   if (!url) return undefined;

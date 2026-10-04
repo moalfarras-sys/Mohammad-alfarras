@@ -85,7 +85,8 @@ export function MoPlayerSuiteControl({
       publicHref: `${webBaseUrl}/en/apps/moplayer-ios`,
       icon: <BadgeCheck className="h-6 w-6" />,
       status: ios.status === "app_store" ? t({ en: "App Store", ar: "App Store" }) : ios.status === "testflight" ? "TestFlight" : t({ en: "Coming soon", ar: "قريباً" }),
-      version: "1.0.0",
+      // No iOS build is published yet; do not show an invented version number.
+      version: "—",
       downloads: 0,
       imageCount: ios.heroImageUrl ? 1 : 0,
       body: t({

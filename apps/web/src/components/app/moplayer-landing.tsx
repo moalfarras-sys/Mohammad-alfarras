@@ -18,14 +18,21 @@ import {
 import { CoverflowGallery } from "@/components/site/coverflow-gallery";
 import { moPlayerCopy } from "@/content/apps";
 import { normalizePublicImagePath } from "@/lib/asset-url";
-import { downloadSinceLabel, formatDownloadNumber, type DownloadStatsView } from "@/lib/download-display";
+import { downloadSinceLabel, formatDownloadNumber, hasPublicDownloadCount, type DownloadStatsView } from "@/lib/download-display";
 import { repairMojibakeDeep } from "@/lib/text-cleanup";
+import { androidVersionForApi } from "@moalfarras/shared/app-releases";
 import type { AppEcosystemData } from "@/types/app-ecosystem";
 import type { Locale } from "@/types/cms";
 
 /* ── Classic color tokens (navy blue) ── */
 const ACCENT = "#2563eb";
 const ACCENT_DARK = "#1e3a8a";
+
+function formatApkSize(size: number | null | undefined, locale: Locale) {
+  if (!size) return null;
+  const megabytes = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(size / (1024 * 1024));
+  return locale === "ar" ? `${megabytes} ميغابايت` : `${megabytes} MB`;
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -58,6 +65,9 @@ export function MoPlayerLanding({
   const heroImage = normalizePublicImagePath(ecosystem.product.hero_image_path || ecosystem.product.tv_banner_path || "/images/moplayer-tv-hero.png");
   
   const latest = ecosystem.releases[0] ?? null;
+  const primaryAsset = latest?.assets.find((asset) => asset.is_primary) ?? latest?.assets[0] ?? null;
+  const apkSize = formatApkSize(primaryAsset?.file_size_bytes, locale);
+  const minAndroid = androidVersionForApi(ecosystem.product.android_min_sdk);
   const appUnavailable =
     ecosystem.runtimeConfig?.enabled === false || ecosystem.runtimeConfig?.maintenanceMode === true;
   const unavailableMode = ecosystem.runtimeConfig?.enabled === false ? "disabled" : "maintenance";
@@ -66,6 +76,7 @@ export function MoPlayerLanding({
     !appUnavailable && latest && latest.assets.some((asset) => asset.external_url || asset.storage_path)
       ? `/api/app/releases/${latest.slug}/download`
       : null;
+  const showDownloadCount = hasPublicDownloadCount(downloadStats);
   const downloadCount = formatDownloadNumber(downloadStats?.value ?? 0, locale);
   const downloadSince = downloadSinceLabel(downloadStats, locale);
   const proHref = `/${locale}/apps/moplayer2`;
@@ -152,16 +163,18 @@ export function MoPlayerLanding({
             </motion.div>
           ) : null}
 
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.22 }} className="mb-4 md:mb-5 inline-flex items-center gap-4 rounded-2xl border border-blue-400/20 bg-blue-400/[0.07] px-5 py-4 text-start backdrop-blur-md shadow-[0_18px_52px_rgba(37,99,235,0.12)]">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
-              <Download className="h-5 w-5" />
-            </div>
-            <div>
-              <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-blue-200/70">{isAr ? "تحميلات رسمية" : "Official downloads"}</span>
-              <strong className="block text-3xl font-black text-white tabular-nums">{downloadCount}</strong>
-              <span className="block text-xs font-semibold text-white/45">{downloadSince}</span>
-            </div>
-          </motion.div>
+          {showDownloadCount ? (
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.22 }} className="mb-4 md:mb-5 inline-flex items-center gap-4 rounded-2xl border border-blue-400/20 bg-blue-400/[0.07] px-5 py-4 text-start backdrop-blur-md shadow-[0_18px_52px_rgba(37,99,235,0.12)]">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300">
+                <Download className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-blue-200/70">{isAr ? "تحميلات رسمية" : "Official downloads"}</span>
+                <strong className="block text-3xl font-black text-white tabular-nums">{downloadCount}</strong>
+                <span className="block text-xs font-semibold text-white/45">{downloadSince}</span>
+              </div>
+            </motion.div>
+          ) : null}
           
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }} className="flex flex-col sm:flex-row gap-3 items-center justify-center lg:justify-start">
             {downloadHref ? (
@@ -193,12 +206,13 @@ export function MoPlayerLanding({
       <section className="relative py-8 border-y border-white/5 bg-white/[0.02] z-10">
         <div className="max-w-6xl mx-auto px-6 flex flex-wrap justify-around items-center gap-6">
           {[
-            { label: isAr ? "أحدث إصدار" : "Latest", value: latest?.version_name ? `v${latest.version_name}` : "2.x" },
-            { label: isAr ? "التحميلات" : "Downloads", value: downloadCount },
-            { label: isAr ? "التجربة" : "Experience", value: isAr ? "كلاسيك" : "Classic" },
-            { label: isAr ? "التثبيت" : "Install", value: isAr ? "خفيف" : "Light" },
-            { label: isAr ? "التلفزيون" : "TV", value: ecosystem.product.android_tv_ready ? (isAr ? "جاهز" : "Ready") : "Android" },
-          ].map((s) => (
+            latest?.version_name ? { label: isAr ? "الإصدار" : "Version", value: `v${latest.version_name}` } : null,
+            apkSize ? { label: isAr ? "حجم APK" : "APK size", value: apkSize } : null,
+            minAndroid ? { label: isAr ? "أندرويد" : "Android", value: isAr ? `${minAndroid} أو أحدث` : `${minAndroid}+` } : null,
+            { label: isAr ? "الأجهزة" : "Devices", value: isAr ? "تلفزيون · هاتف · لوحي" : "TV · Phone · Tablet" },
+            { label: isAr ? "المصادر" : "Sources", value: "Xtream · M3U" },
+            showDownloadCount ? { label: isAr ? "التحميلات" : "Downloads", value: downloadCount } : null,
+          ].filter((item): item is { label: string; value: string } => Boolean(item)).map((s) => (
             <div key={s.label} className="text-center">
               <span className="block text-white/40 text-xs font-bold uppercase tracking-widest mb-1">{s.label}</span>
               <strong className="block text-lg font-extrabold text-white">{s.value}</strong>

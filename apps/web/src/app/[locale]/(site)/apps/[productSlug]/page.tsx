@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { MoPlayerLanding } from "@/components/app/moplayer-landing";
-import { MoPlayer2Landing } from "@/components/app/moplayer2-landing";
-import { normalizePublicImagePath } from "@/lib/asset-url";
+import { MoPlayerProPage } from "@/components/app/moplayer/pro-page";
+import { proShots } from "@/components/app/moplayer/shots";
 import { readAppEcosystem } from "@/lib/app-ecosystem";
+import { formatDownloadNumber, hasPublicDownloadCount } from "@/lib/download-display";
 import { publicDownloadStats, readDownloadCounts } from "@/lib/download-counter";
+import { formatFileSize, readReleaseFacts, releaseFactsFrom } from "@/lib/moplayer-release-facts";
+import { getMoPlayerProFaqs } from "@/content/apps";
 import { isLocale } from "@/lib/i18n";
 import {
   breadcrumbJsonLd,
@@ -15,7 +17,7 @@ import {
 } from "@/lib/seo-jsonld";
 import type { Locale } from "@/types/cms";
 import { isManagedAppSlug, managedApps } from "@moalfarras/shared/app-products";
-import { androidRequirementLabel, androidVersionForApi } from "@moalfarras/shared/app-releases";
+import { androidRequirementLabel } from "@moalfarras/shared/app-releases";
 
 const SITE_URL = "https://moalfarras.space";
 
@@ -55,11 +57,7 @@ export async function generateMetadata({
   const title = localized?.title ?? ecosystem.product.product_name;
   const socialTitle = `${title} | Mohammad Alfarras`;
   const description = localized?.description ?? ecosystem.product.short_description;
-  const image = normalizePublicImagePath(
-    ecosystem.product.hero_image_path ||
-      ecosystem.product.tv_banner_path ||
-      "/images/moplayer-hero-3d-final.png",
-  );
+  const image = proShots.signIn.src;
 
   const keywords =
     locale === "ar"
@@ -111,7 +109,7 @@ export async function generateMetadata({
       type: "website",
       locale: locale === "ar" ? "ar_SA" : "en_US",
       alternateLocale: [locale === "ar" ? "en_US" : "ar_SA"],
-      images: [{ url: image, width: 1600, height: 900, alt: socialTitle }],
+      images: [{ url: image, width: 1100, height: 619, alt: socialTitle }],
     },
     twitter: {
       card: "summary_large_image",
@@ -131,55 +129,37 @@ export default async function AppProductRoute({
   if (!isLocale(locale) || !isManagedAppSlug(productSlug)) notFound();
 
   const loc = locale as Locale;
-  const [ecosystem, downloadCounts] = await Promise.all([
+  const [ecosystem, classicFacts, downloadCounts] = await Promise.all([
     readAppEcosystem(productSlug),
+    readReleaseFacts("moplayer"),
     readDownloadCounts(),
   ]);
-  const normalizedEcosystem = {
-    ...ecosystem,
-    product: {
-      ...ecosystem.product,
-      hero_image_path: normalizePublicImagePath(ecosystem.product.hero_image_path),
-      logo_path: normalizePublicImagePath(ecosystem.product.logo_path),
-      tv_banner_path: normalizePublicImagePath(ecosystem.product.tv_banner_path),
-    },
-    screenshots: ecosystem.screenshots.map((item) => ({
-      ...item,
-      image_path: normalizePublicImagePath(item.image_path),
-    })),
-  };
-  const latest = normalizedEcosystem.releases[0] ?? null;
-  const primaryAsset = latest?.assets.find((a) => a.is_primary) ?? latest?.assets[0] ?? null;
-  const fileSize = primaryAsset?.file_size_bytes
-    ? `${(primaryAsset.file_size_bytes / (1024 * 1024)).toFixed(1)} MB`
-    : undefined;
+  const facts = releaseFactsFrom(productSlug, ecosystem);
+  const stats = publicDownloadStats(downloadCounts, productSlug);
+  const downloads = hasPublicDownloadCount(stats) ? formatDownloadNumber(stats.value, loc) : null;
+  const fileSize = formatFileSize(facts.sizeBytes, "en") ?? undefined;
   const localized = productSlug === "moplayer2" ? productMetadata.moplayer2[loc] : null;
-  const title = localized?.title ?? normalizedEcosystem.product.product_name;
-  const description = localized?.description ?? normalizedEcosystem.product.short_description;
+  const title = localized?.title ?? ecosystem.product.product_name;
+  const description = localized?.description ?? ecosystem.product.short_description;
 
   const breadcrumb = breadcrumbJsonLd(loc, [
     { name: loc === "ar" ? "الرئيسية" : "Home", path: `/${loc}` },
     { name: loc === "ar" ? "التطبيقات" : "Apps", path: `/${loc}/apps` },
-    { name: normalizedEcosystem.product.product_name, path: `/${loc}/apps/${productSlug}` },
+    { name: ecosystem.product.product_name, path: `/${loc}/apps/${productSlug}` },
   ]);
   const software = softwareApplicationJsonLd({
     locale: loc,
     path: `apps/${productSlug}`,
-    name: normalizedEcosystem.product.product_name,
+    name: ecosystem.product.product_name,
     description,
-    version: latest?.version_name || normalizedEcosystem.product.default_download_label,
+    version: facts.version,
     fileSize,
-    targetSdk: normalizedEcosystem.product.android_target_sdk,
-    operatingSystem: `Android ${androidVersionForApi(normalizedEcosystem.product.android_min_sdk) ?? "7.0"}+, Android TV`,
-    requirements: androidRequirementLabel(normalizedEcosystem.product.android_min_sdk),
-    downloadUrl: latest ? `${SITE_URL}/api/app/releases/${latest.slug}/download` : undefined,
+    targetSdk: ecosystem.product.android_target_sdk,
+    operatingSystem: `Android ${facts.minAndroid}+, Android TV`,
+    requirements: androidRequirementLabel(facts.minSdk),
+    downloadUrl: `${SITE_URL}${facts.downloadHref}`,
   });
-  const faq = faqPageJsonLd(
-    normalizedEcosystem.faqs.map((item) => ({
-      question: item.question,
-      answer: item.answer,
-    })),
-  );
+  const faq = faqPageJsonLd(getMoPlayerProFaqs(loc));
 
   return (
     <>
@@ -215,11 +195,7 @@ export default async function AppProductRoute({
           }),
         }}
       />
-      {productSlug === "moplayer2" ? (
-        <MoPlayer2Landing ecosystem={normalizedEcosystem} locale={loc} downloadStats={publicDownloadStats(downloadCounts, productSlug)} />
-      ) : (
-        <MoPlayerLanding ecosystem={normalizedEcosystem} locale={loc} downloadStats={publicDownloadStats(downloadCounts, productSlug)} />
-      )}
+      <MoPlayerProPage locale={loc} facts={facts} classicFacts={classicFacts} downloads={downloads} />
     </>
   );
 }

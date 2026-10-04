@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { SitePage } from "@/components/site/site-pages-v3";
@@ -6,7 +6,6 @@ import { buildSiteModel } from "@/components/site/site-model";
 import { isLocale } from "@/lib/i18n";
 import { breadcrumbJsonLd, jsonLdString, videoObjectJsonLd, webPageJsonLd } from "@/lib/seo-jsonld";
 import { pageMetadata } from "@/lib/seo";
-import "@/styles/route-youtube.css";
 import { compactMetric, youtubeChannel } from "@/content/site-data";
 import type { Locale } from "@/types/cms";
 

@@ -3,7 +3,7 @@ import { selectReleaseAsset } from "@/lib/release-asset-selection";
 import { hasDatabaseUrl, queryRows } from "@/lib/server-db";
 import { createSupabaseAdminClient, createSupabaseDataClient, hasSupabasePublicEnv } from "@/lib/supabase/client";
 import { managedApps, resolveManagedAppSlug, type ManagedAppSlug } from "@moalfarras/shared/app-products";
-import { currentAppReleases } from "@moalfarras/shared/app-releases";
+import { appTvInstall, currentAppReleases } from "@moalfarras/shared/app-releases";
 import type {
   AppEcosystemData,
   AppFaq,
@@ -296,7 +296,7 @@ function getRuntimeConfigKey(productSlug: string) {
 }
 
 function fallbackDownloaderCode(productSlug: string) {
-  return resolveManagedAppSlug(productSlug) === "moplayer2" ? "4608937" : "2418397";
+  return appTvInstall[resolveManagedAppSlug(productSlug)].downloaderCode;
 }
 
 function runtimeConfigSummary(value: unknown, productSlug: string): AppEcosystemData["runtimeConfig"] {

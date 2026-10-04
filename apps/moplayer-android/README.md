@@ -7,6 +7,10 @@ Production **Android / Android TV** client shipped as `com.mo.moplayer`. Gradle 
 - Releases: see repo [README.md](../../README.md) (`npm run release:moplayer`, `scripts/publish-android-release.mjs`).
 - Build outputs go to `build-output/` (see `app/build.gradle.kts`).
 
+## 2.5.1 fixes (2026-10-04)
+
+Version `2.5.1` / code `26`, GitHub Release `moplayer-android-2.5.1`, universal APK 53,237,761 bytes, SHA-256 `210aba34...f3ea1c`, same certificate. Parental "Lock adult content" now hides adult groups (`ParentalLockManager.filterAdultCategories`) in Live/Movies/Series; Live TV header shows the category total; the guide card hides without guide data; the preview channel number matches by id; offline weather no longer invents values; the duplicate `player_settings` DataStore in `SettingsViewModel` is gone. Verified with an in-place signed upgrade 2.5.0 -> 2.5.1 on the Android TV emulator.
+
 ## 2.5.0 TV UI and real-server pass (2026-10-04)
 
 Version `2.5.0` / code `25`, GitHub Release `moplayer-android-2.5.0`, universal APK 53,238,825 bytes, SHA-256 `48cdbda2...80f2eb`, signed with the same certificate as 2.4.0 (`97dad776...593d`).

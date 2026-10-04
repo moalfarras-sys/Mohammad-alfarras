@@ -141,4 +141,23 @@ class ParentalLockManager @Inject constructor(
         val bytes = MessageDigest.getInstance("SHA-256").digest(pin.toByteArray())
         return bytes.joinToString("") { "%02x".format(it) }
     }
+
+    /** True when parental control is on and adult content is locked (Settings > Parental). */
+    suspend fun shouldHideAdultContent(): Boolean =
+        isParentalEnabled.first() && isAdultContentLocked.first()
+
+    /**
+     * Drops adult categories when [shouldHideAdultContent]. Providers mark adult groups by name
+     * (Xtream has no category-level flag), so the match is on common adult group names.
+     */
+    suspend fun <T> filterAdultCategories(items: List<T>, name: (T) -> String): List<T> {
+        if (!shouldHideAdultContent()) return items
+        return items.filterNot { isAdultCategoryName(name(it)) }
+    }
 }
+
+private val ADULT_CATEGORY_PATTERN = Regex(
+    """(?i)(\badult|\bxxx\b|\bporn|\b18\s*\+|\+\s*18\b|for adults|للكبار|كبار فقط)"""
+)
+
+fun isAdultCategoryName(name: String): Boolean = ADULT_CATEGORY_PATTERN.containsMatchIn(name)

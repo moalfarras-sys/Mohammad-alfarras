@@ -26,6 +26,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SeriesViewModel @Inject constructor(
     private val repository: IptvRepository,
+    private val parentalLockManager: com.mo.moplayer.util.ParentalLockManager,
     private val networkErrorHandler: NetworkErrorHandler
 ) : ViewModel() {
 
@@ -87,7 +88,7 @@ class SeriesViewModel @Inject constructor(
                     serverId = server.id
 
                     val result = networkErrorHandler.executeWithRetry {
-                        repository.getSeriesCategories(serverId).first()
+                        parentalLockManager.filterAdultCategories(repository.getSeriesCategories(serverId).first()) { it.name }
                     }
                     result.fold(
                         onSuccess = { cats ->

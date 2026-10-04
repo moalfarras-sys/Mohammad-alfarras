@@ -118,7 +118,7 @@ class AnimatedBackground @JvmOverloads constructor(
      * Darkening drawn over a photo background (city wallpaper or custom image) so posters, lists
      * and text on top stay readable. Screens with their own scrim (Home) can lower it.
      */
-    var photoDim: Float = 0.6f
+    var photoDim: Float = 0.72f
         set(value) {
             field = value.coerceIn(0f, 0.95f)
             invalidate()

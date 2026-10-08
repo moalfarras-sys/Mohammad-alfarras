@@ -1,11 +1,11 @@
 {
   "system": "MoOS",
   "channel": "latest",
-  "base": "Fedora Atomic (bootc / OSTree) · KDE Plasma 6 (Wayland)",
-  "shell": "MoOS UI2 · Horizon",
+  "base": "MoOS Atomic (bootc / OSTree) · KDE Plasma 6 (Wayland)",
+  "shell": "MoOS UI — Liquid Glass",
   "repoUrl": "https://github.com/moalfarras-sys/moos-image",
-  "signingKeyUrl": "https://raw.githubusercontent.com/moalfarras-sys/moos-image/main/cosign.pub",
-  "releaseDate": "2026-09-15",
+  "signingKeyUrl": "https://raw.githubusercontent.com/moalfarras-sys/moos-image/fa85b2daf3db0f1f823b3159bb46b25571a99740/cosign.pub",
+  "releaseDate": "2026-10-07",
   "editions": [
     {
       "id": "desktop",
@@ -13,7 +13,8 @@
       "image": "ghcr.io/moalfarras-sys/moos:latest",
       "recommended": true,
       "installer": "/downloads/moos/moos-install.sh",
-      "summary": "The public desktop edition — signed, atomic, always current. For Intel, AMD and Nouveau machines."
+      "summary": "The public desktop edition — signed, atomic, always current. For Intel, AMD and Nouveau machines.",
+      "version": "44.20261007.1011"
     },
     {
       "id": "nvidia",
@@ -22,7 +23,8 @@
       "recommended": false,
       "installer": "/downloads/moos/moos-install.sh",
       "installerArgs": "--nvidia",
-      "summary": "The same desktop with the open NVIDIA driver layered in, for modern NVIDIA GPUs."
+      "summary": "The same desktop with the open NVIDIA driver layered in, for modern NVIDIA GPUs.",
+      "version": "44.20261007.1011"
     },
     {
       "id": "cloud",
@@ -30,15 +32,33 @@
       "image": "ghcr.io/moalfarras-sys/moos-cloud:latest",
       "recommended": false,
       "installer": "/downloads/moos/moos-cloud-install.sh",
-      "summary": "The 24/7 server edition for any cheap VPS: SSH-first, no games layer, reachable from the browser."
+      "summary": "The x86-64 cloud edition: SSH-first and a browser-accessible desktop on compatible cloud hosts.",
+      "version": "44.20261007.1011"
+    },
+    {
+      "id": "arm",
+      "name": "MoOS ARM",
+      "image": "ghcr.io/moalfarras-sys/moos-arm:latest",
+      "version": "44.20261006.724",
+      "recommended": false,
+      "guideUrl": "https://github.com/moalfarras-sys/moos-image/blob/main/docs/MOOS_ARM_ORACLE.md",
+      "summary": "Native ARM64 for Oracle A1 and supported virtual machines. Separate QCOW2/UTM images; not the x86 ISO."
     }
   ],
   "iso": {
-    "available": false,
-    "url": "",
-    "sizeBytes": 0,
-    "sha256": "",
-    "notes": "The boot-proven x86_64 ISO is ready, but its previous storage endpoint is unavailable. Download stays disabled until the same artifact is rehosted and its HTTP status, byte ranges, exact size, and SHA-256 are verified."
+    "available": true,
+    "url": "https://moos-downloads.moalfarras-moos.workers.dev/releases/44.20261007.1011/x86_64/moos-offline.iso",
+    "signatureUrl": "https://moos-downloads.moalfarras-moos.workers.dev/releases/44.20261007.1011/x86_64/moos-offline.iso.sig",
+    "checksumUrl": "https://moos-downloads.moalfarras-moos.workers.dev/releases/44.20261007.1011/x86_64/moos-offline.iso.sha256",
+    "sizeBytes": 5796462592,
+    "sha256": "cbe92573e620101f274081c884671e4b63ffbcdb765521713d21ada1dbe9cb1c",
+    "version": "44.20261007.1011",
+    "architecture": "x86_64",
+    "sourceRevision": "fa85b2daf3db0f1f823b3159bb46b25571a99740",
+    "imageDigest": "sha256:c3689b0e64c48cdf7d5de7d83b3dc156bf264f6381cce98d36376681b07ebf99",
+    "deliveryVerifiedAt": "2026-10-08T10:19:36.980092+00:00",
+    "proofUrl": "/downloads/moos/delivery-proof.json",
+    "notes": "Signed generic x86-64 UEFI desktop ISO. Final CI boot/offline installation and promotion passed; full anonymous download, SHA-256 and byte-range delivery verified. NVIDIA/cloud are separate signed image editions; ARM uses separate QCOW2/UTM artifacts. Physical device qualification is ongoing."
   },
   "maintenance": false
 }

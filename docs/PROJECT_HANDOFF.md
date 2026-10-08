@@ -2,6 +2,15 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-10-08 MoOS signed ISO delivery
+
+- The qualified generic x86-64 ISO `44.20261007.1011` is hosted on private Cloudflare R2 through the persistent `moos-downloads` Worker. Its complete anonymous transfer, SHA-256, detached signature and >4 GiB ranges passed before enabling the website manifest.
+- Website entry: `/api/os/download?type=iso`; verification sidecars use `asset=signature` and `asset=checksum`. The API preserves maintenance and qualification guards and counts only full ISO requests, not sidecars/resumes.
+- Arabic/English MoOS pages expose the real ISO and distinguish the separate ARM guide and image editions. They remove obsolete local-model/privacy claims. The shared Reduced Motion tilt decoration now hydrates consistently.
+- Runtime dependency audit: zero findings after Sharp/source-map-js/http-cache-semantics corrections. Development-only unpatched ESLint/braces findings remain documented. Oracle ARM optional native build packages are declared.
+- Web/admin maintained checks and dashboard build passed locally. `verify:production` stops only at the existing Windows-only Android wrapper on this Linux host; Android releases are unchanged. Local Arabic/English desktop/phone QA and required app/config/activation smoke passed.
+- Delivery/version/proof details and operating limits: [MOOS_ISO_DELIVERY.md](MOOS_ISO_DELIVERY.md). Final deployment and canonical entrypoint must be read back before calling publication complete.
+
 ## 2026-10-04 MoPlayer Classic 2.5.x, site redesign, downloads and admin honesty
 
 - **MoPlayer Classic 2.5.0 → 2.5.1** (PRs #37, #43): one interface size on every TV (`util/DisplayScale.kt`), real fonts, working language switch and full Arabic, Live TV fixes, account-aware playback errors, 2:3 poster grids, Live TV home row, reliable QR activation, XMLTV EPG for M3U, working adult lock. QA against a real Xtream line (13k channels / 20k movies / 10k series, one connection) on Android TV API 36 (240/320 dpi), API 24 720p and a phone in landscape; signed in-place upgrades 2.4.0 → 2.5.0 → 2.5.1. Current release `moplayer-android-2.5.1` (53,237,761 bytes, SHA-256 `210aba34…f3ea1c`).

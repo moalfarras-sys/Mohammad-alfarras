@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/config-schema.json",
+  "name": "moos-downloads",
+  "main": "worker.mjs",
+  "account_id": "73a194363e5c5d6d7556d177d6929c6f",
+  "compatibility_date": "2026-10-08",
+  "workers_dev": true,
+  "r2_buckets": [{ "binding": "MOOS_RELEASES", "bucket_name": "moos-releases" }]
+}

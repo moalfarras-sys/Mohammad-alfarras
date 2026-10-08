@@ -373,7 +373,7 @@
 @media (max-width: 640px) { .mo3-themes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* ── download ── */
-.mo3-editions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.mo3-editions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
 .mo3-edition { display: grid; gap: 12px; align-content: start; padding: clamp(20px, 2.4vw, 28px); border-radius: 22px; border: 1px solid var(--mo3-line); background: var(--mo3-glass); }
 .mo3-edition.is-featured { border-color: rgba(63, 224, 197, 0.45); box-shadow: 0 0 70px -30px rgba(63, 224, 197, 0.55); }
 .mo3-edition-head { display: flex; justify-content: space-between; align-items: center; }
@@ -381,7 +381,8 @@
 .mo3-edition p { margin: 0; color: #a9bcc0; line-height: 1.6; }
 .mo3-edition .st-btn { justify-self: start; }
 .mo3-iso .st-btn { justify-self: start; }
-@media (max-width: 1000px) { .mo3-editions { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .mo3-editions { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .mo3-editions { grid-template-columns: 1fr; } }
 
 /* ── final ── */
 .mo3-final {

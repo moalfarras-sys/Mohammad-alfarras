@@ -261,6 +261,15 @@
   border: 1px solid var(--mo3-line);
   box-shadow: 0 40px 110px -40px rgba(0, 0, 0, 0.95), 0 0 90px -40px rgba(154, 123, 255, 0.55);
 }
+.mo3-mira-gallery { display: grid; gap: 18px; }
+.mo3-mira .mo3-split { grid-template-areas: "intro media" "points media"; align-items: start; gap: 24px clamp(32px, 5vw, 80px); }
+.mo3-mira-intro { grid-area: intro; }
+.mo3-mira-points { grid-area: points; margin-top: 0; }
+.mo3-mira-media { grid-area: media; }
+.mo3-mira-capture { margin: 0; }
+.mo3-mira-shot { display: block; aspect-ratio: 1480 / 920; border-radius: 18px; }
+.mo3-mira-shot:focus-visible { outline: 3px solid var(--mo3-teal); outline-offset: 5px; }
+.mo3-mira-image { object-fit: contain; }
 .mo3-prompts { display: flex; flex-wrap: wrap; gap: 8px; margin: 18px 0 0; padding: 0; list-style: none; }
 .mo3-prompts li {
   padding: 8px 13px;
@@ -288,6 +297,7 @@
 .mo3-shot--tall { aspect-ratio: 1540 / 1020; }
 @media (max-width: 900px) {
   .mo3-split { grid-template-columns: 1fr; }
+  .mo3-mira .mo3-split { grid-template-areas: "intro" "media" "points"; gap: 28px; }
   .mo3-split--flip .mo3-split-copy { order: 0; }
 }
 

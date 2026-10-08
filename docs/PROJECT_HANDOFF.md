@@ -2,6 +2,13 @@
 
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
+## 2026-10-08 Mira section: real installed UI captures
+
+- The MoOS page shows the installed Mira interface and its original holographic/rose faces in both Arabic and English. Four 1480×920 captures are responsive WebP assets with full-size links; the mobile layout shows the pictures immediately after the introduction.
+- The old Mo AI image/title and local-brain/speech claims are removed from this section and its status/SEO text. Features reflect shipped chat/attachments, configured voice, computer actions, Home Assistant/Lumen, research/reminders/Workbench and owner approvals.
+- Captures use an isolated offline profile with illustrative data, disclosed in the page caption. No owner conversations, credentials or device operations were captured. Provenance: [MOOS_MIRA_IMAGES.md](MOOS_MIRA_IMAGES.md).
+- Final maintained web checks (89 tests), admin checks and dashboard build passed. Local Arabic/English desktop/phone image/overflow/hydration checks and product/config/activation/download smoke passed. Root verify:production stops at the unchanged Windows-only Android gradlew.bat on Linux; Android releases are unchanged.
+
 ## 2026-10-08 MoOS signed ISO delivery
 
 - The qualified generic x86-64 ISO `44.20261007.1011` is hosted on private Cloudflare R2 through the persistent `moos-downloads` Worker. Its complete anonymous transfer, SHA-256, detached signature and >4 GiB ranges passed before enabling the website manifest.

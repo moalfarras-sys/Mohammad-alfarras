@@ -21,12 +21,12 @@ export async function generateMetadata({
       ? {
           title: "نظام MoOS — نظام تشغيل عربي مجاني للكمبيوتر",
           description:
-            "تعرّف إلى MoOS، نظام تشغيل عربي جديد قيد التطوير مبني على MoOS Atomic وKDE Plasma 6، مع تطبيقات Android وWindows الاختيارية وMo AI والتحكم من الجوال. مجاني ومفتوح المصدر، مع مثبّت رسمي موقّع.",
+            "تعرّف إلى MoOS، نظام تشغيل عربي جديد قيد التطوير مبني على MoOS Atomic وKDE Plasma 6، مع تطبيقات Android وWindows الاختيارية وMira والتحكم من الجوال. مجاني ومفتوح المصدر، مع مثبّت رسمي موقّع.",
         }
       : {
           title: "MoOS — a free Arabic-native desktop operating system",
           description:
-            "Meet MoOS, a new Arabic-native operating system in active development, built on MoOS Atomic and KDE Plasma 6 with optional Android and Windows apps, Mo AI and phone control. Free and open source, with a signed official installer.",
+            "Meet MoOS, a new Arabic-native operating system in active development, built on MoOS Atomic and KDE Plasma 6 with optional Android and Windows apps, Mira and phone control. Free and open source, with a signed official installer.",
         };
 
   const canonical = `${SITE_URL}/${locale}/moos`;
@@ -48,7 +48,7 @@ export async function generateMetadata({
           "bootc",
           "تشغيل تطبيقات أندرويد",
           "تشغيل تطبيقات ويندوز",
-          "Mo AI",
+          "Mira",
           "ميرا مساعد ذكي",
           "Mo PC Remote",
           "نظام تشغيل للسيرفر",
@@ -67,7 +67,7 @@ export async function generateMetadata({
           "atomic Linux desktop",
           "Android apps on Linux",
           "Windows apps on Linux",
-          "Mo AI",
+          "Mira",
           "Mira AI assistant",
           "Mo PC Remote",
           "Linux for Arabic users",
@@ -121,8 +121,8 @@ export default async function MoosRoute({ params }: { params: Promise<{ locale: 
     applicationCategory: "OperatingSystem",
     operatingSystem: "MoOS Atomic (bootc), KDE Plasma 6",
     description: isAr
-      ? "نظام تشغيل عربي جديد قيد التطوير مبني على MoOS Atomic وKDE Plasma 6، مع تحديثات موقّعة وطبقات اختيارية لتطبيقات Android وWindows وMo AI والتحكم من الجوال."
-      : "A new Arabic-native desktop operating system in active development, built on MoOS Atomic and KDE Plasma 6 with signed updates, optional Android and Windows app layers, Mo AI and phone control.",
+      ? "نظام تشغيل عربي جديد قيد التطوير مبني على MoOS Atomic وKDE Plasma 6، مع تحديثات موقّعة وطبقات اختيارية لتطبيقات Android وWindows وMira والتحكم من الجوال."
+      : "A new Arabic-native desktop operating system in active development, built on MoOS Atomic and KDE Plasma 6 with signed updates, optional Android and Windows app layers, Mira and phone control.",
     url: `${SITE_URL}/${locale}/moos`,
     image: `${SITE_URL}/images/moos/desktop-dark.webp`,
     inLanguage: ["ar", "en"],

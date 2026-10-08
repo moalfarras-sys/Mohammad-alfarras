@@ -12,7 +12,6 @@ import {
   Download,
   GitBranch,
   Laptop,
-  Lock,
   MessageSquareText,
   Monitor,
   Play,
@@ -31,12 +30,8 @@ import type { Locale } from "@/types/cms";
 
 import "@/styles/v3-moos.css";
 
-/**
- * The assistant built into MoOS. The owner calls her Mira; inside the system the app
- * is still labelled "Mo AI" (see the screenshot), so the page shows both until the
- * rename ships. Change the name here and every mention follows.
- */
-const ASSISTANT = { en: "Mira", ar: "ميرا", app: "Mo AI" } as const;
+/** Mira is the shipped assistant; technical Mo AI services remain her executor. */
+const ASSISTANT = { en: "Mira", ar: "ميرا" } as const;
 
 /** The MoOS film on the owner's channel (verified embeddable via oEmbed). */
 const FILM = {
@@ -100,16 +95,21 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
         play: "تشغيل الفيديو",
         miraKicker: "المساعدة الذكية",
         miraTitle: `تعرّف إلى *${mira}*.`,
-        miraLead: `${mira} مساعدة MoOS المدمجة. تفهم العربية والإنجليزية، تشرح حالة جهازك، وتنفّذ إجراءات محدّدة عبر المزوّد السحابي المهيّأ وإجراءات الموافقة داخل النظام.`,
-        miraCaption: `لقطة واجهة ${ASSISTANT.app} بالعربية ضمن MoOS`,
+        miraLead: mira + " مساعدة MoOS المدمجة: وجه حي، محادثة بالعربية والإنجليزية، وصوت وأدوات للكمبيوتر والبيت. تتابع الإجراءات داخل الواجهة، وتطلب إذنك عندما يحتاج الأمر موافقة.",
+        miraCaption: "لقطات فعلية من واجهة ميرا في MoOS ببيانات عرض توضيحية.",
+        miraHolo: "ميرا — الوجه المضيء",
+        miraRose: "ميرا — الوجه الوردي",
+        miraOpen: "افتح اللقطة بالحجم الكامل",
         miraPoints: [
-          { icon: MessageSquareText, t: "محادثة بالعربية", b: "ردود متدفقة، ويمكنك إرفاق صور وملفات PDF و Word لتسألها عنها." },
-          { icon: AudioLines, t: "تكلّمها بصوتك", b: "محادثة صوتية بالعربية والإنجليزية حسب المزوّد وإعدادات الصوت المهيّأة." },
-          { icon: Wrench, t: "تصلح وتنفّذ", b: "تحديث النظام، إصلاح الصوت، فحص التعريفات، تجهيز Android، الرجوع لنسخة سابقة — إجراءات محدّدة مسبقاً، والحسّاسة منها تطلب موافقتك." },
-          { icon: Lock, t: "خصوصيتك أولاً", b: "الردود تستخدم المزوّد السحابي المهيّأ. راجع إعداداته وما يُرسل إليه، ووافق على تغييرات النظام داخل التطبيق." },
+          { icon: MessageSquareText, t: "محادثة وملفات", b: "محادثة بالعربية والإنجليزية مع ردود متدفقة، وإرفاق الصور وملفات PDF وWord للسؤال عنها." },
+          { icon: AudioLines, t: "صوت ووجه حي", b: "تحدث معها عبر ميكروفون الكمبيوتر أو Echo بعد إعداده. الوجه وحالة الاستماع والتفكير والكلام تتفاعل مع المحادثة؛ الحركة تعتمد على الجهاز وإعداداته." },
+          { icon: Wrench, t: "الكمبيوتر والنظام", b: "البحث عن التطبيقات وفتحها، فحص الجهاز، تحديث MoOS وإصلاح الصوت عبر إجراءات محددة، مع متابعة النتيجة داخل ميرا." },
+          { icon: Cloud, t: "البيت والإضاءة", b: "التحكم بالأضواء والأجهزة المتصلة عبر Home Assistant بعد الإعداد، ومشاهد الإضاءة عبر Lumen، مع عرض حالة الأجهزة المتاحة." },
+          { icon: Laptop, t: "بحث وتذكير ومشروعات", b: "بحث مع مصادر، تذكيرات ومؤقتات، فتح الملفات ومتابعة مهام المشروعات في الورشة بعد إعداد وكيلها." },
+          { icon: ShieldCheck, t: "إذنك قبل التغيير", b: "تغييرات النظام الحساسة تنتظر موافقة صاحب الجهاز. رؤية الشاشة اختيارية ومغلقة افتراضياً؛ الردود تعتمد على المزوّد السحابي المهيّأ." },
         ],
-        miraActions: ["حدّث نظامي", "صلّح الصوت", "افحص جهازي", "جهّز Android", "ارجع للنسخة السابقة", "شخّص الشبكة"],
-        miraNote: "المساعدة السحابية تحتاج اتصالاً بالإنترنت ومزوّداً مهيّأ؛ السرعة تعتمد على الاتصال والمزوّد.",
+        miraActions: ["افحص جهازي", "افتح المتصفح", "حدّث نظامي", "كم ضوء مضاء؟", "ذكّرني بعد ربع ساعة", "ابحث مع المصادر"],
+        miraNote: "المحادثة السحابية تحتاج الإنترنت وإعداد المزوّد. الصوت والبيت والهاتف تحتاج إعداداتها وأجهزتها؛ يمكن اختيار الوجه المضيء أو الوردي داخل ميرا.",
         arabicKicker: "عربي من الجذر",
         arabicTitle: "مكتوب *لك*، لا مترجم لك.",
         arabicBody: "القائمة، البحث، أسماء التطبيقات، التاريخ والطقس، واتجاه الواجهة نفسه — عربية داخل النظام، لا طبقة ترجمة فوقه. وتبدّل للإنجليزية بضغطة.",
@@ -139,13 +139,13 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
           "مثبّت يعمل دون إنترنت ويحمي قرص الـ USB",
           "إقلاع وتثبيت وإعادة تشغيل مجرّبة في بوابة الإصدار",
           "يعمل يومياً على جهاز NVIDIA، ونسخة ARM على Oracle Cloud",
-          `${mira} مع عقل محلي وكلام عربي محلي`,
+          `${mira} بمحادثة وصوت وأدوات عبر المزوّد السحابي المهيّأ`,
         ],
         nextItems: [
-          "استضافة دائمة لملف ISO وفتح التحميل",
+          ...(isoReady ? [] : ["استضافة دائمة لملف ISO وفتح التحميل"]),
           "اختبار التثبيت على أجهزة حقيقية متنوعة",
           "اختبار الرجوع بعد تحديث معطوب عمداً",
-          `نموذج جاهز لـ ${mira} من أول تشغيل`,
+          `تسهيل إعداد المزوّد والصوت والبيت داخل ${mira}`,
           "الإصدار النهائي العام",
         ],
         safeKicker: "تحديثات ذرّية",
@@ -209,16 +209,21 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
         play: "Play video",
         miraKicker: "The assistant",
         miraTitle: `Meet *${mira}*.`,
-        miraLead: `${mira} is the assistant built into MoOS. She understands Arabic and English, explains your machine and runs specific actions through the configured cloud provider and the system approval controls.`,
-        miraCaption: `An Arabic ${ASSISTANT.app} interface capture from MoOS`,
+        miraLead: mira + " is the assistant built into MoOS: a living face, Arabic and English chat, voice, and tools for your computer and home. Follow actions in the interface and approve changes when permission is needed.",
+        miraCaption: "Real captures of Mira’s interface in MoOS, shown with illustrative demo data.",
+        miraHolo: "Mira — holographic face",
+        miraRose: "Mira — rose face",
+        miraOpen: "Open the full-size capture",
         miraPoints: [
-          { icon: MessageSquareText, t: "Chat in Arabic or English", b: "Streaming answers, and you can attach images, PDFs and Word files to ask about them." },
-          { icon: AudioLines, t: "Talk to her", b: "Arabic and English voice conversations depend on the configured provider and audio setup." },
-          { icon: Wrench, t: "She fixes things", b: "Update the system, fix audio, check drivers, prepare Android, roll back — predefined actions, and the sensitive ones ask for your approval." },
-          { icon: Lock, t: "Private by default", b: "Replies use the configured cloud provider. Review its settings and shared data, and approve system changes inside the app." },
+          { icon: MessageSquareText, t: "Chat and files", b: "Arabic and English conversations with streaming replies. Attach images, PDFs and Word documents to ask about them." },
+          { icon: AudioLines, t: "Voice and a living face", b: "Talk through your computer microphone or a configured Echo. Her face and listening, thinking and speaking states follow the conversation; motion depends on your hardware and settings." },
+          { icon: Wrench, t: "Computer and system", b: "Find and open apps, check your machine, update MoOS and repair audio through defined actions, with results tracked inside Mira." },
+          { icon: Cloud, t: "Home and lighting", b: "Control connected lights and devices through Home Assistant after setup, use Lumen lighting scenes, and see which devices are available." },
+          { icon: Laptop, t: "Research, reminders and projects", b: "Research with sources, reminders and timers, file opening, and tracked project tasks in the Workbench after configuring its agent." },
+          { icon: ShieldCheck, t: "Your approval before changes", b: "Sensitive system changes wait for the owner. Screen viewing is optional and off by default; replies use the configured cloud provider." },
         ],
-        miraActions: ["Update my system", "Fix audio", "Check my machine", "Set up Android", "Roll back", "Network doctor"],
-        miraNote: "Cloud assistance needs internet access and a configured provider; speed depends on your connection and provider.",
+        miraActions: ["Check my machine", "Open the browser", "Update my system", "How many lights are on?", "Remind me in 15 minutes", "Research with sources"],
+        miraNote: "Cloud conversations need internet access and provider setup. Voice, home and phone features need their configuration and devices. Choose the holographic or rose face inside Mira.",
         arabicKicker: "Arabic from the root",
         arabicTitle: "Written *for* Arabic — not translated into it.",
         arabicBody: "The launcher, search, app names, dates, weather and the direction of the interface itself are Arabic inside the system, not a translation layer on top. Switch to English in one click.",
@@ -248,13 +253,13 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
           "An offline installer that protects the USB stick",
           "Boot, install and reboot proven in the release gate",
           "Runs daily on an NVIDIA PC; the ARM build runs on Oracle Cloud",
-          `${mira} with a local brain and local Arabic speech`,
+          `${mira} with chat, voice and tools through the configured cloud provider`,
         ],
         nextItems: [
-          "Permanent ISO hosting and public download",
+          ...(isoReady ? [] : ["Permanent ISO hosting and public download"]),
           "Install testing across a range of real hardware",
           "Rollback tested against a deliberately broken update",
-          `A model ready for ${mira} on first boot`,
+          `Simpler provider, voice and home setup inside ${mira}`,
           "The final public release",
         ],
         safeKicker: "Atomic updates",
@@ -405,36 +410,50 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
       {/* ── Mira ── */}
       <section className="mo3-section mo3-mira" id="mira">
         <div className="st-container mo3-split">
-          <div className="mo3-split-copy">
+          <div className="mo3-mira-intro">
             <p className="mo3-kicker">{t.miraKicker}</p>
             <SplitHeadline as="h2" text={t.miraTitle} className="mo3-h2" />
             <p className="mo3-body">{t.miraLead}</p>
-            <Stagger className="mo3-points" gap={0.08}>
-              {t.miraPoints.map((point) => (
-                <article className="mo3-point" key={point.t}>
-                  <span className="mo3-icon">
-                    <point.icon size={19} aria-hidden />
-                  </span>
-                  <div>
-                    <h3>{point.t}</h3>
-                    <p>{point.b}</p>
-                  </div>
-                </article>
-              ))}
-            </Stagger>
           </div>
-          <div className="mo3-split-media">
-            <TiltCard className="mo3-window" max={5}>
-              <div className="mo3-window-bar" aria-hidden="true">
-                <i />
-                <i />
-                <i />
-                <span>{ASSISTANT.app}</span>
-              </div>
-              <div className="mo3-window-shot">
-                <Image src="/images/moos/mo-ai-arabic.webp" alt={t.miraCaption} fill sizes="(max-width: 900px) 92vw, 600px" className="v3-cover v3-top" />
-              </div>
-            </TiltCard>
+          <Stagger className="mo3-points mo3-mira-points" gap={0.08}>
+            {t.miraPoints.map((point) => (
+              <article className="mo3-point" key={point.t}>
+                <span className="mo3-icon">
+                  <point.icon size={19} aria-hidden />
+                </span>
+                <div>
+                  <h3>{point.t}</h3>
+                  <p>{point.b}</p>
+                </div>
+              </article>
+            ))}
+          </Stagger>
+          <div className="mo3-split-media mo3-mira-media">
+            <div className="mo3-mira-gallery">
+              {([
+                { face: "holo", label: t.miraHolo },
+                { face: "rose", label: t.miraRose },
+              ] as const).map(({ face, label }) => (
+                <figure className="mo3-mira-capture" key={face}>
+                  <a
+                    href={"/images/moos/mira-" + face + "-" + locale + ".webp"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mo3-window-shot mo3-mira-shot"
+                    aria-label={label + " — " + t.miraOpen}
+                  >
+                    <Image
+                      src={"/images/moos/mira-" + face + "-" + locale + ".webp"}
+                      alt={label + ". " + t.miraCaption}
+                      fill
+                      sizes="(max-width: 900px) 92vw, 600px"
+                      className="mo3-mira-image"
+                    />
+                  </a>
+                  <figcaption className="mo3-caption">{label}</figcaption>
+                </figure>
+              ))}
+            </div>
             <ul className="mo3-prompts" aria-label={isAr ? "أمثلة على الإجراءات" : "Example actions"}>
               {t.miraActions.map((action) => (
                 <li key={action}>{action}</li>

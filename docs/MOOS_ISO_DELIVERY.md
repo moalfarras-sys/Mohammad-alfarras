@@ -88,3 +88,12 @@ without hydration errors or horizontal overflow. The required public app,
 activation and config smoke routes responded successfully. A real Reduced
 Motion hydration mismatch in the shared tilt decoration was corrected by
 keeping identical markup and hiding the decoration through the CSS preference.
+
+The standalone web, admin and Windows lockfile snapshots are synchronized to
+the corrected authoritative workspace lock, incorporating Dependabot #49/#50.
+Standalone production audits pass with zero findings. GitHub also reports
+the unpatched development-only `sprintf-js` advisory (GHSA-hp3w-g68c-fv3c);
+its production impact must not be inferred from the repository-wide alert
+count. No Windows executable was rebuilt or published: this Linux ARM Oracle
+host does not provide the Windows packaging/smoke environment. Existing
+Windows 1.0.4 artifacts and Android releases remain unchanged.

@@ -66,7 +66,10 @@
     "resend@6.12.2": {
       "svix": "^1.92.2"
     },
-    "svix": "^1.92.2"
+    "svix": "^1.92.2",
+    "sharp": "0.35.5",
+    "source-map-js": "1.2.2",
+    "http-cache-semantics": "4.3.0"
   },
   "devDependencies": {
     "jsdom": "^27.4.0"

@@ -81,35 +81,35 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
 
   const t = isAr
     ? {
-        badge: "مرشّح للإصدار · قيد التطوير النشط",
+        badge: isoReady ? "إصدار موقّع · تحميل ISO متاح" : "مرشّح للإصدار · قيد التطوير النشط",
         h1: "كمبيوترك، بطريقتك — نظام تشغيل *عربي* من الأساس.",
-        sub: "MoOS نظام تشغيل للكمبيوتر أبنيه فوق Fedora Atomic مع KDE Plasma 6: واجهة عربية أصيلة، تحديثات موقّعة يمكن التراجع عنها، تطبيقات Linux مع تطبيقات Android و Windows عند الحاجة، ومساعدة ذكية اسمها " +
+        sub: "MoOS نظام تشغيل للكمبيوتر بواجهة MoOS UI مع KDE Plasma 6: واجهة عربية أصيلة، تحديثات موقّعة يمكن التراجع عنها، تطبيقات Linux مع تطبيقات Android و Windows عند الحاجة، ومساعدة ذكية اسمها " +
           mira +
           " تعيش داخل النظام.",
-        specs: ["Fedora Atomic · bootc", "KDE Plasma 6 · Wayland", "موقّع بـ cosign", "x86_64 · ARM64", "مجاني ومفتوح المصدر"],
+        specs: ["MoOS Atomic · bootc", "KDE Plasma 6 · Wayland", "موقّع بـ cosign", "x86_64 · ARM64", "مجاني ومفتوح المصدر"],
         ctaIso: "حمّل ISO",
         ctaInstaller: "ثبّته من Linux",
         ctaFilm: "شاهد الفيلم",
         ctaRepo: "المصدر على GitHub",
         heroCaption: "سطح مكتب MoOS الحقيقي — الوقت والطقس وحالة الجهاز بالعربية",
         floatLauncher: "قائمة التطبيقات بالعربية",
-        floatAi: `${mira} · محلي`,
+        floatAi: `${mira} · المساعدة الذكية`,
         filmKicker: "الفيلم",
         filmTitle: "شاهد MoOS *يعمل*.",
         filmBody: "جولة حقيقية داخل النظام على قناتي: سطح المكتب، القائمة العربية، التطبيقات والمساعدة الذكية.",
         play: "تشغيل الفيديو",
         miraKicker: "المساعدة الذكية",
         miraTitle: `تعرّف إلى *${mira}*.`,
-        miraLead: `${mira} مساعدة MoOS المدمجة (التطبيق يظهر حالياً باسم ${ASSISTANT.app}). تفهم العربية والإنجليزية، تشرح حالة جهازك، وتنفّذ إجراءات نظام محدّدة وآمنة — وتعمل على جهازك أولاً.`,
-        miraCaption: `واجهة ${mira} (${ASSISTANT.app}) بالعربية — من مصدر النظام الحالي`,
+        miraLead: `${mira} مساعدة MoOS المدمجة. تفهم العربية والإنجليزية، تشرح حالة جهازك، وتنفّذ إجراءات محدّدة عبر المزوّد السحابي المهيّأ وإجراءات الموافقة داخل النظام.`,
+        miraCaption: `لقطة واجهة ${ASSISTANT.app} بالعربية ضمن MoOS`,
         miraPoints: [
           { icon: MessageSquareText, t: "محادثة بالعربية", b: "ردود متدفقة، ويمكنك إرفاق صور وملفات PDF و Word لتسألها عنها." },
-          { icon: AudioLines, t: "تكلّمها بصوتك", b: "اضغط وتحدّث — تحويل الكلام لنص يعمل محلياً على جهازك بالعربية والإنجليزية." },
+          { icon: AudioLines, t: "تكلّمها بصوتك", b: "محادثة صوتية بالعربية والإنجليزية حسب المزوّد وإعدادات الصوت المهيّأة." },
           { icon: Wrench, t: "تصلح وتنفّذ", b: "تحديث النظام، إصلاح الصوت، فحص التعريفات، تجهيز Android، الرجوع لنسخة سابقة — إجراءات محدّدة مسبقاً، والحسّاسة منها تطلب موافقتك." },
-          { icon: Lock, t: "خصوصيتك أولاً", b: "عقل محلي عبر Ollama، أو مزوّد سحابي بمفتاحك أنت، أو وضع هجين يُبقي الطلبات الخاصة على جهازك." },
+          { icon: Lock, t: "خصوصيتك أولاً", b: "الردود تستخدم المزوّد السحابي المهيّأ. راجع إعداداته وما يُرسل إليه، ووافق على تغييرات النظام داخل التطبيق." },
         ],
         miraActions: ["حدّث نظامي", "صلّح الصوت", "افحص جهازي", "جهّز Android", "ارجع للنسخة السابقة", "شخّص الشبكة"],
-        miraNote: "العقل المحلي يحتاج تنزيل نموذج في أول استخدام، وسرعته تعتمد على قدرة جهازك.",
+        miraNote: "المساعدة السحابية تحتاج اتصالاً بالإنترنت ومزوّداً مهيّأ؛ السرعة تعتمد على الاتصال والمزوّد.",
         arabicKicker: "عربي من الجذر",
         arabicTitle: "مكتوب *لك*، لا مترجم لك.",
         arabicBody: "القائمة، البحث، أسماء التطبيقات، التاريخ والطقس، واتجاه الواجهة نفسه — عربية داخل النظام، لا طبقة ترجمة فوقه. وتبدّل للإنجليزية بضغطة.",
@@ -175,46 +175,50 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
         isoTitle: "قرص USB قابل للإقلاع",
         isoUnavailable: "ملف ISO جاهز ومجرّب، لكن تحميله متوقف حتى يُستضاف على خادم دائم ويُتحقّق من حجمه وبصمته. يمكنك التثبيت الآن من نظام Linux موجود عبر المثبّت أعلاه.",
         isoSoon: "قريباً",
-        isoBody: "للأجهزة التي ليس عليها Linux بعد. قارن بصمة SHA-256 قبل الكتابة على USB، واستخدم Fedora Media Writer أو Rufus.",
+        isoBody: "ISO لنسخة المكتب x86-64 على أجهزة Intel وAMD مع UEFI، اجتاز الإقلاع والتثبيت دون شبكة. تحقّق من SHA-256 والتوقيع قبل الكتابة على USB. يُنصح بـ16 GB RAM ومعالج 4 أنوية وSSD 256 GB؛ هذه توصيات وليست ضماناً لكل الأجهزة.",
         checksum: "SHA-256 الرسمي",
+        signature: "حمّل التوقيع",
+        checksumFile: "حمّل ملف SHA-256",
+        guide: "دليل التثبيت",
         finalTitle: "نظام تشغيل *كامل* — مجاناً.",
-        finalBody: "بلا رسوم، بلا حساب، بلا تتبّع. المصدر مفتوح ومفتاح التوقيع علني.",
+        finalBody: "المصدر مفتوح ومفتاح التوقيع علني. اختر النسخة المناسبة وتحقّق من الملف قبل التثبيت.",
         more: "بقية التطبيقات",
         maintenanceMsg: "MoOS قيد التحديث حالياً — التحميل سيعود قريباً.",
         editionCopy: {
           desktop: { name: "MoOS للمكتب", summary: "للكمبيوتر بمعالجات Intel و AMD والكروت المفتوحة." },
           nvidia: { name: "MoOS · NVIDIA", summary: "نفس النسخة مع سوّاقة NVIDIA المفتوحة مدمجة." },
-          cloud: { name: "MoOS Cloud", summary: "للخوادم على أي VPS: SSH أولاً، بلا طبقة ألعاب، وسطح المكتب من المتصفح." },
+          cloud: { name: "MoOS Cloud", summary: "للخوادم x86-64: SSH أولاً، بلا طبقة ألعاب، وسطح المكتب من المتصفح." },
+          arm: { name: "MoOS ARM", summary: "نسخة ARM64 أصلية لـOracle A1 والأجهزة الافتراضية المدعومة، بصور QCOW2/UTM منفصلة عن ISO x86." },
         } as Record<string, { name: string; summary: string }>,
       }
     : {
-        badge: "Release candidate · actively developed",
+        badge: isoReady ? "Signed release · ISO download available" : "Release candidate · actively developed",
         h1: "Your computer, your way — an *Arabic-native* operating system.",
-        sub: `MoOS is a desktop operating system I build on Fedora Atomic and KDE Plasma 6: a truly Arabic interface, signed updates you can roll back, Linux apps with Android and Windows when you need them, and an AI assistant called ${mira} living inside the system.`,
-        specs: ["Fedora Atomic · bootc", "KDE Plasma 6 · Wayland", "cosign-signed", "x86_64 · ARM64", "Free & open source"],
+        sub: `MoOS is a desktop operating system with MoOS UI and KDE Plasma 6: a truly Arabic interface, signed updates you can roll back, Linux apps with Android and Windows when you need them, and an AI assistant called ${mira} living inside the system.`,
+        specs: ["MoOS Atomic · bootc", "KDE Plasma 6 · Wayland", "cosign-signed", "x86_64 · ARM64", "Free & open source"],
         ctaIso: "Download ISO",
         ctaInstaller: "Install from Linux",
         ctaFilm: "Watch the film",
         ctaRepo: "Source on GitHub",
         heroCaption: "The real MoOS desktop — time, weather and machine health in Arabic",
         floatLauncher: "Arabic app launcher",
-        floatAi: `${mira} · local`,
+        floatAi: `${mira} · AI assistant`,
         filmKicker: "The film",
         filmTitle: "See MoOS *running*.",
         filmBody: "A real walkthrough on my channel: the desktop, the Arabic launcher, the apps and the assistant.",
         play: "Play video",
         miraKicker: "The assistant",
         miraTitle: `Meet *${mira}*.`,
-        miraLead: `${mira} is the assistant built into MoOS (the app is currently labelled ${ASSISTANT.app}). She understands Arabic and English, explains what your machine is doing and runs specific, safe system actions — on your own computer first.`,
-        miraCaption: `${mira} (${ASSISTANT.app}) in Arabic — from the current system source`,
+        miraLead: `${mira} is the assistant built into MoOS. She understands Arabic and English, explains your machine and runs specific actions through the configured cloud provider and the system approval controls.`,
+        miraCaption: `An Arabic ${ASSISTANT.app} interface capture from MoOS`,
         miraPoints: [
           { icon: MessageSquareText, t: "Chat in Arabic or English", b: "Streaming answers, and you can attach images, PDFs and Word files to ask about them." },
-          { icon: AudioLines, t: "Talk to her", b: "Push to talk — speech-to-text runs locally on your machine, in Arabic and English." },
+          { icon: AudioLines, t: "Talk to her", b: "Arabic and English voice conversations depend on the configured provider and audio setup." },
           { icon: Wrench, t: "She fixes things", b: "Update the system, fix audio, check drivers, prepare Android, roll back — predefined actions, and the sensitive ones ask for your approval." },
-          { icon: Lock, t: "Private by default", b: "A local brain via Ollama, a cloud provider with your own key, or hybrid mode that keeps private requests on your machine." },
+          { icon: Lock, t: "Private by default", b: "Replies use the configured cloud provider. Review its settings and shared data, and approve system changes inside the app." },
         ],
         miraActions: ["Update my system", "Fix audio", "Check my machine", "Set up Android", "Roll back", "Network doctor"],
-        miraNote: "The local brain downloads a model on first use, and its speed depends on your hardware.",
+        miraNote: "Cloud assistance needs internet access and a configured provider; speed depends on your connection and provider.",
         arabicKicker: "Arabic from the root",
         arabicTitle: "Written *for* Arabic — not translated into it.",
         arabicBody: "The launcher, search, app names, dates, weather and the direction of the interface itself are Arabic inside the system, not a translation layer on top. Switch to English in one click.",
@@ -280,16 +284,20 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
         isoTitle: "Bootable USB image",
         isoUnavailable: "The boot-tested ISO is ready, but downloads stay off until it is rehosted on permanent storage and its size and checksum are verified. You can install today from an existing Linux system with the installer above.",
         isoSoon: "Coming soon",
-        isoBody: "For machines without Linux yet. Compare the SHA-256 before writing the USB, and use Fedora Media Writer or Rufus.",
+        isoBody: "An x86-64 desktop ISO for Intel/AMD UEFI PCs, proven through boot and offline installation. Verify its SHA-256 and signature before writing the USB. Recommended: 16 GB RAM, 4 CPU cores and a 256 GB SSD; these are sizing recommendations, not universal hardware guarantees.",
         checksum: "Official SHA-256",
+        signature: "Download signature",
+        checksumFile: "Download SHA-256 file",
+        guide: "Installation guide",
         finalTitle: "A *complete* operating system — free.",
-        finalBody: "No fees, no account, no tracking. The source is open and the signing key is public.",
+        finalBody: "The source is open and the signing key is public. Choose the right edition and verify the file before installing.",
         more: "More apps",
         maintenanceMsg: "MoOS is being updated right now — downloads will return shortly.",
         editionCopy: {
           desktop: { name: "MoOS Desktop", summary: "For Intel, AMD and open-driver machines." },
           nvidia: { name: "MoOS · NVIDIA", summary: "The same desktop with the open NVIDIA driver built in." },
-          cloud: { name: "MoOS Cloud", summary: "For any VPS: SSH-first, no games layer, the desktop in your browser." },
+          cloud: { name: "MoOS Cloud", summary: "For x86-64 cloud machines: SSH-first, no games layer, the desktop in your browser." },
+          arm: { name: "MoOS ARM", summary: "Native ARM64 for Oracle A1 and supported virtual machines, using QCOW2/UTM artifacts separate from the x86 ISO." },
         } as Record<string, { name: string; summary: string }>,
       };
 
@@ -630,12 +638,17 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
                       <Download size={16} aria-hidden />
                       {t.download}
                     </span>
-                  ) : (
+                  ) : edition.installer ? (
                     <a href={installerHref(edition.id)} className={`st-btn ${edition.recommended ? "st-btn--primary" : "st-btn--ghost"}`}>
                       <Download size={16} aria-hidden />
                       {t.download}
                     </a>
-                  )}
+                  ) : edition.guideUrl ? (
+                    <a href={edition.guideUrl} className="st-btn st-btn--ghost">
+                      <ArrowUpRight size={16} aria-hidden />
+                      {t.guide}
+                    </a>
+                  ) : null}
                   <span className="mo3-or">{t.orCommand}</span>
                   <MoosCopyLine command={editionCommand(edition)} copyLabel={t.copy} copiedLabel={t.copied} />
                 </article>
@@ -664,6 +677,10 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
                     <Download size={16} aria-hidden />
                     {t.ctaIso}
                   </a>
+                  <div className="mo3-actions">
+                    <a href={`${isoHref}&asset=signature`} className="st-btn st-btn--ghost">{t.signature}</a>
+                    <a href={`${isoHref}&asset=checksum`} className="st-btn st-btn--ghost">{t.checksumFile}</a>
+                  </div>
                   {isoSha ? (
                     <>
                       <span className="mo3-or">{t.checksum}</span>

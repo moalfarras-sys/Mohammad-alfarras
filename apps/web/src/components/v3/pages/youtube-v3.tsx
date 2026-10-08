@@ -7,6 +7,7 @@ import type { SiteViewModel } from "@/components/site/site-view-model";
 import { ParallaxImage, Reveal, SplitHeadline, Stagger, TiltCard } from "@/components/v3/motion-kit";
 import { socialLinks } from "@/content/site";
 import { youtubeChannel } from "@/content/site-data";
+import { unoptimizedImage } from "@/lib/asset-url";
 import { withLocale } from "@/lib/i18n";
 
 import { CtaBand, Eyebrow, SectionHead } from "./v3-page-parts";
@@ -167,7 +168,7 @@ export function YoutubeV3({ model }: { model: SiteViewModel }) {
             <Reveal y={36} amount={0.2}>
               <a className="v3y-featured" href={watchUrl(featured.id)} target="_blank" rel="noopener noreferrer">
                 <TiltCard className="v3y-featured-media" max={4}>
-                  <Image src={featured.thumbnail} alt="" fill sizes="(max-width: 900px) 92vw, 760px" quality={75} className="v3-cover v3y-thumb" />
+                  <Image src={featured.thumbnail} alt="" fill sizes="(max-width: 900px) 92vw, 760px" quality={75} className="v3-cover v3y-thumb" unoptimized={unoptimizedImage(featured.thumbnail)} />
                   <span className="v3y-play" aria-hidden="true">
                     <PlayCircle />
                   </span>
@@ -209,7 +210,7 @@ export function YoutubeV3({ model }: { model: SiteViewModel }) {
               {grid.map((video) => (
                 <a key={video.id} href={watchUrl(video.id)} target="_blank" rel="noopener noreferrer" className="v3y-video">
                   <span className="v3y-video-thumb">
-                    <Image src={video.thumbnail} alt="" fill sizes="(max-width: 700px) 92vw, 400px" quality={65} className="v3-cover v3y-thumb" />
+                    <Image src={video.thumbnail} alt="" fill sizes="(max-width: 700px) 92vw, 400px" quality={65} className="v3-cover v3y-thumb" unoptimized={unoptimizedImage(video.thumbnail)} />
                     <span className="v3y-play v3y-play--sm" aria-hidden="true">
                       <PlayCircle />
                     </span>

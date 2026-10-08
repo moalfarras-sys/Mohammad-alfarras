@@ -40,10 +40,17 @@ export async function GET(request: Request) {
       );
     }
 
-    const target = release.iso.url;
-    if (shouldCountDownload(request)) {
+    const asset = url.searchParams.get("asset") || "iso";
+    if (!["iso", "signature", "checksum"].includes(asset)) {
+      return NextResponse.json({ error: "Unknown ISO asset.", status: "bad_request" }, { status: 400 });
+    }
+    const target = asset === "signature" ? release.iso.signatureUrl : asset === "checksum" ? release.iso.checksumUrl : release.iso.url;
+    if (!target) {
+      return NextResponse.json({ error: "ISO verification file unavailable.", status: "pending" }, { status: 503 });
+    }
+    if (asset === "iso" && !request.headers.has("range") && shouldCountDownload(request)) {
       after(() =>
-        recordDownload("moos", "iso", downloadEventFromRequest(request, { fileName: "MoOS.iso", targetUrl: target })),
+        recordDownload("moos", "iso", downloadEventFromRequest(request, { fileName: "moos-offline.iso", targetUrl: target })),
       );
     }
     return NextResponse.redirect(target, { headers: { "Cache-Control": "no-store" } });

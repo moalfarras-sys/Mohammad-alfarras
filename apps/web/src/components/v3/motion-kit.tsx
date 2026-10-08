@@ -275,7 +275,7 @@ export function TiltCard({
       onPointerLeave={onLeave}
     >
       {children}
-      {glare && !reduce ? <motion.span aria-hidden className="v3-tilt-glare" style={{ background: glareBg }} /> : null}
+      {glare ? <motion.span aria-hidden className="v3-tilt-glare" style={{ background: glareBg }} /> : null}
     </motion.div>
   );
 }

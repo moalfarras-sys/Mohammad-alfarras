@@ -13,6 +13,8 @@ export type MoosEdition = {
   installer?: string;
   /** Extra flag the installer needs for this edition (e.g. "--nvidia"). */
   installerArgs?: string;
+  /** Edition guide when its artifact is separate from the x86 ISO. */
+  guideUrl?: string;
 };
 
 export type MoosIso = {
@@ -21,6 +23,12 @@ export type MoosIso = {
   sizeBytes?: number;
   sha256?: string;
   notes?: string;
+  signatureUrl?: string;
+  checksumUrl?: string;
+  version?: string;
+  architecture?: string;
+  sourceRevision?: string;
+  deliveryVerifiedAt?: string;
 };
 
 export type MoosRelease = {
@@ -41,7 +49,12 @@ function asString(value: unknown) {
 
 function asHttpsUrl(value: unknown) {
   const raw = asString(value);
-  return /^https:\/\//i.test(raw) ? raw : undefined;
+  try {
+    const url = new URL(raw);
+    return url.protocol === "https:" && url.hostname && !url.username && !url.password && !url.hash ? url.href : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 function asNumber(value: unknown) {
@@ -58,7 +71,7 @@ function mapEditions(raw: unknown): MoosEdition[] {
       const id = asString(record.id);
       const name = asString(record.name);
       const image = asString(record.image);
-      if (!id || !name || !image) return null;
+      if (!id || !name || !/^ghcr\.io\/moalfarras-sys\/moos(?:-nvidia|-cloud|-arm)?(?::[a-zA-Z0-9._-]+|@sha256:[a-f0-9]{64})$/.test(image)) return null;
       const installer = asString(record.installer);
       return {
         id,
@@ -68,8 +81,9 @@ function mapEditions(raw: unknown): MoosEdition[] {
         summary: asString(record.summary) || undefined,
         // Only site-relative installer paths are accepted, so a CMS edit can
         // never point the install button at a third-party script.
-        installer: installer.startsWith("/") ? installer : undefined,
+        installer: /^\/downloads\/moos\/[a-zA-Z0-9._-]+\.sh$/.test(installer) ? installer : undefined,
         installerArgs: asString(record.installerArgs) || undefined,
+        guideUrl: asHttpsUrl(record.guideUrl),
       };
     })
     .filter((item): item is MoosEdition => Boolean(item));
@@ -78,15 +92,28 @@ function mapEditions(raw: unknown): MoosEdition[] {
 function mapIso(raw: unknown): MoosIso {
   const record = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
   const url = asHttpsUrl(record.url);
-  // "available" is only honored when a real https URL is present, so a stale
-  // available:true can never surface a broken download button.
-  const available = record.available === true && Boolean(url);
+  const signatureUrl = asHttpsUrl(record.signatureUrl);
+  const checksumUrl = asHttpsUrl(record.checksumUrl);
+  const sizeBytes = asNumber(record.sizeBytes);
+  const sha256 = asString(record.sha256).toLowerCase();
+  const deliveryVerifiedAt = asString(record.deliveryVerifiedAt);
+  // The publisher must qualify the full anonymous transfer first. Metadata alone
+  // cannot prove host uptime, but incomplete CMS overrides must stay unavailable.
+  const available = record.available === true && Boolean(url && signatureUrl && checksumUrl)
+    && Boolean(sizeBytes && Number.isSafeInteger(sizeBytes)) && /^[a-f0-9]{64}$/.test(sha256)
+    && Boolean(deliveryVerifiedAt && Number.isFinite(Date.parse(deliveryVerifiedAt)));
   return {
     available,
     url: available ? url : undefined,
-    sizeBytes: asNumber(record.sizeBytes),
-    sha256: asString(record.sha256) || undefined,
+    sizeBytes,
+    sha256: sha256 || undefined,
     notes: asString(record.notes) || undefined,
+    signatureUrl: available ? signatureUrl : undefined,
+    checksumUrl: available ? checksumUrl : undefined,
+    version: asString(record.version) || undefined,
+    architecture: asString(record.architecture) || undefined,
+    sourceRevision: asString(record.sourceRevision) || undefined,
+    deliveryVerifiedAt: deliveryVerifiedAt || undefined,
   };
 }
 

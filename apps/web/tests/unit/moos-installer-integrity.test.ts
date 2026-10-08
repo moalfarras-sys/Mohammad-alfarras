@@ -22,15 +22,23 @@ describe("MoOS installer artifacts", () => {
 
   it("does not publish an ISO until its download host is verified", async () => {
     const manifest = JSON.parse(await readFile(releaseManifestPath, "utf8")) as {
-      iso: { available: boolean; url: string; sizeBytes: number; sha256: string };
+      iso: { available: boolean; url: string; signatureUrl?: string; checksumUrl?: string; sizeBytes: number; sha256: string; deliveryVerifiedAt?: string };
     };
 
-    expect(manifest.iso).toEqual({
-      available: false,
-      url: "",
-      sizeBytes: 0,
-      sha256: "",
-      notes: expect.any(String),
+    if (!manifest.iso.available) {
+      expect(manifest.iso.url).toBe("");
+      return;
+    }
+    const proof = JSON.parse(await readFile(path.join(process.cwd(), "public/downloads/moos/delivery-proof.json"), "utf8"));
+    expect(proof).toMatchObject({
+      url: manifest.iso.url, sizeBytes: manifest.iso.sizeBytes, sha256: manifest.iso.sha256,
+      checkedAt: manifest.iso.deliveryVerifiedAt, http: 200, rangeHttp: 206,
+      anonymous: true, fullHashVerified: true, signatureVerified: true,
     });
+    expect(manifest.iso.url).toMatch(/^https:\/\//);
+    expect(manifest.iso.signatureUrl).toBe(`${manifest.iso.url}.sig`);
+    expect(manifest.iso.checksumUrl).toBe(`${manifest.iso.url}.sha256`);
+    expect(manifest.iso.sha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(manifest.iso.sizeBytes).toBeGreaterThan(0);
   });
 });

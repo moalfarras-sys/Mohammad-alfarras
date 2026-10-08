@@ -40,6 +40,9 @@ export function LiteYouTube({
             alt=""
             fill
             sizes="(max-width: 900px) 92vw, 1100px"
+            // Served straight from YouTube's CDN: the optimizer's upstream fetch to
+            // i.ytimg.com intermittently returned 404.
+            unoptimized
             className="v3-cover"
           />
           <span className="v3-yt-shade" aria-hidden="true" />

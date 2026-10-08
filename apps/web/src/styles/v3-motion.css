@@ -263,6 +263,8 @@ a.v3-chip:hover { transform: translateY(-3px); box-shadow: 0 0 0 1px rgba(79, 22
 [dir="rtl"] .v3-progress { transform-origin: 100% 50%; }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Stable server/client markup; the user preference controls decoration in CSS. */
+  .v3-tilt-glare { display: none; }
   .v3-marquee-track,
   .v3-holo-ring,
   .v3-holo-sweep,

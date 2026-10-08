@@ -10,6 +10,25 @@ This repository is a production monorepo for the public website, admin control c
 - Runtime dependency audit: zero findings after Sharp/source-map-js/http-cache-semantics corrections. Development-only unpatched ESLint/braces findings remain documented. Oracle ARM optional native build packages are declared.
 - Web/admin maintained checks and dashboard build passed locally. `verify:production` stops only at the existing Windows-only Android wrapper on this Linux host; Android releases are unchanged. Local Arabic/English desktop/phone QA and required app/config/activation smoke passed.
 - Delivery/version/proof details and operating limits: [MOOS_ISO_DELIVERY.md](MOOS_ISO_DELIVERY.md). Final deployment and canonical entrypoint must be read back before calling publication complete.
+## 2026-10-05 Site v3 "Hologram Studio" (#46)
+
+- **Design spec:** `docs/design/site-v3.md` (tokens, motion kit, imagery map, de-duplication map, page blueprints). Motion primitives live in `apps/web/src/components/v3/motion-kit.tsx` and `styles/v3-motion.css`. Each page has its own `styles/v3-*.css`.
+- **Pages:**
+  - **Home:** hologram portrait hero (`protofeilnew.jpeg`) with live chips, showreel, image services, products, YouTube band.
+  - **Services, Work, case pages, YouTube, Contact:** under `components/v3/pages/*`.
+  - **CV:** the Developer/Designer mode switch is restored (`components/v3/cv-*`).
+  - **About:** a five-chapter story (`components/v3/about-*`).
+  - **MoOS:** `components/v3/moos-v3.tsx`.
+- **De-duplication:** the timeline lives only on About, YouTube stats only on YouTube plus the hero chip, and each page has one CTA. The footer is compact.
+- **MoOS page:**
+  - **Film:** embeds `KcbQy8xuK2M` as a click-to-play `youtube-nocookie` player (`components/v3/lite-youtube.tsx`).
+  - **Assistant:** the owner calls it **Mira**, but the MoOS source still labels the app **Mo AI** (`moai`). The page shows "Mira — Mo AI" from one constant (`ASSISTANT` in `moos-v3.tsx`). Rename there once the OS ships the new name.
+  - **Status:** comes from `MoOS PC/moos-image-repo` (release candidate, Fedora Atomic/Kinoite 44, signed images desktop/nvidia/cloud + ARM). The ISO download stays gated by `public/downloads/moos/latest-moos.json`.
+- **Performance:**
+  - Hero entrances are CSS-only (`SplitHeadline immediate`, holo photo/chips), so nothing waits for hydration.
+  - Manrope and Instrument Serif are preloaded with `display: optional`, which gives CLS 0 on all measured pages.
+  - YouTube thumbnails are served unoptimized from i.ytimg.com, because the optimizer's upstream fetch sometimes returned 404.
+- **Branches:** all other open branches were checked by content against `main` after #46. Every one is either fully contained or superseded (old v2 page components deleted on purpose, older Pro 2.7.x prep). The PC 1.0.3 revert on `worktree-agent-a59a22cf…` was rejected deliberately; 1.0.4 stays live.
 
 ## 2026-10-04 MoPlayer Classic 2.5.x, site redesign, downloads and admin honesty
 

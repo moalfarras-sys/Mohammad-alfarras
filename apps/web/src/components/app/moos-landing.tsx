@@ -202,7 +202,7 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
         checksumLabel: "SHA-256 الرسمي",
         finalTitle: "نظام تشغيل كامل، مجاناً",
         finalBody: "بلا رسوم، بلا حساب، بلا تتبّع. المصدر كامل ومفتوح، ومفتاح التوقيع علني — تقدر تتحقّق من كل شي بنفسك.",
-        finalNote: "MoOS مشروع شخصي مفتوح المصدر من محمد الفراس.",
+        finalNote: "MoOS مشروع شخصي من محمد الفراس. حقوق المصدر وتراخيصه محددة بحسب المكوّن.",
         maintenanceMsg: "MoOS قيد التحديث حالياً — التحميل سيعود قريباً.",
       }
     : {
@@ -313,7 +313,7 @@ export function MoosLanding({ locale, release }: { locale: Locale; release: Moos
         checksumLabel: "Official SHA-256",
         finalTitle: "A complete operating system, free",
         finalBody: "No fees, no account, no tracking. The full source is open and the signing key is public — you can verify every claim here yourself.",
-        finalNote: "MoOS is an open-source personal project by Mohammad Alfarras.",
+        finalNote: "MoOS is a personal project by Mohammad Alfarras. Source rights and licences are defined per component.",
         maintenanceMsg: "MoOS is being updated right now — downloads will return shortly.",
       };
 

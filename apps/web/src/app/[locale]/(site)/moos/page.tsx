@@ -21,12 +21,12 @@ export async function generateMetadata({
       ? {
           title: "نظام MoOS — نظام تشغيل عربي مجاني للكمبيوتر",
           description:
-            "تعرّف إلى MoOS، نظام تشغيل عربي جديد قيد التطوير مبني على MoOS Atomic وKDE Plasma 6، مع تطبيقات Android وWindows الاختيارية وMira والتحكم من الجوال. مجاني ومفتوح المصدر، مع مثبّت رسمي موقّع.",
+            "تعرّف إلى MoOS، نظام تشغيل عربي جديد قيد التطوير مبني على MoOS Atomic وKDE Plasma 6، مع تطبيقات Android وWindows الاختيارية وMira والتحكم من الجوال. تحميل مجاني ومثبّت رسمي موقّع؛ التراخيص بحسب المكوّن.",
         }
       : {
           title: "MoOS — a free Arabic-native desktop operating system",
           description:
-            "Meet MoOS, a new Arabic-native operating system in active development, built on MoOS Atomic and KDE Plasma 6 with optional Android and Windows apps, Mira and phone control. Free and open source, with a signed official installer.",
+            "Meet MoOS, a new Arabic-native operating system in active development, built on MoOS Atomic and KDE Plasma 6 with optional Android and Windows apps, Mira and phone control. Free download and a signed official installer; licences vary by component.",
         };
 
   const canonical = `${SITE_URL}/${locale}/moos`;

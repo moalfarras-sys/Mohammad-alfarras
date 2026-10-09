@@ -81,7 +81,7 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
         sub: "MoOS نظام تشغيل للكمبيوتر بواجهة MoOS UI مع KDE Plasma 6: واجهة عربية أصيلة، تحديثات موقّعة يمكن التراجع عنها، تطبيقات Linux مع تطبيقات Android و Windows عند الحاجة، ومساعدة ذكية اسمها " +
           mira +
           " تعيش داخل النظام.",
-        specs: ["MoOS Atomic · bootc", "KDE Plasma 6 · Wayland", "موقّع بـ cosign", "x86_64 · ARM64", "مجاني ومفتوح المصدر"],
+        specs: ["MoOS Atomic · bootc", "KDE Plasma 6 · Wayland", "موقّع بـ cosign", "x86_64 · ARM64", "تحميل مجاني · تراخيص بحسب المكوّن"],
         ctaIso: "حمّل ISO",
         ctaInstaller: "ثبّته من Linux",
         ctaFilm: "شاهد الفيلم",
@@ -195,7 +195,7 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
         badge: isoReady ? "Signed release · ISO download available" : "Release candidate · actively developed",
         h1: "Your computer, your way — an *Arabic-native* operating system.",
         sub: `MoOS is a desktop operating system with MoOS UI and KDE Plasma 6: a truly Arabic interface, signed updates you can roll back, Linux apps with Android and Windows when you need them, and an AI assistant called ${mira} living inside the system.`,
-        specs: ["MoOS Atomic · bootc", "KDE Plasma 6 · Wayland", "cosign-signed", "x86_64 · ARM64", "Free & open source"],
+        specs: ["MoOS Atomic · bootc", "KDE Plasma 6 · Wayland", "cosign-signed", "x86_64 · ARM64", "Free download · component-specific licences"],
         ctaIso: "Download ISO",
         ctaInstaller: "Install from Linux",
         ctaFilm: "Watch the film",

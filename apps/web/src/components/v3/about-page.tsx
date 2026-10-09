@@ -121,7 +121,7 @@ function copy(locale: Locale, p: AboutPageV3Props) {
         },
         {
           title: "MoOS",
-          body: "نظام تشغيل عربي أولاً للكمبيوتر، مبني على Fedora Atomic و KDE Plasma 6 — مجاني ومفتوح المصدر.",
+          body: "نظام تشغيل عربي أولاً للكمبيوتر، مبني على MoOS Atomic و KDE Plasma 6 — متاح للتحميل مجانًا، مع تراخيص بحسب المكوّن.",
           chip: "قيد التطوير",
           image: "/images/moos/desktop-dark.webp",
           alt: "سطح مكتب MoOS",
@@ -229,7 +229,7 @@ function copy(locale: Locale, p: AboutPageV3Props) {
       },
       {
         title: "MoOS",
-        body: "An Arabic-first desktop operating system on Fedora Atomic and KDE Plasma 6 — free and open source.",
+        body: "An Arabic-first desktop operating system on MoOS Atomic and KDE Plasma 6 — free to download, with component-specific licences.",
         chip: "In active development",
         image: "/images/moos/desktop-dark.webp",
         alt: "The MoOS desktop",

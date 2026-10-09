@@ -1,10 +1,14 @@
 // Stream only the qualified public release. The R2 bucket and upload credentials
 // remain private; this endpoint has no upload, listing, or arbitrary-object route.
 const prefix = "/releases/44.20261007.1011/x86_64/";
+const currentPrefix = "/releases/44.20261009.1018/x86_64/";
 const files = new Map([
   [`${prefix}moos-offline.iso`, { size: 5796462592, type: "application/octet-stream" }],
   [`${prefix}moos-offline.iso.sig`, { size: 96, type: "text/plain; charset=utf-8" }],
   [`${prefix}moos-offline.iso.sha256`, { size: 83, type: "text/plain; charset=utf-8" }],
+  [`${currentPrefix}moos-offline.iso`, { size: 5808128000, type: "application/octet-stream" }],
+  [`${currentPrefix}moos-offline.iso.sig`, { size: 96, type: "text/plain; charset=utf-8" }],
+  [`${currentPrefix}moos-offline.iso.sha256`, { size: 83, type: "text/plain; charset=utf-8" }],
 ]);
 
 export function parseRange(value, size) {

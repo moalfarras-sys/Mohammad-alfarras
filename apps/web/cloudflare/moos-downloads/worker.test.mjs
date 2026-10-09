@@ -7,9 +7,9 @@ const path = '/releases/44.20261007.1011/x86_64/moos-offline.iso';
 const etag = '"qualified-object"';
 const uploaded = new Date('2026-10-08T10:00:00Z');
 
-function rig({ missing = false, wrongSize = false, changed = false, wrongRange = false } = {}) {
+function rig({ missing = false, wrongSize = false, changed = false, wrongRange = false, objectSize = size } = {}) {
   const calls = [];
-  const info = { size: wrongSize ? 99 : size, httpEtag: etag, uploaded };
+  const info = { size: wrongSize ? 99 : objectSize, httpEtag: etag, uploaded };
   const env = { MOOS_RELEASES: {
     async head(key) { calls.push(['head', key]); return missing ? null : info; },
     async get(key, options) {
@@ -42,6 +42,21 @@ test('full response retains exact >4-GiB length, strong validator and attachment
   assert.match(response.headers.get('Content-Disposition'), /moos-offline\.iso/);
   assert.match(response.headers.get('Cache-Control'), /no-transform/);
   assert.equal((await response.arrayBuffer()).byteLength, 32);
+});
+
+test('new qualified release resumes beyond 4 GiB and retains both verification files', async () => {
+  const current = '/releases/44.20261009.1018/x86_64/moos-offline.iso';
+  const currentSize = 5808128000;
+  const { response } = await request({ Range: 'bytes=4294967296-4294967311' }, 'GET', { objectSize: currentSize }, current);
+  assert.equal(response.status, 206);
+  assert.equal(response.headers.get('Content-Range'), `bytes 4294967296-4294967311/${currentSize}`);
+  assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], Array.from({ length: 16 }, (_, n) => (4294967296 + n) % 251));
+  for (const [suffix, objectSize] of [['.sig', 96], ['.sha256', 83]]) {
+    const file = await request({}, 'HEAD', { objectSize }, current + suffix);
+    assert.equal(file.response.status, 200);
+    assert.equal(file.response.headers.get('Content-Length'), String(objectSize));
+  }
+  assert.equal((await request({}, 'GET', { objectSize: size }, current)).response.status, 503);
 });
 
 for (const [value, first, count] of [

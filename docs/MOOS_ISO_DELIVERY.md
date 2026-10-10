@@ -1,31 +1,38 @@
 # MoOS ISO delivery
 
-The public page is `/ar/moos` or `/en/moos`. Its stable download entrypoint is
-`/api/os/download?type=iso`; verification files use `&asset=signature` and
-`&asset=checksum`. The route redirects to the Cloudflare download service so
-multi-GB files are streamed from R2 rather than buffered by a Vercel function.
+The public Arabic/English frontend is
+`https://moos-site.moalfarras-moos.workers.dev/ar/` or `/en/`.
+Existing `moalfarras.space` MoOS entrypoints use scoped CDN redirects to that
+independent static host. ISO requests use `/api/os/download?type=iso`, with
+`asset=signature` or `asset=checksum` for verification files. R2 bytes stream
+from the separate `moos-downloads` Worker; no multi-GB file is buffered by a
+Vercel function. See [the independent hosting handoff](MOOS_FREE_HOSTING.md).
 
-The website keeps its existing domain and DNS provider. The download backend
-is the named Worker `moos-downloads.moalfarras-moos.workers.dev`, backed by the
-private R2 Standard bucket `moos-releases`. This is a persistent account Worker,
-not an expiring preview or an `r2.dev` link. Cloudflare recommends a custom
-domain for business-critical workloads; a dedicated download subdomain can
-be attached after the complete registrar DNS inventory is available. See
-[Workers routing](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/).
+The private R2 Standard bucket `moos-releases` is served by a persistent named
+Worker, not an expiring preview or `r2.dev` URL. Existing site DNS remains intact.
+A dedicated custom download/service domain remains an operating improvement;
+workers.dev has been publicly verified but is not a promise of unbounded quotas.
 
 ## Qualified release
 
-- Version: `44.20261007.1011`, generic x86-64 UEFI desktop ISO.
-- Source: `fa85b2daf3db0f1f823b3159bb46b25571a99740`.
-- Image: `sha256:c3689b0e64c48cdf7d5de7d83b3dc156bf264f6381cce98d36376681b07ebf99`.
-- ISO: 5,796,462,592 bytes, SHA-256
-  `cbe92573e620101f274081c884671e4b63ffbcdb765521713d21ada1dbe9cb1c`.
-- Final ISO/offline-install run: `37558755639`; x86 promotion `37562359722`.
-- Signed build `37552824167`; disk proofs `37558743993`, `37558747906`,
-  `37558751431`, all first-attempt successes at the same source.
-- Full anonymous delivery and detached-signature verification passed
-  `2026-10-08T10:19:36.980092+00:00`. Receipt:
-  `apps/web/public/downloads/moos/delivery-proof.json`.
+- Version: `44.20261010.1022`, generic x86-64 UEFI desktop ISO.
+- Source: `1a73a4e08b33d5a49f0eda42947acaca037d0d9a`.
+- Image: `sha256:8134f32a09ab4ff2301554a7bac16858e7d48d907ec7bd48631b5fd35e97fef1`.
+- ISO: 5,827,067,904 bytes, SHA-256
+  `0927826e1d28cbbd8c9054ba19b49c9904184c9f0ea304bf60050dfc76d926f3`.
+- Final ISO/offline-install run: `38051456847`; x86 promotion `38053736733`.
+- Signed build `38042999495`; disks `38051449009`, `38051451818`,
+  `38051454259`, all first-attempt successes at the same source.
+- Complete anonymous transfer/hash/signature/ranges passed
+  `2026-10-10T22:10:02.941997+00:00`, then both public sidecars matched locally.
+  Receipt and manifest are paired in `apps/web/public/downloads/moos/`.
+
+The superseded .1011 URLs explicitly return 410 and only their three exact
+objects were deleted. .1018 keeps original resumable bytes through its announced
+grace window, then is retired only after .1022 has been publicly qualified and
+advertised. No immutable file URL is silently redirected to different bytes.
+A separate exact-key cleanup verifies the active manifest/proof/sidecars and
+old 410 before deletion; installed signed OS rollback is independent.
 
 The preserved `.iso`, `.sig` and `.sha256` bytes match the qualified CI
 artifact. The backend supports HEAD, full HTTP 200 and HTTP 206 ranges beyond

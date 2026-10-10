@@ -74,5 +74,9 @@ jobs:
         if: matrix.app == 'web'
         run: node --test apps/web/cloudflare/moos-downloads/worker.test.mjs
 
+      - name: Independent MoOS static export
+        if: matrix.app == 'web'
+        run: npm --prefix apps/web run build:moos-static
+
       - name: Build
         run: npm --prefix ${{ matrix.prefix }} run build

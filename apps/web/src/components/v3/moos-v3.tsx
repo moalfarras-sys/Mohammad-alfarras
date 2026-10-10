@@ -59,16 +59,22 @@ function formatDate(locale: Locale, iso?: string) {
   if (!iso) return "";
   const date = new Date(`${iso}T12:00:00Z`);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(locale === "ar" ? "ar" : "en-GB", { day: "numeric", month: "long", year: "numeric" }).format(date);
+  return new Intl.DateTimeFormat(locale === "ar" ? "ar" : "en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(date);
 }
 
-export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelease | null }) {
+export function MoosV3({ locale, release, staticDownloadOrigin, showAppDirectory = true }: {
+  locale: Locale;
+  release: MoosRelease | null;
+  /** Independent static hosting uses its own scripts and qualified R2 URLs. */
+  staticDownloadOrigin?: string;
+  showAppDirectory?: boolean;
+}) {
   const isAr = locale === "ar";
   const repoUrl = release?.repoUrl ?? "https://github.com/moalfarras-sys/moos-image";
   const signingKeyUrl = release?.signingKeyUrl ?? "https://raw.githubusercontent.com/moalfarras-sys/moos-image/main/cosign.pub";
   const editions: MoosEdition[] = release?.editions ?? [];
   const desktopImage = editions.find((e) => e.id === "desktop")?.image ?? "ghcr.io/moalfarras-sys/moos:latest";
-  const isoReady = Boolean(release?.iso.available && release.iso.url);
+  const isoReady = Boolean(release?.iso.available && release.iso.url && !release.maintenance);
   const isoSha = release?.iso.sha256;
   const maintenance = Boolean(release?.maintenance);
   const releaseDate = formatDate(locale, release?.releaseDate);
@@ -308,8 +314,13 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
 
   // Download links stay plain <a>: a next/link would prefetch the download API and
   // inflate the counter without a real click.
-  const installerHref = (id: string) => `/api/os/download?type=${id}`;
-  const isoHref = installerHref("iso");
+  const installerHref = (id: string) => {
+    const installer = editions.find((edition) => edition.id === id)?.installer;
+    return staticDownloadOrigin && installer ? new URL(installer, staticDownloadOrigin).href : `/api/os/download?type=${id}`;
+  };
+  const isoHref = staticDownloadOrigin && release?.iso.url ? release.iso.url : "/api/os/download?type=iso";
+  const signatureHref = staticDownloadOrigin ? release?.iso.signatureUrl : `${isoHref}&asset=signature`;
+  const checksumHref = staticDownloadOrigin ? release?.iso.checksumUrl : `${isoHref}&asset=checksum`;
   const editionCommand = (edition: MoosEdition) =>
     edition.id === "cloud"
       ? `sudo dnf install -y system-reinstall-bootc && sudo system-reinstall-bootc ${edition.image}`
@@ -697,8 +708,8 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
                     {t.ctaIso}
                   </a>
                   <div className="mo3-actions">
-                    <a href={`${isoHref}&asset=signature`} className="st-btn st-btn--ghost">{t.signature}</a>
-                    <a href={`${isoHref}&asset=checksum`} className="st-btn st-btn--ghost">{t.checksumFile}</a>
+                    {signatureHref ? <a href={signatureHref} className="st-btn st-btn--ghost">{t.signature}</a> : null}
+                    {checksumHref ? <a href={checksumHref} className="st-btn st-btn--ghost">{t.checksumFile}</a> : null}
                   </div>
                   {isoSha ? (
                     <>
@@ -738,9 +749,9 @@ export function MoosV3({ locale, release }: { locale: Locale; release: MoosRelea
                 {t.ctaRepo}
                 <ArrowUpRight size={15} aria-hidden />
               </a>
-              <Link href={`/${locale}/apps`} prefetch={false} className="st-btn st-btn--ghost st-btn--lg">
+              {showAppDirectory ? <Link href={`/${locale}/apps`} prefetch={false} className="st-btn st-btn--ghost st-btn--lg">
                 {t.more}
-              </Link>
+              </Link> : null}
             </div>
           </Reveal>
         </div>

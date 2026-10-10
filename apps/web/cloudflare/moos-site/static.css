@@ -1,0 +1,19 @@
+:root {
+  --font-inter: "Manrope";
+  --font-arabic: "Cairo";
+  --font-arabic-display: "Alexandria";
+  --font-serif: "Instrument Serif";
+  --font-mono: "Geist Mono";
+}
+body { margin: 0; font-family: var(--st-font-ui); }
+.liquid-site[dir="rtl"] { font-family: var(--st-font-ar); }
+.moos-static-nav { position: absolute; inset-block-start: 16px; inset-inline: 16px; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: 1240px; margin-inline: auto; padding: 12px 20px; border: 1px solid rgba(140,240,220,.16); border-radius: 18px; background: rgba(14,30,34,.9); }
+.moos-static-nav a { color: #f2f6ff; text-decoration: none; }
+.moos-static-nav nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px 20px; align-items: center; }
+.moos-static-nav nav a { min-height: 44px; display: inline-flex; align-items: center; font-size: .9rem; }
+.moos-static-brand { display: inline-flex; align-items: center; gap: 9px; font-size: 1.1rem; font-weight: 700; }
+.moos-static-footer { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; padding: 32px var(--st-gutter); color: #a9bcc0; background: #050b0d; }
+.moos-static-footer a { color: #7ff5e0; }
+.moos-skip { position: fixed; inset-block-start: -100px; inset-inline-start: 16px; z-index: 100; padding: 12px 20px; background: #f2f6ff; color: #050b0d; border-radius: 12px; }
+.moos-skip:focus { inset-block-start: 16px; }
+@media (max-width: 480px) { .moos-static-nav { padding: 8px 12px; gap: 8px; } .moos-static-nav nav { gap: 4px 12px; } .moos-static-nav nav a { font-size: .82rem; } }

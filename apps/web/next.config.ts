@@ -2,6 +2,7 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const adminAppUrl = process.env.NEXT_PUBLIC_ADMIN_APP_URL || "https://admin.moalfarras.space";
+const moosSiteUrl = "https://moos-site.moalfarras-moos.workers.dev";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@moalfarras/shared"],
@@ -19,9 +20,13 @@ const nextConfig: NextConfig = {
       // Mo AI is a floating widget, not a page: old /ai URLs land on home with
       // the chat auto-opened (?ai=open is consumed by the widget loader).
       { source: "/:locale(en|ar)/ai", destination: "/:locale?ai=open", permanent: false },
-      // MoOS is its own top-level section; keep every plausible alias pointing at it.
-      { source: "/:locale(en|ar)/apps/moos", destination: "/:locale/moos", permanent: true },
-      { source: "/moos", destination: "/ar/moos", permanent: false },
+      // MoOS pages and download routing have an independent static host. These
+      // redirects run before the locale proxy, CMS rendering and visit beacon.
+      // Keep them reversible and preserve download query parameters.
+      { source: "/:locale(en|ar)/apps/moos", destination: `${moosSiteUrl}/:locale/`, permanent: false },
+      { source: "/:locale(en|ar)/moos", destination: `${moosSiteUrl}/:locale/`, permanent: false },
+      { source: "/moos", destination: `${moosSiteUrl}/ar/`, permanent: false },
+      { source: "/api/os/download", destination: `${moosSiteUrl}/api/os/download`, permanent: false },
       // Nested MoPlayer aliases the owner expects to work.
       { source: "/:locale(en|ar)/apps/moplayer/pro", destination: "/:locale/apps/moplayer2", permanent: true },
       { source: "/:locale(en|ar)/apps/moplayer/pc", destination: "/:locale/apps/moplayer-pc", permanent: true },

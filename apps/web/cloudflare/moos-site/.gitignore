@@ -1,0 +1,4 @@
+out/
+.build/
+.wrangler/
+node_modules/

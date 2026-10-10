@@ -215,3 +215,31 @@ R2 .1011's three exact objects were deleted after explicit old-path 410 and
 current .1018 qualification checks: 5,796,462,771 bytes reclaimed. .1018 remains
 in the bounded grace period; deletion must additionally see .1022's coherent
 public metadata and the announced .1018 410 before it touches those exact keys.
+
+
+## Final public .1022 readback, 2026-10-11 Berlin
+
+Source `166325e` passes all three GitHub verification jobs in run 38090992223.
+The unchanged admin build initially hit a Turbopack Manrope font-query error;
+its failed-job rerun passed without a code change. Preserve this intermittent
+external-build evidence; it is not an OS release or a repaired Vercel preview.
+
+The paired .1022 frontend is deployed as `moos-site` version
+`fc9c2a50-0ae4-422b-b855-7d63c22fbd36`. Both stations produced exactly
+74 files / 4,588,749 bytes, files-manifest SHA-256
+`186aaa2b3df63063b223db8456d19eec165debdc4c5106f4a6fbd3f00e219512`.
+Eight public AR/EN views passed at 22:22:10Z: fonts/images/input/language
+switch/keyboard/reduced motion, exact installer and Worker responses, no
+Vercel calls. Download Worker version `49a3c101-15ef-4dc0-91d5-5d9c4807b6c9`
+now carries the qualified .1022 publication marker. All five CDN rules are
+live in version `86e6e29f-c034-4fa2-9fce-02c13dd89983`. The final 22:24:46Z
+readback passes 14 metadata/script/query/range/unrelated-route checks.
+
+Oracle owns the bounded `moos-owner-retire-1018.timer`, scheduled at
+2026-10-11 15:05 UTC (17:05 Berlin), with missed-run persistence. It calls
+only the reviewed exact-three-key retirement script, which independently
+refuses if current public qualification or the old immutable-path 410 fails.
+This is scheduled cleanup, not evidence that .1018 has already been deleted.
+The completed .1022 upload scratch is independently retired after matching
+its full SHA-256 to the actual public proof; workstation current ISO and signed
+installed rollback remain. Raw account and owner screenshots stay private.

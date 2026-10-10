@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 // The policy is shared with the actual independently deployed Worker.
 import { downloadResponse, qualifyRelease } from "../../cloudflare/moos-site/release-policy.mjs";
 import nextConfig from "../../next.config";
+import { getPathMatch } from "next/dist/shared/lib/router/utils/path-match";
 
 const release = JSON.parse(readFileSync(path.resolve("public/downloads/moos/latest-moos.json"), "utf8"));
 const proof = JSON.parse(readFileSync(path.resolve("public/downloads/moos/delivery-proof.json"), "utf8"));
@@ -58,9 +59,22 @@ describe("independent MoOS hosting", () => {
   it("moves only MoOS entrypoints before the Next proxy and application routes", async () => {
     const redirects = await nextConfig.redirects!();
     const moos = redirects.filter((rule) => rule.destination.startsWith("https://moos-site.moalfarras-moos.workers.dev"));
-    expect(moos.map((rule) => rule.source)).toEqual(["/:locale(en|ar)/apps/moos", "/:locale(en|ar)/moos", "/moos", "/api/os/download"]);
+    expect(moos.map((rule) => rule.source)).toEqual(["/:locale(en|ar)/apps/moos", "/:locale(en|ar)/moos", "/moos", "/api/os/download", "/downloads/moos/:asset(latest-moos\\.json|delivery-proof\\.json|moos-install\\.sh|moos-cloud-install\\.sh)"]);
     expect(moos.every((rule) => rule.permanent === false)).toBe(true);
     expect(redirects.find((rule) => rule.source === "/:locale(en|ar)/admin")?.destination).toBe("https://admin.moalfarras.space");
     expect(redirects.find((rule) => rule.source === "/downloads/moplayer2/app-release.apk")?.destination).toBe("/api/app/download/latest?product=moplayer2");
   });
+  it("redirects the four real MoOS metadata/scripts while preserving unrelated products", async () => {
+    const redirects = await nextConfig.redirects!();
+    const rule = redirects.find((item) => item.source.startsWith("/downloads/moos/"))!;
+    const match = getPathMatch(rule.source, { strict: true });
+    for (const asset of ["latest-moos.json", "delivery-proof.json", "moos-install.sh", "moos-cloud-install.sh"]) {
+      expect(match(`/downloads/moos/${asset}`)).toEqual({ asset });
+    }
+    for (const path of ["/downloads/moplayer2/app-release.apk", "/api/app/config", "/downloads/moos/private.env", "/downloads/moos/latest-moosXjson", "/downloads/moos/file.iso"]) {
+      expect(match(path)).toBe(false);
+    }
+    expect(rule.destination).toBe("https://moos-site.moalfarras-moos.workers.dev/downloads/moos/:asset");
+  });
+
 });

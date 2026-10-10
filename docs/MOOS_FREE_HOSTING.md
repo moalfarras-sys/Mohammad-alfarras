@@ -28,7 +28,7 @@ published setting. Keep the existing public R2 byte/range/signature acceptance.
 MoOS entrypoint redirects in Next config run before its locale proxy and CMS
 rendering. They preserve locale and download queries, use reversible 307s, and
 leave MoPlayer/admin paths alone. Deploy the independent host and review it
-before publishing these redirects. Reverting those four rules restores the
+before publishing these redirects. Reverting those five rules restores the
 original website entrypoints without rewriting history or ISO object bytes.
 
 ## Visual specification and handoff
@@ -102,8 +102,8 @@ the private incident directory, never repository docs. Remove the isolated
 temporary env-pull file after the Blob operation; preserve managed CLI login.
 
 Measured in this implementation: `verify:web` passed typecheck, lint, production
-build and 96 tests in 13 files; `verify:admin` passed typecheck, lint and build;
-the R2 Worker passed all 21 tests; static export produced 74 files / 4,588,761
+build and 97 tests in 13 files; `verify:admin` passed typecheck, lint and build;
+the R2 Worker passed all 21 tests; static export produced 74 files / 4,588,749
 bytes; eight local Chromium views and real language/Worker/script checks passed
 with no Vercel calls. The dashboard build passed after installing its already
 declared dependency. `verify:production` then stopped at the repository's
@@ -146,7 +146,7 @@ reduced motion and actual Worker/download/script routes were exercised.
 
 Because new Vercel deployments remain blocked at team level, the documented
 Free project-route service restored the existing MoOS entrypoints without a
-new deployment. Four scoped CDN 307 rules are live, version
+new deployment. Four scoped CDN 307 rules were initially made live, version
 `2cfa20cd-85fd-46ff-875e-a87d1b83bcc8`: Arabic, English, `/moos` and
 `/api/os/download`. Locale and query parameters survive. Non-MoOS pages,
 activation/config APIs and admin retain their working production ownership.
@@ -193,3 +193,25 @@ upload must never expire the only advertised qualified release. The extra
 native test proves >4 GiB resumes still work past the deadline when publication
 has not happened. Exact-key deletion independently verifies the active public
 manifest/proof/sidecars and the old path's 410 immediately before removing keys.
+
+
+## Owner release publication
+
+Exact .1022 ISO was uploaded to three new immutable R2 keys, then fully
+verified anonymously on 2026-10-10T22:10:02.941997Z. Both sidecars matched the
+local artifact byte for byte. Source 1a73a4e0 and all first-attempt proof/promotion
+IDs are preserved in the paired .1022 manifest/public delivery receipt.
+The latest maintained web verification passes typecheck/lint/build and 97 tests
+in 13 files; R2 Worker has 21 meaningful boundary cases.
+
+A fifth narrowly scoped 307 rule redirects only the four existing MoOS
+manifest/proof/install scripts under `/downloads/moos/`. The actual Next path
+matcher accepts those four files and rejects unrelated product/API/private/ISO
+paths. This prevents an old direct metadata link advertising a retired version
+while the canonical download API serves the new one. Native/public route
+publication and refreshed frontend browser review remain separate evidence.
+
+R2 .1011's three exact objects were deleted after explicit old-path 410 and
+current .1018 qualification checks: 5,796,462,771 bytes reclaimed. .1018 remains
+in the bounded grace period; deletion must additionally see .1022's coherent
+public metadata and the announced .1018 410 before it touches those exact keys.

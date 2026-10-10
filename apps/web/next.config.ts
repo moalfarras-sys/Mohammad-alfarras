@@ -27,6 +27,8 @@ const nextConfig: NextConfig = {
       { source: "/:locale(en|ar)/moos", destination: `${moosSiteUrl}/:locale/`, permanent: false },
       { source: "/moos", destination: `${moosSiteUrl}/ar/`, permanent: false },
       { source: "/api/os/download", destination: `${moosSiteUrl}/api/os/download`, permanent: false },
+      // Old direct metadata/script links must share the current qualified release.
+      { source: "/downloads/moos/:asset(latest-moos\\.json|delivery-proof\\.json|moos-install\\.sh|moos-cloud-install\\.sh)", destination: `${moosSiteUrl}/downloads/moos/:asset`, permanent: false },
       // Nested MoPlayer aliases the owner expects to work.
       { source: "/:locale(en|ar)/apps/moplayer/pro", destination: "/:locale/apps/moplayer2", permanent: true },
       { source: "/:locale(en|ar)/apps/moplayer/pc", destination: "/:locale/apps/moplayer-pc", permanent: true },

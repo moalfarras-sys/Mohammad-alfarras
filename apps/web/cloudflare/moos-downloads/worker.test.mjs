@@ -7,10 +7,10 @@ const path = '/releases/44.20261010.1022/x86_64/moos-offline.iso';
 const etag = '"qualified-object"';
 const uploaded = new Date('2026-10-08T10:00:00Z');
 
-function rig({ missing = false, wrongSize = false, changed = false, wrongRange = false, objectSize = size } = {}) {
+function rig({ missing = false, wrongSize = false, changed = false, wrongRange = false, objectSize = size, publishedVersion = "44.20261010.1022" } = {}) {
   const calls = [];
   const info = { size: wrongSize ? 99 : objectSize, httpEtag: etag, uploaded };
-  const env = { MOOS_RELEASES: {
+  const env = { PUBLISHED_ISO_VERSION: publishedVersion, MOOS_RELEASES: {
     async head(key) { calls.push(['head', key]); return missing ? null : info; },
     async get(key, options) {
       calls.push(['get', key, options]);
@@ -84,6 +84,22 @@ test('previous qualified release is resumable during its stated grace window, th
       assert.equal(retired.response.status, 410);
       assert.equal(retired.calls.length, 0);
       assert.equal(retired.response.headers.get('Location'), null);
+    }
+  } finally { Date.now = realNow; }
+});
+
+
+test('a failed or delayed replacement never expires the still-qualified public release', async () => {
+  const realNow = Date.now;
+  try {
+    Date.now = () => Date.parse('2026-10-12T00:00:00Z');
+    for (const publishedVersion of [undefined, '', '44.20261009.1018', 'unverified']) {
+      const result = await request({ Range: 'bytes=4294967296-4294967311' }, 'GET',
+        { objectSize: 5808128000, publishedVersion: publishedVersion ?? null },
+        '/releases/44.20261009.1018/x86_64/moos-offline.iso');
+      assert.equal(result.response.status, 206);
+      assert.equal(result.response.headers.get('Content-Range'), 'bytes 4294967296-4294967311/5808128000');
+      assert.equal((await result.response.arrayBuffer()).byteLength, 16);
     }
   } finally { Date.now = realNow; }
 });

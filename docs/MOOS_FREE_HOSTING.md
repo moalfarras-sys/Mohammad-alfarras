@@ -103,7 +103,7 @@ temporary env-pull file after the Blob operation; preserve managed CLI login.
 
 Measured in this implementation: `verify:web` passed typecheck, lint, production
 build and 96 tests in 13 files; `verify:admin` passed typecheck, lint and build;
-the R2 Worker passed all 20 tests; static export produced 74 files / 4,588,761
+the R2 Worker passed all 21 tests; static export produced 74 files / 4,588,761
 bytes; eight local Chromium views and real language/Worker/script checks passed
 with no Vercel calls. The dashboard build passed after installing its already
 declared dependency. `verify:production` then stopped at the repository's
@@ -185,3 +185,11 @@ Additional primary references:
 - https://vercel.com/changelog/vercels-cdn-now-supports-updating-routing-rules-without-a-new-deployment
 - https://supabase.com/docs/guides/platform/manage-your-usage/egress
 - https://supabase.com/docs/guides/platform/cost-control
+
+The timed .1018 retirement is additionally gated by the reviewed deployment's
+`PUBLISHED_ISO_VERSION=.1022`. Keep that marker at .1018 until the replacement's
+full public proof and paired frontend metadata are deployed. A failed/delayed
+upload must never expire the only advertised qualified release. The extra
+native test proves >4 GiB resumes still work past the deadline when publication
+has not happened. Exact-key deletion independently verifies the active public
+manifest/proof/sidecars and the old path's 410 immediately before removing keys.

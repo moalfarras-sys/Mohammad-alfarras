@@ -5,5 +5,6 @@
   "account_id": "73a194363e5c5d6d7556d177d6929c6f",
   "compatibility_date": "2026-10-08",
   "workers_dev": true,
+  "vars": { "PUBLISHED_ISO_VERSION": "44.20261009.1018" },
   "r2_buckets": [{ "binding": "MOOS_RELEASES", "bucket_name": "moos-releases" }]
 }

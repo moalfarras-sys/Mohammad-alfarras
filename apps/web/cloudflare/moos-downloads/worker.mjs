@@ -2,7 +2,8 @@
 // remain private; this endpoint has no upload, listing, or arbitrary-object route.
 const retiredPrefix = "/releases/44.20261007.1011/x86_64/";
 const previousPrefix = "/releases/44.20261009.1018/x86_64/";
-const currentPrefix = "/releases/44.20261010.1022/x86_64/";
+const currentVersion = "44.20261010.1022";
+const currentPrefix = `/releases/${currentVersion}/x86_64/`;
 // Announced grace window for clients already downloading the previous ISO.
 const previousRetiresAt = Date.parse("2026-10-11T15:00:00Z");
 const retired = new Set(["moos-offline.iso", "moos-offline.iso.sig", "moos-offline.iso.sha256"].map(name => retiredPrefix + name));
@@ -38,7 +39,10 @@ const worker = {
     }
     const path = new URL(request.url).pathname;
     const file = files.get(path);
-    if (retired.has(path) || (file?.retiresAt && Date.now() >= file.retiresAt)) {
+    // Upload/verification can fail. Never expire the still-advertised release
+    // merely because its planned replacement missed the publication deadline.
+    const replacementPublished = env.PUBLISHED_ISO_VERSION === currentVersion;
+    if (retired.has(path) || (replacementPublished && file?.retiresAt && Date.now() >= file.retiresAt)) {
       return new Response(request.method === 'HEAD' ? null : 'This release has been retired. Choose the current verified release at https://moos-site.moalfarras-moos.workers.dev/ar/\n', {
         status: 410, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'public, max-age=300',
           Link: '<https://moos-site.moalfarras-moos.workers.dev/ar/>; rel="latest-version"', 'X-Content-Type-Options': 'nosniff' },

@@ -103,7 +103,7 @@ temporary env-pull file after the Blob operation; preserve managed CLI login.
 
 Measured in this implementation: `verify:web` passed typecheck, lint, production
 build and 96 tests in 13 files; `verify:admin` passed typecheck, lint and build;
-the R2 Worker passed all 18 tests; static export produced 74 files / 4,588,761
+the R2 Worker passed all 20 tests; static export produced 74 files / 4,588,761
 bytes; eight local Chromium views and real language/Worker/script checks passed
 with no Vercel calls. The dashboard build passed after installing its already
 declared dependency. `verify:production` then stopped at the repository's
@@ -132,3 +132,56 @@ Primary references checked 2026-10-10:
 - https://nextjs.org/docs/app/api-reference/config/next-config-js/redirects
 - https://developers.cloudflare.com/workers/static-assets/billing-and-limitations/
 - https://developers.cloudflare.com/r2/pricing/
+
+
+## Public restoration readback, 2026-10-10
+
+The independent frontend was deployed as `moos-site`, version
+`c5d846cc-bd46-409a-9b1a-84756d73d081`, after a pinned `npm ci` rebuild.
+Both stations produced the same 74-file SHA-256 manifest
+`c2d2bad7716aa7bbdd10d63fa8045f6f5c44cba08761eba74e0c764f1cd5e8b0`.
+Eight public AR/EN Chromium views passed with no overflow, script errors,
+missing images or Vercel calls; language switching, keyboard skip link,
+reduced motion and actual Worker/download/script routes were exercised.
+
+Because new Vercel deployments remain blocked at team level, the documented
+Free project-route service restored the existing MoOS entrypoints without a
+new deployment. Four scoped CDN 307 rules are live, version
+`2cfa20cd-85fd-46ff-875e-a87d1b83bcc8`: Arabic, English, `/moos` and
+`/api/os/download`. Locale and query parameters survive. Non-MoOS pages,
+activation/config APIs and admin retain their working production ownership.
+The small initial CDN redirect still counts as a Vercel request; frontend,
+images/fonts and subsequent downloads execute on Cloudflare.
+
+Post-deletion Blob inventory confirmed all five MoPlayer objects unchanged,
+333,653,409 bytes total, and the obsolete MoOS ISO absent. Anonymous browser
+review rendered all fourteen projects at 390/1440 px: 28 frames, no JavaScript
+errors or visibly broken images. A&D has a one-pixel desktop overflow, and four
+Alhasaka image requests fail independently at their Supabase storage origin.
+Its public response identifies `exceed_egress_quota`; do not remove spend caps,
+activate a paid plan or invent replacement photographs. One actual cached
+photograph was recovered privately. Account connection and a complete data
+workflow/migration are still owed. These checks did not submit business forms,
+orders or authenticated changes. A fresh 21:47 UTC HTTP readback confirms all
+14 primary sites and 24 of 25 inventoried addresses return application pages;
+the old A&D alias remains separately disabled.
+
+## Immutable ISO retirement
+
+The download Worker accepts exact .1022 ISO/signature/checksum sizes only.
+The superseded .1011 keys return 410 with a link to the current frontend,
+without querying R2 or redirecting an immutable file URL to different bytes.
+The .1018 URL retains its original bytes for an announced grace window through
+2026-10-11T15:00:00Z (17:00 Berlin), then returns the same explicit 410.
+Tests exercise before/at-deadline GET and HEAD, resumed >4 GiB ranges,
+unknown keys and no-R2-read retirement. Public upload/verification, deployment
+and exact-key cleanup are separate actions; do not mark them complete from
+these source tests. Keep one current public ISO to control storage use while
+preserving the installed signed OS rollback independently.
+
+Additional primary references:
+
+- https://vercel.com/docs/cli/routes
+- https://vercel.com/changelog/vercels-cdn-now-supports-updating-routing-rules-without-a-new-deployment
+- https://supabase.com/docs/guides/platform/manage-your-usage/egress
+- https://supabase.com/docs/guides/platform/cost-control

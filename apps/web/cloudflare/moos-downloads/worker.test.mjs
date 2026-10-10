@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import worker from './worker.mjs';
 
-const size = 5796462592;
-const path = '/releases/44.20261007.1011/x86_64/moos-offline.iso';
+const size = 5827067904;
+const path = '/releases/44.20261010.1022/x86_64/moos-offline.iso';
 const etag = '"qualified-object"';
 const uploaded = new Date('2026-10-08T10:00:00Z');
 
@@ -45,8 +45,8 @@ test('full response retains exact >4-GiB length, strong validator and attachment
 });
 
 test('new qualified release resumes beyond 4 GiB and retains both verification files', async () => {
-  const current = '/releases/44.20261009.1018/x86_64/moos-offline.iso';
-  const currentSize = 5808128000;
+  const current = path;
+  const currentSize = size;
   const { response } = await request({ Range: 'bytes=4294967296-4294967311' }, 'GET', { objectSize: currentSize }, current);
   assert.equal(response.status, 206);
   assert.equal(response.headers.get('Content-Range'), `bytes 4294967296-4294967311/${currentSize}`);
@@ -56,7 +56,36 @@ test('new qualified release resumes beyond 4 GiB and retains both verification f
     assert.equal(file.response.status, 200);
     assert.equal(file.response.headers.get('Content-Length'), String(objectSize));
   }
-  assert.equal((await request({}, 'GET', { objectSize: size }, current)).response.status, 503);
+  assert.equal((await request({}, 'GET', { objectSize: 5796462592 }, current)).response.status, 503);
+});
+
+test('retired immutable paths return 410 without silently redirecting or reading R2', async () => {
+  for (const suffix of ['', '.sig', '.sha256']) for (const method of ['GET', 'HEAD']) {
+    const result = await request({}, method, {}, '/releases/44.20261007.1011/x86_64/moos-offline.iso' + suffix);
+    assert.equal(result.response.status, 410);
+    assert.equal(result.response.headers.get('Location'), null);
+    assert.match(result.response.headers.get('Link'), /latest-version/);
+    assert.equal(result.calls.length, 0);
+  }
+});
+
+test('previous qualified release is resumable during its stated grace window, then explicitly retired', async () => {
+  const previous = '/releases/44.20261009.1018/x86_64/moos-offline.iso';
+  const previousSize = 5808128000;
+  const realNow = Date.now;
+  try {
+    Date.now = () => Date.parse('2026-10-11T14:59:59Z');
+    const result = await request({ Range: 'bytes=4294967296-4294967311' }, 'GET', { objectSize: previousSize }, previous);
+    assert.equal(result.response.status, 206);
+    assert.equal(result.response.headers.get('Content-Range'), `bytes 4294967296-4294967311/${previousSize}`);
+    Date.now = () => Date.parse('2026-10-11T15:00:00Z');
+    for (const suffix of ['', '.sig', '.sha256']) {
+      const retired = await request({}, 'GET', {}, previous + suffix);
+      assert.equal(retired.response.status, 410);
+      assert.equal(retired.calls.length, 0);
+      assert.equal(retired.response.headers.get('Location'), null);
+    }
+  } finally { Date.now = realNow; }
 });
 
 for (const [value, first, count] of [

@@ -243,3 +243,35 @@ This is scheduled cleanup, not evidence that .1018 has already been deleted.
 The completed .1022 upload scratch is independently retired after matching
 its full SHA-256 to the actual public proof; workstation current ISO and signed
 installed rollback remain. Raw account and owner screenshots stay private.
+
+## Public .1026 delivery, 2026-10-11
+
+The exact ISO from MoOS run 38133979283 / promotion 38136731168 is preserved
+on Oracle, signed and published to its new immutable R2 prefix: 5,827,133,440
+bytes, SHA-256 `288fcb001aabc990103653cd622d11734a5472cf7942715429eb1934dd3cb57b`.
+Full anonymous HTTP 200, resumed ranges and matching signature/checksum sidecars
+passed at 21:24:17Z. Paired metadata is copied from that actual receipt.
+Web typecheck/lint/build and 97 tests pass; admin checks/dashboard build pass.
+The broader production command still stops at Windows-only `gradlew.bat` on
+Linux (127); no Android source/release is included. All 21 download tests pass.
+
+Static export is 74 files / 4,588,809 bytes. Eight private Node-harness views
+exercise the actual Site Worker with an emulated ASSETS transport; eight real
+public Chromium views pass at 21:31:46Z, including language/keyboard/motion,
+fonts/images, exact installer bytes and Worker responses, without Vercel calls.
+Frontend version: `7fc92c0a-3f66-4114-8a74-dda39cf1681f`. Download Worker
+version: `72141578-1b4c-4a48-8e2c-e3e70295bb05`; .1026 marker was published
+only after the full ISO receipt and paired public site acceptance. Existing
+CDN redirects were not redeployed; other products' source/APIs are unchanged.
+
+.1018's three exact public keys were actually retired at Oct11 15:05:09Z.
+.1022 retains its original bytes through Oct12 12:00Z. Oracle's persistent
+`moos-owner-retire-1022.timer` is active for 12:05Z; five read-only negative
+controls and current/old-path inventory checks pass, with no deletion yet.
+Unknown later publication, early execution or unexpected objects refuse cleanup.
+The known .1026 archive and installed signed rollback remain independent.
+
+GitHub reports two medium `GHSA-hp3w-g68c-fv3c` sprintf-js lockfile alerts
+through Windows tooling's roarr. There is no announced patched version;
+the installed web test tree returns empty for sprintf-js. Neither alert was
+closed/suppressed and other-product Windows dependencies were not changed.

@@ -1,17 +1,17 @@
 // Stream only the qualified public release. The R2 bucket and upload credentials
 // remain private; this endpoint has no upload, listing, or arbitrary-object route.
-const retiredPrefix = "/releases/44.20261007.1011/x86_64/";
-const previousPrefix = "/releases/44.20261009.1018/x86_64/";
-const currentVersion = "44.20261010.1022";
+const retiredPrefixes = ["/releases/44.20261007.1011/x86_64/", "/releases/44.20261009.1018/x86_64/"];
+const previousPrefix = "/releases/44.20261010.1022/x86_64/";
+const currentVersion = "44.20261011.1026";
 const currentPrefix = `/releases/${currentVersion}/x86_64/`;
 // Announced grace window for clients already downloading the previous ISO.
-const previousRetiresAt = Date.parse("2026-10-11T15:00:00Z");
-const retired = new Set(["moos-offline.iso", "moos-offline.iso.sig", "moos-offline.iso.sha256"].map(name => retiredPrefix + name));
+const previousRetiresAt = Date.parse("2026-10-12T12:00:00Z");
+const retired = new Set(retiredPrefixes.flatMap(prefix => ["moos-offline.iso", "moos-offline.iso.sig", "moos-offline.iso.sha256"].map(name => prefix + name)));
 const files = new Map([
-  [`${previousPrefix}moos-offline.iso`, { size: 5808128000, type: "application/octet-stream", retiresAt: previousRetiresAt }],
+  [`${previousPrefix}moos-offline.iso`, { size: 5827067904, type: "application/octet-stream", retiresAt: previousRetiresAt }],
   [`${previousPrefix}moos-offline.iso.sig`, { size: 96, type: "text/plain; charset=utf-8", retiresAt: previousRetiresAt }],
   [`${previousPrefix}moos-offline.iso.sha256`, { size: 83, type: "text/plain; charset=utf-8", retiresAt: previousRetiresAt }],
-  [`${currentPrefix}moos-offline.iso`, { size: 5827067904, type: "application/octet-stream" }],
+  [`${currentPrefix}moos-offline.iso`, { size: 5827133440, type: "application/octet-stream" }],
   [`${currentPrefix}moos-offline.iso.sig`, { size: 96, type: "text/plain; charset=utf-8" }],
   [`${currentPrefix}moos-offline.iso.sha256`, { size: 83, type: "text/plain; charset=utf-8" }],
 ]);

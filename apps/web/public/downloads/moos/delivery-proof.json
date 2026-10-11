@@ -1,25 +1,26 @@
 {
-  "url": "https://moos-downloads.moalfarras-moos.workers.dev/releases/44.20261010.1022/x86_64/moos-offline.iso",
-  "sizeBytes": 5827067904,
-  "sha256": "0927826e1d28cbbd8c9054ba19b49c9904184c9f0ea304bf60050dfc76d926f3",
+  "url": "https://moos-downloads.moalfarras-moos.workers.dev/releases/44.20261011.1026/x86_64/moos-offline.iso",
+  "sizeBytes": 5827133440,
+  "sha256": "288fcb001aabc990103653cd622d11734a5472cf7942715429eb1934dd3cb57b",
   "http": 200,
   "rangeHttp": 206,
   "anonymous": true,
   "fullHashVerified": true,
   "schema": 1,
-  "checkedAt": "2026-10-10T22:10:02.941997+00:00",
+  "checkedAt": "2026-10-11T21:24:17.387224+00:00",
   "signatureVerified": true,
   "scope": "Delivery only; match the ISO's successful boot/install and promotion proofs before publication.",
-  "sourceRevision": "1a73a4e08b33d5a49f0eda42947acaca037d0d9a",
-  "imageDigest": "sha256:8134f32a09ab4ff2301554a7bac16858e7d48d907ec7bd48631b5fd35e97fef1",
-  "version": "44.20261010.1022",
-  "buildRun": 38042999495,
+  "sourceRevision": "3abe787a27cb6c6735cb8209cb490633aa4e8d77",
+  "imageDigest": "sha256:a1ac3c6b0eec756f2d20f238abb1896ba8f7e25228cc2e8458952201ffe7524a",
+  "version": "44.20261011.1026",
+  "buildRun": 38128732396,
   "diskRuns": [
-    38051449009,
-    38051451818,
-    38051454259
+    38133971240,
+    38133974055,
+    38133976682
   ],
-  "isoRun": 38051456847,
-  "promotionRun": 38053736733,
-  "sidecarsVerified": true
+  "isoRun": 38133979283,
+  "promotionRun": 38136731168,
+  "sidecarsVerified": true,
+  "sidecarsVerifiedAt": "2026-10-11T21:24:17.807918+00:00"
 }

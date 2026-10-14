@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import worker from './worker.mjs';
 
-const size = 5827133440;
-const path = '/releases/44.20261011.1026/x86_64/moos-offline.iso';
+const size = 5830410240;
+const path = '/releases/44.20261014.1046/x86_64/moos-offline.iso';
 const etag = '"qualified-object"';
 const uploaded = new Date('2026-10-08T10:00:00Z');
 
-function rig({ missing = false, wrongSize = false, changed = false, wrongRange = false, objectSize = size, publishedVersion = "44.20261011.1026" } = {}) {
+function rig({ missing = false, wrongSize = false, changed = false, wrongRange = false, objectSize = size, publishedVersion = "44.20261014.1046" } = {}) {
   const calls = [];
   const info = { size: wrongSize ? 99 : objectSize, httpEtag: etag, uploaded };
   const env = { PUBLISHED_ISO_VERSION: publishedVersion, MOOS_RELEASES: {
@@ -60,7 +60,7 @@ test('new qualified release resumes beyond 4 GiB and retains both verification f
 });
 
 test('retired immutable paths return 410 without silently redirecting or reading R2', async () => {
-  for (const version of ['44.20261007.1011', '44.20261009.1018']) for (const suffix of ['', '.sig', '.sha256']) for (const method of ['GET', 'HEAD']) {
+  for (const version of ['44.20261007.1011', '44.20261009.1018', '44.20261010.1022']) for (const suffix of ['', '.sig', '.sha256']) for (const method of ['GET', 'HEAD']) {
     const result = await request({}, method, {}, `/releases/${version}/x86_64/moos-offline.iso${suffix}`);
     assert.equal(result.response.status, 410);
     assert.equal(result.response.headers.get('Location'), null);
@@ -70,15 +70,15 @@ test('retired immutable paths return 410 without silently redirecting or reading
 });
 
 test('previous qualified release is resumable during its stated grace window, then explicitly retired', async () => {
-  const previous = '/releases/44.20261010.1022/x86_64/moos-offline.iso';
-  const previousSize = 5827067904;
+  const previous = '/releases/44.20261011.1026/x86_64/moos-offline.iso';
+  const previousSize = 5827133440;
   const realNow = Date.now;
   try {
-    Date.now = () => Date.parse('2026-10-12T11:59:59Z');
+    Date.now = () => Date.parse('2026-10-16T11:59:59Z');
     const result = await request({ Range: 'bytes=4294967296-4294967311' }, 'GET', { objectSize: previousSize }, previous);
     assert.equal(result.response.status, 206);
     assert.equal(result.response.headers.get('Content-Range'), `bytes 4294967296-4294967311/${previousSize}`);
-    Date.now = () => Date.parse('2026-10-12T12:00:00Z');
+    Date.now = () => Date.parse('2026-10-16T12:00:00Z');
     for (const suffix of ['', '.sig', '.sha256']) {
       const retired = await request({}, 'GET', {}, previous + suffix);
       assert.equal(retired.response.status, 410);
@@ -92,13 +92,13 @@ test('previous qualified release is resumable during its stated grace window, th
 test('a failed or delayed replacement never expires the still-qualified public release', async () => {
   const realNow = Date.now;
   try {
-    Date.now = () => Date.parse('2026-10-13T00:00:00Z');
-    for (const publishedVersion of [undefined, '', '44.20261010.1022', 'unverified']) {
+    Date.now = () => Date.parse('2026-10-17T00:00:00Z');
+    for (const publishedVersion of [undefined, '', '44.20261011.1026', 'unverified']) {
       const result = await request({ Range: 'bytes=4294967296-4294967311' }, 'GET',
-        { objectSize: 5827067904, publishedVersion: publishedVersion ?? null },
-        '/releases/44.20261010.1022/x86_64/moos-offline.iso');
+        { objectSize: 5827133440, publishedVersion: publishedVersion ?? null },
+        '/releases/44.20261011.1026/x86_64/moos-offline.iso');
       assert.equal(result.response.status, 206);
-      assert.equal(result.response.headers.get('Content-Range'), 'bytes 4294967296-4294967311/5827067904');
+      assert.equal(result.response.headers.get('Content-Range'), 'bytes 4294967296-4294967311/5827133440');
       assert.equal((await result.response.arrayBuffer()).byteLength, 16);
     }
   } finally { Date.now = realNow; }

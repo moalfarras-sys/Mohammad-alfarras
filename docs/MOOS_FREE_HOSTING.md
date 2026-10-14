@@ -275,3 +275,31 @@ GitHub reports two medium `GHSA-hp3w-g68c-fv3c` sprintf-js lockfile alerts
 through Windows tooling's roarr. There is no announced patched version;
 the installed web test tree returns empty for sprintf-js. Neither alert was
 closed/suppressed and other-product Windows dependencies were not changed.
+
+## Qualified .1046 publication — 2026-10-14
+
+Exact .1046 ISO source `1b947c21e6b3846f8eeaa73e2b75a6221dd172ac`, ISO run
+38499638470 and promotion 38503482331 are qualified. Full anonymous 200,
+resumed 206 ranges, 5,830,410,240 bytes, SHA-256
+`37053a88ae313f994875794055035d53134206a88eb44fb160b39fef3bb04821`,
+public key and exact two sidecars pass at 17:58:53 UTC. The paired manifest/proof
+is published on the existing independent host; versions list x86 .1046/ARM .775.
+Eight local/eight public native Chromium AR/EN views and exact public paired
+bytes/three actual redirects pass. [Selected receipt](MOOS_PUBLIC_1046_PROOF.json).
+
+Frontend version `1bbe00dc-c579-4015-ae82-af7a58c9fc93`; download version
+`b322760e-4302-44d1-940d-3eb2f49913d1`. The site CLI printed completed deploy,
+then its enclosing exec ended 143 before the exit receipt. Actual active bytes
+and public browser views independently pass; the termination cause is unproven.
+No duplicate site deployment. The download publication command exits 0.
+The .1046 marker was changed only after the full-transfer and site acceptance.
+Previous .1026 remains resumable through Oct16 12:00 UTC, then is eligible for
+explicit 410 only with the qualified replacement marker. No early deletion.
+
+Web/admin typecheck/lint/build, 99 tests and 21 download boundary tests pass.
+The reused external node_modules symlink failed Turbopack; private worktree
+copies fix the setup without changing source. Dashboard's declared lucide-react
+was missing locally; its normal dependency installation and build now pass.
+Broader Android verification returns 127 for Windows gradlew.bat on Linux;
+no Android build/release is included. Current inert conversion scripts, other
+products/APIs, existing CDN redirects, DNS, authentication and billing stay.

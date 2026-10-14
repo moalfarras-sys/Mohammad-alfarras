@@ -27,8 +27,13 @@ absence of conversion commands, the edition-guide links and the mobile guide.
 Maintained web typecheck/lint/build and all 99 unit tests, admin checks and
 static export passed. Eight native local browser views, language switching,
 mobile guidance, actual Worker routes and exact script bytes passed.
-[Local receipt](MOOS_INSTALLATION_LOCAL_PROOF.json). Production readback remains
-separate until this source is deployed.
+[Local receipt](MOOS_INSTALLATION_LOCAL_PROOF.json). Approved PR57 merged at `a0bce332`; its identical reviewed tree was deployed
+to the existing Cloudflare Worker as `b22428b3-e45b-4d8a-beab-f7a99e7dee83`.
+Eight actual public Chromium views, language click, guide, Worker routes and
+exact inert script bytes passed at 2026-10-14 08:39:34 UTC.
+[Public receipt](MOOS_INSTALLATION_PUBLIC_PROOF.json). Three GitHub CI jobs
+passed; separate Vercel preview statuses remain failed under the documented
+hosting restrictions. The independent MoOS site made no Vercel requests.
 
 The standalone web dependency install also exposed an esbuild override conflict:
 its direct dependency is exact 0.28.1, while the old override was a range. The

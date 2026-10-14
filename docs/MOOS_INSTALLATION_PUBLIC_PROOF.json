@@ -1,0 +1,80 @@
+{
+  "checkedAt": "2026-10-14T08:39:34.139Z",
+  "scope": "Actual deployed MoOS Static Assets/Worker in native Chromium; not new ISO delivery or other hosting projects",
+  "deploymentVersion": "b22428b3-e45b-4d8a-beab-f7a99e7dee83",
+  "sourceCommit": "17e7415427e40c88fe1c8bf59bd631c6285cfaf9",
+  "approvedMerge": "a0bce332a00787d993568e1b4432135a32a18737",
+  "views": [
+    {
+      "locale": "ar",
+      "width": 390,
+      "contentWidth": 390,
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "ar",
+      "width": 768,
+      "contentWidth": 768,
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "ar",
+      "width": 1440,
+      "contentWidth": 1440,
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "ar",
+      "width": 1920,
+      "contentWidth": 1920,
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "en",
+      "width": 390,
+      "contentWidth": 390,
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "en",
+      "width": 768,
+      "contentWidth": 768,
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "en",
+      "width": 1440,
+      "contentWidth": 1440,
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "en",
+      "width": 1920,
+      "contentWidth": 1920,
+      "errors": [],
+      "missingImages": []
+    }
+  ],
+  "guide": {
+    "width": 390,
+    "contentWidth": 390,
+    "sections": true,
+    "english": 7,
+    "update": true
+  },
+  "workerHead": 307,
+  "signatureRedirect": 307,
+  "invalidEdition": 400,
+  "rejectedPost": 405,
+  "scriptBytesMatch": true,
+  "languageClick": true,
+  "noVercelRequests": true,
+  "publicIso": "44.20261011.1026"
+}

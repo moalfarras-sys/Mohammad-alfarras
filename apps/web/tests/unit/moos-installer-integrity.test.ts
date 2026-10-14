@@ -10,14 +10,16 @@ const installerPaths = [
 
 const releaseManifestPath = path.join(process.cwd(), "public", "downloads", "moos", "latest-moos.json");
 
-describe("MoOS installer artifacts", () => {
+describe("MoOS installation artifacts", () => {
   it.each(installerPaths)("keeps %s executable by Linux bash", async (installerPath) => {
     const script = await readFile(installerPath, "utf8");
 
     expect(script.startsWith("#!/usr/bin/env bash\n")).toBe(true);
     expect(script).not.toContain("\r");
     expect(script).toContain("set -euo pipefail");
-    expect(script).toContain("ghcr.io/moalfarras-sys/moos");
+    expect(script).toContain("https://moos-site.moalfarras-moos.workers.dev/downloads/moos/installation.html");
+    expect(script).not.toContain("bootc switch");
+    expect(script).not.toContain("system-reinstall-bootc \"");
   });
 
   it("does not publish an ISO until its download host is verified", async () => {

@@ -1,5 +1,15 @@
 # Project Handoff
 
+## 2026-10-14 MoOS installation safety
+
+The maintained MoOS page uses the qualified desktop ISO and bilingual
+edition-specific guidance. Retired desktop/cloud conversion scripts are inert
+(exit 78; help 0), preserving their URLs without changing a visitor's machine.
+The legacy page delegates to the maintained design. The esbuild override now
+references its existing exact dependency so scoped locked setup works.
+Validation and production readback: [installation safety](MOOS_INSTALLATION_SAFETY.md).
+Public ISO version/proof remain .1026; signed OS promotion is separate.
+
 This repository is a production monorepo for the public website, admin control center, Supabase-backed app metadata, and Android MoPlayer apps.
 
 ## 2026-10-08 Mira section: real installed UI captures

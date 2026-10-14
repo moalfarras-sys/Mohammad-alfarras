@@ -1,0 +1,139 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-10-14T08:21:31.051Z",
+  "scope": "Native local Chromium and maintained web/admin/static checks; no new ISO delivery or OS installation proof",
+  "views": [
+    {
+      "locale": "ar",
+      "viewport": 390,
+      "contentWidth": 390,
+      "language": "ar",
+      "direction": "rtl",
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "ar",
+      "viewport": 768,
+      "contentWidth": 768,
+      "language": "ar",
+      "direction": "rtl",
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "ar",
+      "viewport": 1440,
+      "contentWidth": 1440,
+      "language": "ar",
+      "direction": "rtl",
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "ar",
+      "viewport": 1920,
+      "contentWidth": 1920,
+      "language": "ar",
+      "direction": "rtl",
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "en",
+      "viewport": 390,
+      "contentWidth": 390,
+      "language": "en",
+      "direction": "ltr",
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "en",
+      "viewport": 768,
+      "contentWidth": 768,
+      "language": "en",
+      "direction": "ltr",
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "en",
+      "viewport": 1440,
+      "contentWidth": 1440,
+      "language": "en",
+      "direction": "ltr",
+      "errors": [],
+      "missingImages": []
+    },
+    {
+      "locale": "en",
+      "viewport": 1920,
+      "contentWidth": 1920,
+      "language": "en",
+      "direction": "ltr",
+      "errors": [],
+      "missingImages": []
+    }
+  ],
+  "guide": {
+    "width": 390,
+    "contentWidth": 390,
+    "sections": true,
+    "english": 7,
+    "update": true
+  },
+  "languageClick": true,
+  "scriptBytesMatch": true,
+  "noVercelRequests": true,
+  "maintainedChecks": {
+    "verify-web": 0,
+    "verify-admin": 0,
+    "build-static": 0
+  },
+  "executableOldFixedControls": [
+    {
+      "entrypoint": "moos-install.sh",
+      "source": "old",
+      "exit": 0,
+      "stubbed_host_calls": [
+        "cosign",
+        "ostree",
+        "bootc"
+      ],
+      "passes_retirement_contract": false
+    },
+    {
+      "entrypoint": "moos-install.sh",
+      "source": "fixed",
+      "exit": 78,
+      "stubbed_host_calls": [],
+      "passes_retirement_contract": true
+    },
+    {
+      "entrypoint": "moos-cloud-install.sh",
+      "source": "old",
+      "exit": 0,
+      "stubbed_host_calls": [
+        "hostname",
+        "dnf",
+        "cosign",
+        "system-reinstall-bootc"
+      ],
+      "passes_retirement_contract": false
+    },
+    {
+      "entrypoint": "moos-cloud-install.sh",
+      "source": "fixed",
+      "exit": 78,
+      "stubbed_host_calls": [],
+      "passes_retirement_contract": true
+    }
+  ],
+  "sourceSha256": {
+    "apps/web/src/components/v3/moos-v3.tsx": "b0830d811099a31226d17397f6bb34822335846202df8e3aa713b6ff0ec7a46b",
+    "apps/web/public/downloads/moos/moos-install.sh": "857a705c96bd3e7de3877b735af850c34a4357536ea2e2e14fdc6fa9a80f5207",
+    "apps/web/public/downloads/moos/moos-cloud-install.sh": "857a705c96bd3e7de3877b735af850c34a4357536ea2e2e14fdc6fa9a80f5207",
+    "apps/web/public/downloads/moos/installation.html": "1051e14a081a09809edb40f1405e13c41a629044bebc104125fb143eeb73dd09"
+  }
+}

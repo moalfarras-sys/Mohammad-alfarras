@@ -170,16 +170,15 @@ export function MoosV3({ locale, release, staticDownloadOrigin, showAppDirectory
         dark: "داكن",
         downloadKicker: "التحميل",
         downloadTitle: "اختر نسختك.",
-        downloadBody: "المثبّت الرسمي يتحقّق من توقيع النسخة قبل التثبيت ويحفظ نسختك الحالية حتى يبقى التراجع ممكناً.",
-        download: "حمّل المثبّت",
-        orCommand: "أو أمر واحد",
+        downloadBody: "للتثبيت الجديد استخدم ملف ISO المتحقق منه لنسخة المكتب، أو راجع دليل النسخة المناسبة. لتحديث جهاز MoOS افتح إعدادات النظام ← التحديثات.",
+        download: "خيارات التثبيت",
         recommended: "موصى به",
         copy: "نسخ",
         copied: "تم",
         verifyTitle: "تحقّق بنفسك",
         verifyBody: "كل نسخة موقّعة — تأكد أن الصورة من MoOS فعلاً قبل التثبيت:",
         isoTitle: "قرص USB قابل للإقلاع",
-        isoUnavailable: "ملف ISO جاهز ومجرّب، لكن تحميله متوقف حتى يُستضاف على خادم دائم ويُتحقّق من حجمه وبصمته. يمكنك التثبيت الآن من نظام Linux موجود عبر المثبّت أعلاه.",
+        isoUnavailable: "يُتاح تحميل ISO بعد التحقق من توقيعه وبصمته ورابطه العام. راجع دليل التثبيت لمعرفة الخيارات المتاحة لنسختك.",
         isoSoon: "قريباً",
         isoBody: "ISO لنسخة المكتب x86-64 على أجهزة Intel وAMD مع UEFI، اجتاز الإقلاع والتثبيت دون شبكة. تحقّق من SHA-256 والتوقيع قبل الكتابة على USB. يُنصح بـ16 GB RAM ومعالج 4 أنوية وSSD 256 GB؛ هذه توصيات وليست ضماناً لكل الأجهزة.",
         checksum: "SHA-256 الرسمي",
@@ -284,16 +283,15 @@ export function MoosV3({ locale, release, staticDownloadOrigin, showAppDirectory
         dark: "Dark",
         downloadKicker: "Download",
         downloadTitle: "Pick your edition.",
-        downloadBody: "The official installer verifies the release signature before installing and pins your current system so rollback always works.",
-        download: "Download installer",
-        orCommand: "or one command",
+        downloadBody: "For a new desktop installation, use the verified ISO or consult the guide for your edition. Update an existing MoOS computer in System Settings → Updates.",
+        download: "Installation options",
         recommended: "Recommended",
         copy: "Copy",
         copied: "Copied",
         verifyTitle: "Verify it yourself",
         verifyBody: "Every release is signed — confirm the image really came from MoOS before installing:",
         isoTitle: "Bootable USB image",
-        isoUnavailable: "The boot-tested ISO is ready, but downloads stay off until it is rehosted on permanent storage and its size and checksum are verified. You can install today from an existing Linux system with the installer above.",
+        isoUnavailable: "The ISO download is enabled after its signature, checksum and public link are verified. Consult the installation guide for the available options for your edition.",
         isoSoon: "Coming soon",
         isoBody: "An x86-64 desktop ISO for Intel/AMD UEFI PCs, proven through boot and offline installation. Verify its SHA-256 and signature before writing the USB. Recommended: 16 GB RAM, 4 CPU cores and a 256 GB SSD; these are sizing recommendations, not universal hardware guarantees.",
         checksum: "Official SHA-256",
@@ -314,20 +312,12 @@ export function MoosV3({ locale, release, staticDownloadOrigin, showAppDirectory
 
   // Download links stay plain <a>: a next/link would prefetch the download API and
   // inflate the counter without a real click.
-  const installerHref = (id: string) => {
-    const installer = editions.find((edition) => edition.id === id)?.installer;
-    return staticDownloadOrigin && installer ? new URL(installer, staticDownloadOrigin).href : `/api/os/download?type=${id}`;
-  };
+  const installationGuide = (id: string) => `${staticDownloadOrigin ?? ""}/downloads/moos/installation.html#${id}`;
   const isoHref = staticDownloadOrigin && release?.iso.url ? release.iso.url : "/api/os/download?type=iso";
   const signatureHref = staticDownloadOrigin ? release?.iso.signatureUrl : `${isoHref}&asset=signature`;
   const checksumHref = staticDownloadOrigin ? release?.iso.checksumUrl : `${isoHref}&asset=checksum`;
-  const editionCommand = (edition: MoosEdition) =>
-    edition.id === "cloud"
-      ? `sudo dnf install -y system-reinstall-bootc && sudo system-reinstall-bootc ${edition.image}`
-      : `sudo bootc switch ${edition.image} && sudo systemctl reboot`;
   const editionIcon = (id: string) => (id === "cloud" ? Cloud : id === "nvidia" ? Cpu : Monitor);
-  // Without a downloadable ISO the primary action is the signed installer — never a
-  // button labelled as an ISO download.
+  // Only the qualified generic desktop ISO is advertised as a downloadable ISO.
   const primaryHref = isoReady ? isoHref : "#download";
   const primaryLabel = isoReady ? t.ctaIso : t.ctaInstaller;
 
@@ -668,19 +658,17 @@ export function MoosV3({ locale, release, staticDownloadOrigin, showAppDirectory
                       <Download size={16} aria-hidden />
                       {t.download}
                     </span>
-                  ) : edition.installer ? (
-                    <a href={installerHref(edition.id)} className={`st-btn ${edition.recommended ? "st-btn--primary" : "st-btn--ghost"}`}>
+                  ) : edition.id === "desktop" && isoReady ? (
+                    <a href={isoHref} className={`st-btn ${edition.recommended ? "st-btn--primary" : "st-btn--ghost"}`}>
                       <Download size={16} aria-hidden />
-                      {t.download}
+                      {t.ctaIso}
                     </a>
-                  ) : edition.guideUrl ? (
-                    <a href={edition.guideUrl} className="st-btn st-btn--ghost">
+                  ) : (
+                    <a href={installationGuide(edition.id)} className="st-btn st-btn--ghost">
                       <ArrowUpRight size={16} aria-hidden />
                       {t.guide}
                     </a>
-                  ) : null}
-                  <span className="mo3-or">{t.orCommand}</span>
-                  <MoosCopyLine command={editionCommand(edition)} copyLabel={t.copy} copiedLabel={t.copied} />
+                  )}
                 </article>
               );
             })}

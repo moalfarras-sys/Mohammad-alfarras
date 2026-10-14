@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MoOS — التثبيت / Installation</title>
+<style>
+  :root { color-scheme: dark; font: 17px/1.8 system-ui, sans-serif; background: #0d1622; color: #eaf3f8; }
+  body { max-width: 820px; margin: auto; padding: 24px; }
+  a { color: #7de6d7; text-underline-offset: .2em; overflow-wrap: anywhere; }
+  a:focus-visible { outline: 3px solid #7de6d7; outline-offset: 4px; }
+  header, section { margin-block: 20px; padding: 22px; background: #172737; border: 1px solid #38505c; border-radius: 20px; }
+  h1, h2 { line-height: 1.4; }
+  nav { display: flex; flex-wrap: wrap; gap: 16px; }
+  code { direction: ltr; display: inline-block; padding: 2px 10px; border-radius: 8px; background: #0d1622; }
+  [lang="en"] { direction: ltr; text-align: left; }
+  .skip { display: inline-block; margin-block: 4px; }
+  @media (max-width: 480px) { body { padding: 12px; } header, section { padding: 16px; } }
+</style>
+<a class="skip" href="#main">تخطّ إلى المحتوى / Skip to content</a>
+<header>
+  <a href="/ar/">MoOS</a>
+  <h1>من التنزيل إلى جهازك</h1>
+  <p lang="en">Install MoOS on your computer</p>
+  <nav aria-label="أقسام دليل التثبيت">
+    <a href="#desktop">المكتب / Desktop</a>
+    <a href="#nvidia">NVIDIA</a>
+    <a href="#cloud">Cloud</a>
+    <a href="#arm">ARM</a>
+    <a href="#update">التحديث / Updates</a>
+  </nav>
+</header>
+<main id="main" tabindex="-1">
+  <section id="desktop">
+    <h2>MoOS للمكتب · Intel / AMD</h2>
+    <p>افتح <a href="/ar/#download">صفحة التنزيل</a> للحصول على ISO المتحقق منه وملف توقيعه وبصمة SHA-256. قارِن البصمة وتحقق من التوقيع قبل كتابة الملف على USB. احتفظ بنسخة احتياطية لملفاتك، ثم أقلع من USB بوضع UEFI وراجع القرص المستهدف داخل المثبّت قبل تأكيد التثبيت.</p>
+    <p lang="en">Get the qualified ISO, detached signature and SHA-256 from the <a href="/en/#download">download page</a>. Verify the checksum and signature before writing the USB. Back up your files, boot the USB in UEFI mode and review the target disk in the installer before confirming installation.</p>
+    <p>هذا الملف لنسخة المكتب x86-64؛ ليس ISO لنسخ NVIDIA أو Cloud أو ARM.</p>
+    <p lang="en">This is the generic x86-64 desktop ISO. It is not an NVIDIA, Cloud or ARM ISO.</p>
+  </section>
+  <section id="nvidia">
+    <h2>MoOS · NVIDIA</h2>
+    <p>نسخة NVIDIA صورة نظام موقّعة مستقلة. على جهاز MoOS NVIDIA مثبت، استخدم التحديثات أدناه. مسار التثبيت الأول أو التحويل من نظام آخر يحتاج دليلًا وتأهيلًا منفصلين؛ لا تعتبر ISO المكتب مثبّت NVIDIA ولا تستخدم سكربت التحويل القديم.</p>
+    <p lang="en">NVIDIA is a separate signed system image. Update an existing MoOS NVIDIA installation through the updater below. First installation or migration from another OS needs a separately qualified guide; the desktop ISO is not an NVIDIA installer. The retired conversion script does not install it.</p>
+  </section>
+  <section id="cloud">
+    <h2>MoOS Cloud</h2>
+    <p>Cloud صورة x86-64 موقّعة مستقلة. تحديث محطة MoOS Cloud مثبتة يتم بأداة MoOS أدناه. تحويل خادم موجود يحتاج إثبات حفظ الوصول الإداري وسياسة التوقيع والتراجع؛ سكربت التحويل القديم متوقف، ولا يعدّل الخادم.</p>
+    <p lang="en">Cloud is a separate signed x86-64 image. Use the updater below on an existing MoOS Cloud machine. Migrating an existing server requires proof of retained administrative access, signature policy and rollback. The retired conversion script is disabled and changes nothing.</p>
+  </section>
+  <section id="arm">
+    <h2>MoOS ARM64</h2>
+    <p>ARM يستخدم صور QCOW2/UTM مستقلة. راجع <a href="https://github.com/moalfarras-sys/moos-image/blob/main/docs/MOOS_ARM_ORACLE.md">دليل ARM وOracle</a> وحدود الأجهزة المدعومة. ISO المكتب x86-64 لا يقلع على ARM.</p>
+    <p lang="en">ARM uses separate QCOW2/UTM images. Read the <a href="https://github.com/moalfarras-sys/moos-image/blob/main/docs/MOOS_ARM_ORACLE.md">ARM and Oracle guide</a> and its supported hardware limits. The x86-64 desktop ISO does not boot on ARM.</p>
+  </section>
+  <section id="update">
+    <h2>تحديث MoOS المثبت</h2>
+    <p>افتح إعدادات النظام ← التحديثات، أو شغّل <code>moai-do update</code> في الطرفية. الأداة تجهّز الصورة الرسمية الموقّعة لنسختك. احفظ عملك ثم أعد التشغيل من واجهة الطاقة في MoOS لتطبيقها؛ تبقى النسخة السابقة للتراجع.</p>
+    <p lang="en">Open System Settings → Updates, or run <code>moai-do update</code> in your terminal. The updater stages the official signed image for your edition. Save your work and restart through the MoOS power interface to apply it; the previous deployment remains available for rollback.</p>
+  </section>
+</main>
+</html>

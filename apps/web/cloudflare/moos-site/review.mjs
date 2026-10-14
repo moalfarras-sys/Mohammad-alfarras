@@ -38,12 +38,16 @@ try {
       imageCount: document.images.length,
       fontStatus: document.fonts.status,
       downloadLinks: [...document.querySelectorAll('a[href]')].map((a) => a.href).filter((url) => url.includes('moos-offline.iso')),
+      commands: [...document.querySelectorAll('code')].map((code) => code.textContent),
+      installationLinks: [...document.querySelectorAll('a[href]')].map((a) => a.href).filter((url) => url.includes('/downloads/moos/installation.html#')),
     }));
     const unexpected = requests.filter((url) => ![origin.hostname, 'i.ytimg.com'].includes(new URL(url).hostname));
     if (state.lang !== locale || state.dir !== (locale === 'ar' ? 'rtl' : 'ltr') || state.contentWidth > width || state.missingImages.length || errors.length || failures.length || unexpected.length) {
       throw new Error(JSON.stringify({ locale, width, state, errors, failures, unexpected }));
     }
     if (!state.downloadLinks.some((url) => url.endsWith('.iso')) || !state.downloadLinks.some((url) => url.endsWith('.sig')) || !state.downloadLinks.some((url) => url.endsWith('.sha256'))) throw new Error('Missing direct verification downloads');
+    if (state.commands.some((command) => /bootc switch|system-reinstall-bootc/.test(command)) ||
+        !['nvidia', 'cloud', 'arm'].every((id) => state.installationLinks.some((url) => url.endsWith(`#${id}`)))) throw new Error('Unqualified conversion command or missing edition guidance');
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: path.join(directory, `${locale}-${width}.png`), fullPage: width === 390 });
     await page.keyboard.press('Tab');
@@ -61,6 +65,20 @@ try {
   await page.waitForLoadState('networkidle');
   if (await page.locator('html').getAttribute('lang') !== 'en' || errors.length) throw new Error('Language switch failed');
   await context.close();
+  const guideContext = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  const guide = await guideContext.newPage();
+  const guideErrors = [];
+  guide.on('pageerror', (error) => guideErrors.push(error.message));
+  const guideResponse = await guide.goto(`${base}/downloads/moos/installation.html#nvidia`);
+  const guideState = await guide.evaluate(() => ({
+    width: innerWidth, contentWidth: document.documentElement.scrollWidth,
+    sections: ['desktop', 'nvidia', 'cloud', 'arm', 'update'].every((id) => !!document.getElementById(id)),
+    english: document.querySelectorAll('[lang="en"]').length,
+    update: [...document.querySelectorAll('code')].some((code) => code.textContent === 'moai-do update'),
+  }));
+  if (guideResponse.status() !== 200 || guideState.contentWidth > guideState.width || !guideState.sections || guideState.english < 5 || !guideState.update || guideErrors.length) throw new Error('Bilingual installation guide failed');
+  await guide.screenshot({ path: path.join(directory, 'installation-390.png'), fullPage: true });
+  await guideContext.close();
   // Actual Worker policy, response headers and immutable script bytes.
   const head = await fetch(`${base}/api/os/download?type=iso`, { method: 'HEAD', redirect: 'manual' });
   const signature = await fetch(`${base}/api/os/download?type=iso&asset=signature`, { redirect: 'manual' });
@@ -71,7 +89,7 @@ try {
   if (head.status !== 307 || !head.headers.get('location')?.endsWith('moos-offline.iso') || signature.status !== 307 || !signature.headers.get('location')?.endsWith('.sig') || unknown.status !== 400 || post.status !== 405 || script.status !== 200 || !Buffer.from(await script.arrayBuffer()).equals(local)) throw new Error('Actual Worker/script contract failed');
   const receipt = { checkedAt: new Date().toISOString(), base, results, languageClick: true,
     workerHead: head.status, signatureRedirect: signature.status, unknown: unknown.status, post: post.status,
-    scriptBytesMatch: true, noVercelRequests: true, scope: 'Actual Chromium on the independent static assets and local/real Worker; not other projects or a complete YouTube playback test.' };
+    scriptBytesMatch: true, noVercelRequests: true, installationGuide: guideState, scope: 'Actual Chromium on the independent static assets and local/real Worker; not other projects, real OS installation or a complete YouTube playback test.' };
   await writeFile(path.join(directory, 'receipt.json'), JSON.stringify(receipt, null, 2));
   console.log(JSON.stringify({ checkedAt: receipt.checkedAt, base, views: results.length, noVercelRequests: true, languageClick: true, workerAndScript: 'PASS' }));
 } finally { await browser.close(); }

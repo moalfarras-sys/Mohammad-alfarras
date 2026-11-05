@@ -29,6 +29,6 @@ npm run dist:windows
 For a packaged smoke test after `dist:windows`:
 
 ```powershell
-npm --prefix apps/moplayer-pro-windows run smoke
+npm --prefix apps/moplayer-pro-windows run smoke -- --packaged
 ```
 

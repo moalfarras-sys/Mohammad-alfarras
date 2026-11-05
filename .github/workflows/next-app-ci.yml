@@ -29,7 +29,8 @@ on:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    # Playwright 1.58 in this lockfile predates the ubuntu-latest 26.04 image.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:

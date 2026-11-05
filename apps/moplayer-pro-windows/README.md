@@ -11,6 +11,7 @@ npm run verify:windows
 npm run dist:windows
 npm --prefix apps/moplayer-pro-windows run prepare:installer-art
 npm --prefix apps/moplayer-pro-windows run smoke
+npm --prefix apps/moplayer-pro-windows run smoke -- --packaged
 npm --prefix apps/moplayer-pro-windows run qa:screens
 npm --prefix apps/moplayer-pro-windows run qa:stream-proxy
 ```
@@ -72,23 +73,17 @@ MoPlayer Pro does not provide, host, sell, or distribute any media content. User
 
 ## Installer Art
 
-`scripts/prepare-installer-art.mjs` regenerates the NSIS sidebar, header, preview PNGs, and bilingual license file from the MoPlayer Pro assets:
+The NSIS installer uses native welcome and finish pages configured in
+`build/installer.nsh`, with the repository icon and license. The optional
+`scripts/prepare-installer-art.mjs` command creates `build/install-splash.gif`
+and `build/install-splash-preview.png` from the repository logo and an SVG
+background; these previews are not NSIS sidebar/header or license generators.
+No developer-specific file path is required.
 
-- `build/installerSidebar.bmp`
-- `build/installerHeader.bmp`
-- `build/installerSidebar-preview.png`
-- `build/installerHeader-preview.png`
-- `build/license.txt`
-
-The assisted installer also includes `build/installer.nsh`, which replaces the old white NSIS welcome/license/finish flow with custom dark MoPlayer pages:
-
-- premium welcome page using MoPlayer colors;
-- required private-media usage confirmation;
-- branded finish page with an optional launch checkbox.
-
-The default NSIS license page is intentionally disabled in `package.json`; the app uses the custom legal page instead. The install-directory chooser is also disabled so users do not see a mismatched legacy setup page during the normal flow.
-
-Run it before `npm run dist:windows` if the icon, banner, or installer wording changes.
+`smoke` checks the locally built source app. On Windows, `smoke -- --packaged`
+requires `release/win-unpacked/MoPlayer PC.exe` from `dist:windows` and tests
+that exact executable. Success requires React hydration, local state loading,
+and the preload IPC handshake. CI uses the packaged mode.
 
 ## Local QA Notes
 

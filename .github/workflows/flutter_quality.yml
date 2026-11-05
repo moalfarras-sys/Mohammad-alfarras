@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "apps/MoPlayer iphone ios/**"
+      - "scripts/verify-flutter.mjs"
       - ".github/workflows/flutter_quality.yml"
   push:
     branches:
@@ -12,6 +13,7 @@ on:
       - "fix/**"
     paths:
       - "apps/MoPlayer iphone ios/**"
+      - "scripts/verify-flutter.mjs"
       - ".github/workflows/flutter_quality.yml"
   workflow_dispatch:
 
@@ -31,6 +33,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: "3.47.4"
           cache: true
 
       - name: Flutter version

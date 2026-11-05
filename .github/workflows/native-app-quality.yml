@@ -1,0 +1,75 @@
+name: Native App Quality
+
+on:
+  pull_request:
+    paths:
+      - "apps/moplayer-android/**"
+      - "apps/moplayer-pro-android/**"
+      - "apps/moplayer-pro-windows/**"
+      - "scripts/run-gradle.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".gitattributes"
+      - ".github/workflows/native-app-quality.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/moplayer-android/**"
+      - "apps/moplayer-pro-android/**"
+      - "apps/moplayer-pro-windows/**"
+      - "scripts/run-gradle.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".gitattributes"
+      - ".github/workflows/native-app-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [classic, pro]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+      - name: Install compile SDK and build tools
+        run: sdkmanager 'platforms;android-36' 'build-tools;35.0.0' 'build-tools;36.0.0'
+      - name: Android unit tests
+        run: npm run verify:android:${{ matrix.product }}
+
+  desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run verify:windows
+      - name: HLS rewriting and seekable stream proxy
+        run: npm --prefix apps/moplayer-pro-windows run qa:stream-proxy
+      - name: Build Windows installers
+        if: runner.os == 'Windows'
+        run: npm run dist:windows
+      - name: Desktop startup smoke
+        if: runner.os == 'Windows'
+        run: npm --prefix apps/moplayer-pro-windows run smoke

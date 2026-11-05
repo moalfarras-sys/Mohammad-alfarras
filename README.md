@@ -1,5 +1,7 @@
 # Moalfarras Space
 
+Current operational state: [Project Status](PROJECT_STATUS.md) and [November production audit](docs/_audit/PRODUCTION_AUDIT_2026-11-05.md).
+
 Production monorepo for:
 
 - Public website: `https://moalfarras.space`

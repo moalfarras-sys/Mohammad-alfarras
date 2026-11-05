@@ -3,7 +3,7 @@ import { Pool, type QueryResultRow } from "pg";
 let pool: Pool | null = null;
 
 function getDatabaseUrl() {
-  const url = process.env.DIRECT_URL || process.env.DATABASE_URL;
+  const url = process.env.DATABASE_URL || process.env.DIRECT_URL;
   if (!url) {
     throw new Error("Missing DIRECT_URL or DATABASE_URL");
   }
@@ -16,10 +16,17 @@ export function hasDatabaseUrl() {
 
 function getPool() {
   if (!pool) {
+    const connection = new URL(getDatabaseUrl());
+    // pg's URL sslmode parsing overrides the explicit CA object. Always verify
+    // the server with the configured CA (or the platform's trusted roots).
+    connection.searchParams.delete("sslmode");
+    const ca = process.env.DATABASE_SSL_CA?.replace(/\\n/g, "\n");
     pool = new Pool({
-      connectionString: getDatabaseUrl(),
-      ssl: { rejectUnauthorized: false },
+      connectionString: connection.toString(),
+      ssl: { rejectUnauthorized: true, ...(ca ? { ca } : {}) },
       max: 5,
+      connectionTimeoutMillis: 10_000,
+      idleTimeoutMillis: 30_000,
     });
   }
   return pool;

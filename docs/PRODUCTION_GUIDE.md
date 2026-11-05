@@ -38,17 +38,18 @@ All create, confirm, status, source-send, source-pull, and queue reads must filt
 
 ## Supabase
 
-Project ref:
+Do not infer the active database from this guide's historical project references.
+`ckefrnalgnbuaxsuufyx` is the original `moplayer` project, restored and verified
+healthy on 2026-11-05. Web/admin use this project and a transaction pooler via
+`DATABASE_URL`, with `DATABASE_SSL_CA` from the official Supabase dashboard CA.
+The older October reference `xoogchspxkzojhdvlxpf` is not the current repaired
+configuration. Verify migration history before applying SQL. Current results live in
+[the production audit](_audit/PRODUCTION_AUDIT_2026-11-05.md).
 
-```text
-ckefrnalgnbuaxsuufyx
-```
-
-Required migrations are in `supabase/migrations`. Production is expected to include migrations through:
-
-```text
-20260524033521_widget_provider_secret_storage.sql
-```
+The repository's ordered migrations continue through
+`20261105213300_repair_unavailable_project_preview.sql`; file presence does not prove
+that a migration is applied in production. Never replay the full migration
+history blindly against an unrelated or populated database.
 
 Use the Supabase service key only in server-side environments and local ignored files. Do not commit it.
 

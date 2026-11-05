@@ -1,4 +1,4 @@
-﻿name: Next App CI
+name: Next App CI
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
             run-lint: true
           - app: admin
             prefix: apps/admin
-            run-tests: false
+            run-tests: true
             run-lint: true
           - app: moplayer-dashboard
             prefix: apps/moplayer-dashboard
@@ -80,3 +80,11 @@ jobs:
 
       - name: Build
         run: npm --prefix ${{ matrix.prefix }} run build
+
+      - name: Install browser for public journeys
+        if: matrix.app == 'web'
+        run: npm --prefix apps/web exec -- playwright install --with-deps chromium
+
+      - name: Desktop and mobile browser journeys
+        if: matrix.app == 'web'
+        run: npm --prefix apps/web run test:e2e -- --workers=2

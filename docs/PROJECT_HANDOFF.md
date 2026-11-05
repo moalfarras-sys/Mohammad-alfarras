@@ -1,5 +1,9 @@
 # Project Handoff
 
+## 2026-11-05 monorepo and deployment audit
+
+[Current audit](_audit/PRODUCTION_AUDIT_2026-11-05.md) supersedes the operational status in older entries below. Android verification now works on POSIX and Windows; web/admin security dependencies, activation storage errors, one-time source delivery, product QR replacement, request limits and admin session checks have been repaired. Historical release and emulator notes below remain historical evidence, not tests repeated in this audit.
+
 ## 2026-10-14 MoOS installation safety
 
 The maintained MoOS page uses the qualified desktop ISO and bilingual

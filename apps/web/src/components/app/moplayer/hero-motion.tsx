@@ -22,20 +22,14 @@ export function ParallaxLayer({
   const reduce = useReducedMotion();
   const { scrollY } = useScroll();
   const smooth = useSpring(scrollY, { stiffness: 120, damping: 28, mass: 0.4 });
-  const y = useTransform(smooth, [0, 700], [0, -42 * depth]);
-  const rotateX = useTransform(smooth, [0, 700], [0, 5]);
+  const y = useTransform(smooth, [0, 700], reduce ? [0, 0] : [0, -42 * depth]);
+  const rotateX = useTransform(smooth, [0, 700], reduce ? [0, 0] : [0, 5]);
 
-  if (reduce) return <div className={className}>{children}</div>;
-
+  // Keep the same wrappers and initial transform on the server and client.
+  // The server cannot know the viewer's reduced-motion preference.
   return (
     <motion.div className={className} style={{ y, rotateX: depth === 1 ? rotateX : 0, transformPerspective: 1400 }}>
-      <motion.div
-        initial={{ y: 18 * depth, scale: 0.985 }}
-        animate={{ y: 0, scale: 1 }}
-        transition={{ type: "spring", stiffness: 70, damping: 18, mass: 0.8 }}
-      >
-        {children}
-      </motion.div>
+      <div>{children}</div>
     </motion.div>
   );
 }

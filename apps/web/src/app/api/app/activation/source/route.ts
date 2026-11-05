@@ -6,6 +6,7 @@ import {
   deleteDeviceSettings,
   getActivationRequest,
   readDeviceSetting,
+  replaceDeviceSettingIfUnchanged,
   secondsUntil,
   writeDeviceSetting,
 } from "@/lib/activation-store";
@@ -214,10 +215,11 @@ export async function GET(request: Request) {
 
   const receipt = fetchedProviderSourceReceipt(queue);
   try {
-    await writeDeviceSetting(key, receipt, {
+    const claimed = await replaceDeviceSettingIfUnchanged(key, queue, receipt, {
       ttlSeconds: secondsUntil(receipt.expiresAt, 15 * 60),
       description: "Short-lived provider source delivery receipt. Sensitive source payload is removed after first fetch.",
     });
+    if (!claimed) return json({ status: "empty" });
   } catch {
     return json({ status: "error", message: "Could not clear pending source after fetch." }, { status: 500 });
   }

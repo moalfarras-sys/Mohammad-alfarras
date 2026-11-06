@@ -93,3 +93,8 @@ executed inside a verified-TLS Postgres transaction, read back with all three
 expected sizes, then rolled back. Prior Pro release/assets/config rows are
 backed up privately. Config merges preserve unrelated runtime/update fields.
 The old published APKs and release rows are retained for rollback.
+
+Remote TV CI exposed a boot race in the emulator action: sys.boot_completed was
+1 before `input keyevent 82` was accepted, aborting before Gradle ran. Replaced
+the action boot wrapper with a bounded script that waits for boot, package manager
+and input readiness, retains logs, and always cleans up its own emulator.

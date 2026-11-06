@@ -7,6 +7,7 @@ on:
       - "apps/moplayer-pro-android/**"
       - "apps/moplayer-pro-windows/**"
       - "scripts/run-gradle.mjs"
+      - "scripts/android-device-qa.sh"
       - "package.json"
       - "package-lock.json"
       - ".gitattributes"
@@ -18,6 +19,7 @@ on:
       - "apps/moplayer-pro-android/**"
       - "apps/moplayer-pro-windows/**"
       - "scripts/run-gradle.mjs"
+      - "scripts/android-device-qa.sh"
       - "package.json"
       - "package-lock.json"
       - ".gitattributes"
@@ -62,8 +64,10 @@ jobs:
         include:
           - api: 29
             target: google_apis
+            device: pixel_2
           - api: 36
             target: android-tv
+            device: tv_1080p
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -84,20 +88,15 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Verify Pro on Android
-        uses: reactivecircus/android-emulator-runner@c9c93e6ba9c4194322e114c40970d5983d9a07cc # v2.38.0
-        with:
-          api-level: ${{ matrix.api }}
-          target: ${{ matrix.target }}
-          arch: x86_64
-          disable-animations: true
-          emulator-options: -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: node scripts/run-gradle.mjs pro connectedDebugAndroidTest
+        run: bash scripts/android-device-qa.sh "${{ matrix.api }}" "${{ matrix.target }}" "${{ matrix.device }}"
       - name: Upload device test reports
         if: always()
         uses: actions/upload-artifact@v6
         with:
           name: pro-device-api-${{ matrix.api }}
-          path: apps/moplayer-pro-android/app/build/reports/androidTests/connected/
+          path: |
+            apps/moplayer-pro-android/app/build/reports/androidTests/connected/
+            ${{ runner.temp }}/pro-emulator-${{ matrix.api }}.log
 
   desktop:
     runs-on: ${{ matrix.os }}

@@ -93,3 +93,13 @@ before limiting and preserve dedicated full catalogs. TV Home has no leading
 Smart picks shelf, so update restoration offsets if its leading items change.
 
 Prepare FFmpeg native availability on IO before creating the main-thread Media3 engine. Keep the asynchronous Compose owner lifecycle tested; native preparation must not create a player after disposal.
+
+
+## Catalog freshness and series resume
+
+Keep foreground age checks separate from actual download TTLs. Check again after
+long-running sessions, but respect source identity, busy jobs, playback and failure
+backoff. Resolve series episode keys with the same seriesId-or-id fallback as the
+repository. Continue watching selects one latest played episode per source/series
+before paging and must never delete older progress to hide duplicate cards. Run
+Room and local HTTP refresh integration tests after changing catalog queries.

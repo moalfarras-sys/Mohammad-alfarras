@@ -88,4 +88,12 @@ class SearchTextTest {
         assertEquals(emptyList<String>(), SearchText.splitLetterDigitRuns("sports"))
         assertEquals(emptyList<String>(), SearchText.splitLetterDigitRuns("2024"))
     }
+    @Test fun channelQueriesMatchSpacedAndGluedNumbersAndArabicNetworkNames() {
+        assertEquals(listOf("mbc", "2"), SearchText.queryTokens("MBC2"))
+        assertEquals(listOf("mbc", "2"), SearchText.queryTokens("إم بي سي ٢"))
+        assertEquals(listOf("bein", "sports", "1"), SearchText.queryTokens("بي إن سبورت ١"))
+        assertEquals(listOf("s", "01", "e", "02"), SearchText.queryTokens("S01E02"))
+        assertEquals("بين البحرين", SearchText.canonicalQuery("بين البحرين"))
+    }
+
 }

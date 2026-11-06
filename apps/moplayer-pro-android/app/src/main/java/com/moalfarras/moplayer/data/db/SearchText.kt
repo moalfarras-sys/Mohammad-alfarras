@@ -61,12 +61,26 @@ object SearchText {
         return if (extras.isEmpty()) base else base + " " + extras.joinToString(" ")
     }
 
+    /** Query-only network spellings; does not change stored titles or require an FTS rebuild. */
+    fun canonicalQuery(query: String): String {
+        val normalized = normalize(query)
+        val aliases = listOf(
+            "بي ان سبورتس" to "bein sports", "بي ان سبورت" to "bein sports",
+            "بي ان" to "bein", "ام بي سي" to "mbc",
+            "be in sports" to "bein sports", "be in" to "bein",
+        )
+        aliases.firstOrNull { (alias, _) -> normalized == alias || normalized.startsWith("$alias ") }
+            ?.let { (alias, canonical) -> return canonical + normalized.removePrefix(alias) }
+        return normalized
+    }
+
     /**
      * Query tokens for FTS prefix matching. Article-stripped so "الجزيرة" and "جزيرة" find the same
      * channels (both forms are indexed); duplicates removed; capped to keep MATCH cheap.
      */
     fun queryTokens(query: String): List<String> =
-        tokens(normalize(query))
+        tokens(canonicalQuery(query))
+            .flatMap { token -> splitLetterDigitRuns(token).ifEmpty { listOf(token) } }
             .map { stripArabicArticle(it) ?: it }
             .distinct()
             .take(MAX_QUERY_TOKENS)

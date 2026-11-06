@@ -220,4 +220,23 @@ class MainPoliciesTest {
         assertEquals(EnAppStrings.activationServiceUnavailable, activationServiceMessage(IOException("dns"), EnAppStrings))
         assertEquals(EnAppStrings.activationCreateFailed, activationServiceMessage(IllegalStateException("no code"), EnAppStrings))
     }
+    @Test fun libraryProbeRechecksLongSessionsWithoutFloodingOrInterruptingPlayback() {
+        assertTrue(shouldCheckLibraryRefresh("a", "", 0, 100, false, false))
+        assertFalse(shouldCheckLibraryRefresh("a", "a", 100, 101, false, false))
+        assertTrue(shouldCheckLibraryRefresh("a", "a", 100, 300_100, false, false))
+        assertTrue(shouldCheckLibraryRefresh("b", "a", 100, 101, false, false))
+        assertFalse(shouldCheckLibraryRefresh("a", "a", 100, 300_100, true, false))
+        assertFalse(shouldCheckLibraryRefresh("a", "a", 100, 300_100, false, true))
+        assertTrue(shouldCheckLibraryRefresh("a", "a", 100, 10, false, false))
+    }
+
+    @Test fun seriesEpisodeKeyMatchesDetailsFetchFallbackAndSeparatesSources() {
+        val series = channel().copy(id = "series-id", serverId = 12, type = ContentType.SERIES, seriesId = "")
+        assertEquals(12L to "series-id", seriesEpisodeKey(series))
+        assertEquals(12L to "provider-id", seriesEpisodeKey(series.copy(seriesId = "provider-id")))
+        assertEquals(13L to "series-id", seriesEpisodeKey(series.copy(serverId = 13)))
+        assertEquals(null, seriesEpisodeKey(null))
+        assertEquals(null, seriesEpisodeKey(series.copy(id = "")))
+    }
+
 }

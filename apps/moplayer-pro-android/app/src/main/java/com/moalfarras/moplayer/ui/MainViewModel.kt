@@ -225,6 +225,8 @@ class MainViewModel(
     @Volatile private var trailerPreviewCapable = false
     private var startupHandled = false
     private var startupRefreshKey = ""
+    private var lastLibraryRefreshCheckAt = 0L
+    private var openSeriesRefreshJob: Job? = null
     private var lastFocusUpdateAt = 0L
     private var lastFocusKey = ""
     private var lastPersistedNavigationKey = ""
@@ -495,9 +497,7 @@ class MainViewModel(
 
     val seriesEpisodes: kotlinx.coroutines.flow.Flow<List<MediaItem>> = uiState
         .map { state ->
-            state.seriesDetail
-                ?.takeIf { it.seriesId.isNotBlank() }
-                ?.let { it.serverId to it.seriesId }
+            seriesEpisodeKey(state.seriesDetail)
         }
         .distinctUntilChanged()
         .flatMapLatest { key ->
@@ -1593,12 +1593,15 @@ class MainViewModel(
      */
     private fun maybeStartStartupRefresh(server: ServerProfile) {
         val key = server.sourceKey.ifBlank { server.id.toString() }
-        if (key.isBlank() || key == startupRefreshKey) return
+        val now = SystemClock.elapsedRealtime()
+        if (!shouldCheckLibraryRefresh(key, startupRefreshKey, lastLibraryRefreshCheckAt,
+                now, internal.value.section == AppSection.PLAYER, libraryWorkBusy())) return
+        lastLibraryRefreshCheckAt = now
         startupRefreshKey = key
         startupRefreshJob?.cancel()
         startupRefreshJob = viewModelScope.launch {
             delay(STARTUP_REFRESH_DELAY_MS)
-            if (libraryWorkBusy()) return@launch
+            if (libraryWorkBusy() || internal.value.section == AppSection.PLAYER) return@launch
             val fresh = try {
                 iptv.server(server.id)
             } catch (cancelled: CancellationException) {
@@ -1613,7 +1616,7 @@ class MainViewModel(
             } catch (_: Exception) {
                 fresh.lastSyncAt <= 0
             }
-            if (needsRefresh && !libraryWorkBusy()) startBackgroundLibraryRefresh(fresh)
+            if (needsRefresh && !libraryWorkBusy() && internal.value.section != AppSection.PLAYER) startBackgroundLibraryRefresh(fresh)
         }
     }
 
@@ -2192,11 +2195,35 @@ class MainViewModel(
      * (throttled to [CONFIG_REFRESH_MS]), or right away with [force] (at start).
      */
     fun refreshRemoteConfig(force: Boolean = false) {
+        // Foreground returns/timer must re-check catalog age too; a once-per-process key
+        // left long-running TV sessions dependent solely on delayed periodic OS work.
+        uiState.value.activeServer?.let(::maybeStartStartupRefresh)
+        revalidateOpenSeries()
         if (remoteConfigJob?.isActive == true) return
         val now = android.os.SystemClock.elapsedRealtime()
         if (!force && lastRemoteConfigAttemptAt != 0L && now - lastRemoteConfigAttemptAt < CONFIG_REFRESH_MS) return
         lastRemoteConfigAttemptAt = now
         remoteConfigJob = viewModelScope.launch { applyRemoteRuntimeConfig() }
+    }
+
+    /** Cached episodes remain visible; only the open series is probed, with repository TTL. */
+    private fun revalidateOpenSeries() {
+        val state = internal.value
+        if (state.section != AppSection.SERIES_DETAIL || state.seriesDetailsLoading ||
+            libraryWorkBusy() || openSeriesRefreshJob?.isActive == true) return
+        val series = state.seriesDetail ?: return
+        openSeriesRefreshJob = viewModelScope.launch {
+            try {
+                val server = iptv.server(series.serverId) ?: return@launch
+                if (internal.value.section != AppSection.SERIES_DETAIL ||
+                    !internal.value.seriesDetail.matchesMedia(series)) return@launch
+                iptv.refreshSeriesDetails(server, series)
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                // Opening again/manual library refresh can retry; cached episodes stay playable.
+            }
+        }
     }
 
     /** "Try again" on the maintenance/disabled screen: always answered by a request made after the press. */

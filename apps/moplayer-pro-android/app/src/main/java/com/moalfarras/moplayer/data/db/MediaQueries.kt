@@ -159,7 +159,7 @@ internal object MediaQueries {
      * series and episodes, recently played first, then provider order.
      */
     fun search(serverId: Long, query: String): MediaSql {
-        val normalized = SearchText.normalize(query)
+        val normalized = SearchText.canonicalQuery(query)
         val tokens = SearchText.queryTokens(query)
         if (normalized.isEmpty() || tokens.isEmpty()) {
             return MediaSql("SELECT $ROW_COLUMNS FROM media WHERE 0", emptyList())
@@ -198,7 +198,21 @@ internal object MediaQueries {
             append(" FROM media_search CROSS JOIN media ON media.id = media_search.id")
             append(" AND media.serverId = media_search.serverId AND media.type = media_search.type")
             append(" WHERE media_search.rowid IN (").append(candidates).append(")")
-            append(" ORDER BY CASE WHEN media_search.title LIKE ? ESCAPE '\\' THEN 0")
+            // Numeric boundaries prefer channel 2 over 20/21 while retaining prefix candidates.
+            val numbers = tokens.filter { token -> token.all(Char::isDigit) }
+            if (numbers.isNotEmpty()) {
+                append(" ORDER BY CASE WHEN ")
+                numbers.forEachIndexed { index, number ->
+                    if (index > 0) append(" AND ")
+                    append("(' ' || media_search.searchText || ' ') LIKE ?")
+                    args += "% $number %"
+                }
+                append(" THEN 0 ELSE 1 END,")
+            } else append(" ORDER BY ")
+            append(" CASE WHEN media_search.title = ? OR REPLACE(media_search.title, ' ', '') = ? THEN 0")
+            args += normalized
+            args += normalized.replace(" ", "")
+            append(" WHEN media_search.title LIKE ? ESCAPE '\\' THEN 1")
             args += "$normalized%"
             append(" WHEN ")
             tokens.forEachIndexed { index, token ->
@@ -206,8 +220,9 @@ internal object MediaQueries {
                 append("media_search.title LIKE ? ESCAPE '\\'")
                 args += "%$token%"
             }
-            append(" THEN 1 ELSE 2 END,")
+            append(" THEN 2 ELSE 3 END,")
             append(" CASE media.type WHEN 'LIVE' THEN 0 WHEN 'MOVIE' THEN 1 WHEN 'SERIES' THEN 2 WHEN 'EPISODE' THEN 3 ELSE 4 END,")
+            append(" CASE WHEN media.isFavorite = 1 THEN 0 ELSE 1 END,")
             append(" CASE WHEN media.lastPlayedAt > 0 THEN 0 ELSE 1 END,")
             append(" media.serverId, media.serverOrder, media.rowid")
             append(" LIMIT ").append(SEARCH_RESULT_LIMIT)

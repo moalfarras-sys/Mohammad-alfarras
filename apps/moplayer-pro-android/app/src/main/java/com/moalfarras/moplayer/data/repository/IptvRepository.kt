@@ -98,7 +98,7 @@ private const val BULK_FETCH_ATTEMPTS = 3
 private const val ACCOUNT_FETCH_ATTEMPTS = 2
 private const val BULK_FETCH_BACKOFF_MS = 1_500L
 private const val VOD_DETAIL_STALE_MS = 7L * 24L * 60L * 60L * 1000L
-private const val SERIES_DETAIL_STALE_MS = 6L * 60L * 60L * 1000L
+private const val SERIES_DETAIL_STALE_MS = 15L * 60L * 1000L
 private const val HOUR_MS = 60L * 60L * 1000L
 /** Background syncs skip sections refreshed within this window. */
 private const val BACKGROUND_SECTION_STALE_MS = 3L * HOUR_MS
@@ -130,7 +130,7 @@ enum class SeriesRefreshMode {
     /** Never (focus prefetch: never hit the panel while the user scrolls). */
     IF_EMPTY,
 
-    /** When the cache is older than 6 h or the panel reports a newer last_modified (opening a series). */
+    /** When the cache is older than 15 min or the panel reports a newer last_modified (opening a series). */
     IF_STALE,
 }
 
@@ -355,7 +355,7 @@ class IptvRepository(
 
     /**
      * Loads the seasons and episodes of an Xtream series. Cached episodes are shown right away by
-     * the caller; with [SeriesRefreshMode.IF_STALE] they are revalidated when older than 6 h or
+     * the caller; with [SeriesRefreshMode.IF_STALE] they are revalidated when older than 15 min or
      * when the panel reports a newer `last_modified`, so new episodes of running series appear.
      * A failed or empty revalidation keeps the cache. Favorites and progress of episodes survive.
      */

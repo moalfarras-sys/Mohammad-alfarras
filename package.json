@@ -18,7 +18,7 @@
     "verify:web": "npm --prefix apps/web run typecheck && npm --prefix apps/web run lint && npm --prefix apps/web run build && npm --prefix apps/web test",
     "verify:admin": "npm --prefix apps/admin run typecheck && npm --prefix apps/admin run lint && npm --prefix apps/admin run build && npm --prefix apps/admin test",
     "verify:android:classic": "node scripts/run-gradle.mjs classic testSideloadDebugUnitTest",
-    "verify:android:pro": "node scripts/run-gradle.mjs pro testDebugUnitTest",
+    "verify:android:pro": "node scripts/run-gradle.mjs pro testDebugUnitTest lintDebug",
     "verify:android": "npm run verify:android:classic && npm run verify:android:pro",
     "verify:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run build",
     "verify:windows": "npm --prefix apps/moplayer-pro-windows run typecheck && npm --prefix apps/moplayer-pro-windows run lint && npm --prefix apps/moplayer-pro-windows run build",
@@ -30,11 +30,13 @@
     "typecheck:admin": "npm --prefix apps/admin run typecheck",
     "lint:web": "npm --prefix apps/web run lint",
     "lint:admin": "npm --prefix apps/admin run lint",
-    "dev:web": "npm --prefix apps/web run dev",
-    "dev:admin": "npm --prefix apps/admin run dev",
+    "dev:web": "npm --prefix apps/web run dev -- --hostname 127.0.0.1 --port 3000",
+    "dev:admin": "npm --prefix apps/admin run dev -- --hostname 127.0.0.1 --port 3100",
     "dev:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run dev",
     "dev:windows": "npm --prefix apps/moplayer-pro-windows run dev",
-    "dist:windows": "npm --prefix apps/moplayer-pro-windows run dist"
+    "dist:windows": "npm --prefix apps/moplayer-pro-windows run dist",
+    "doctor": "node scripts/dev/doctor.mjs",
+    "dev": "node scripts/dev/start.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.84.0",

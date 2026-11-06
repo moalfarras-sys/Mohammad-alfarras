@@ -101,7 +101,7 @@ internal enum class ChecksumStatus { MATCH, MISMATCH, MISSING }
 
 /**
  * Compares the advertised SHA-256 with the file's. A blank or malformed advertised value is
- * MISSING (the APK is still checked by package name and version before install).
+ * MISSING and must fail verification; package metadata is not an integrity check.
  */
 internal fun checksumStatus(expected: String, actualHex: String): ChecksumStatus {
     val normalized = expected.trim().lowercase().removePrefix("sha256:").filterNot { it.isWhitespace() }
@@ -109,13 +109,19 @@ internal fun checksumStatus(expected: String, actualHex: String): ChecksumStatus
     return if (normalized == actualHex.lowercase()) ChecksumStatus.MATCH else ChecksumStatus.MISMATCH
 }
 
-/** The APK must be this product (release package, even from a debug build) and newer than what runs. */
+/** Require the exact advertised release, not just any APK newer than the installed app. */
 internal fun archiveIsUpdate(
     packageName: String?,
     versionCode: Long,
     expectedPackage: String,
     currentVersionCode: Int,
-): Boolean = packageName == expectedPackage && versionCode > currentVersionCode
+    advertisedVersionCode: Int,
+): Boolean = packageName == expectedPackage &&
+    isNewerVersion(advertisedVersionCode, currentVersionCode) && versionCode == advertisedVersionCode.toLong()
+
+/** A missing size is allowed for older metadata; a supplied size must be positive and exact. */
+internal fun updateSizeMatches(advertisedBytes: Long?, actualBytes: Long): Boolean =
+    actualBytes > 0 && (advertisedBytes == null || advertisedBytes > 0 && advertisedBytes == actualBytes)
 
 /** How to treat a response to a (possibly ranged) download request. */
 internal enum class ResumeAction { APPEND, RESTART, DISCARD_PARTIAL, FAIL }
@@ -136,7 +142,10 @@ internal fun resumeAction(requestedOffset: Long, responseCode: Int, contentRange
 internal fun parseContentRange(value: String?): Pair<Long, Long?>? {
     val match = CONTENT_RANGE.matchEntire(value?.trim().orEmpty()) ?: return null
     val start = match.groupValues[1].toLongOrNull() ?: return null
-    return start to match.groupValues[3].toLongOrNull()
+    val end = match.groupValues[2].toLongOrNull() ?: return null
+    val total = if (match.groupValues[3] == "*") null else match.groupValues[3].toLongOrNull() ?: return null
+    if (end < start || total != null && end >= total) return null
+    return start to total
 }
 
 private val CONTENT_RANGE = Regex("""bytes\s+(\d+)-(\d+)/(\d+|\*)""", RegexOption.IGNORE_CASE)
@@ -271,7 +280,8 @@ class UpdateRepository(private val context: Context) {
                 val append = action == ResumeAction.APPEND
                 val start = if (append) offset else 0L
                 val bodyLength = response.body.contentLength()
-                // Only the server's own length decides completeness; the config size is display-only.
+                // HTTP length decides whether to resume. Final verification also compares the
+                // downloaded file with the size advertised by the release metadata.
                 val total = when {
                     append -> parseContentRange(response.header("Content-Range"))?.second
                         ?: bodyLength.takeIf { it >= 0 }?.let { it + offset }
@@ -323,20 +333,23 @@ class UpdateRepository(private val context: Context) {
         }
     }
 
-    /** Null when [file] is the advertised, genuine update; otherwise why it must not be installed. */
+    /** Null when [file] matches the advertised release. Android also enforces signing on install. */
     suspend fun verify(file: File, info: AppUpdateInfo): UpdateError? = withContext(Dispatchers.IO) {
+        if (!file.isFile) return@withContext UpdateError.STORAGE
+        if (!updateSizeMatches(info.apkSizeBytes, file.length())) return@withContext UpdateError.INVALID_APK
         val checksum = try {
             checksumStatus(info.checksumSha256, sha256Hex(file))
         } catch (error: IOException) {
             return@withContext UpdateError.STORAGE
         }
-        if (checksum == ChecksumStatus.MISMATCH) return@withContext UpdateError.CHECKSUM
+        if (checksum != ChecksumStatus.MATCH) return@withContext UpdateError.CHECKSUM
         val archive = archivePackageInfo(file) ?: return@withContext UpdateError.INVALID_APK
         val isUpdate = archiveIsUpdate(
             packageName = archive.packageName,
             versionCode = PackageInfoCompat.getLongVersionCode(archive),
             expectedPackage = RELEASE_PACKAGE,
             currentVersionCode = info.currentVersionCode,
+            advertisedVersionCode = info.latestVersionCode,
         )
         if (isUpdate) null else UpdateError.INVALID_APK
     }

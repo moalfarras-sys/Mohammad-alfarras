@@ -85,6 +85,12 @@ Required production values:
 - `NEXT_PUBLIC_WEB_APP_URL=https://moalfarras.space`
 - `NEXT_PUBLIC_ADMIN_APP_URL=https://admin.moalfarras.space`
 
+## Daily development
+
+Run `npm run doctor` to check tool availability without displaying secrets.
+`npm run dev` starts web on port 3000 and admin on port 3100 with local cross-app links.
+See [workstation notes](docs/DEV_ENVIRONMENT_AUDIT_2026-11-06.md).
+
 ## Verification
 
 Run from the repository root:

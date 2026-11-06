@@ -1,5 +1,10 @@
 # Project Handoff
 
+## 2026-11-06 Pro update verification
+
+See [Pro audit](_audit/MOPLAYER_PRO_AUDIT_2026-11-06.md) for 2.7.3 updater integrity, the reproduced Channel 0 repair, connected TV tests, branch handling and publication gates.
+
+
 ## 2026-11-05 monorepo and deployment audit
 
 [Current audit](_audit/PRODUCTION_AUDIT_2026-11-05.md) supersedes the operational status in older entries below. Android verification now works on POSIX and Windows; web/admin security dependencies, activation storage errors, one-time source delivery, product QR replacement, request limits and admin session checks have been repaired. Historical release and emulator notes below remain historical evidence, not tests repeated in this audit.

@@ -38,12 +38,26 @@ class UpdateVerificationTest {
     }
 
     @Test
-    fun downloadedApkMustBeThisProductAndNewer() {
-        assertTrue(archiveIsUpdate("com.moalfarras.moplayerpro", 69, "com.moalfarras.moplayerpro", 68))
-        assertFalse("same build", archiveIsUpdate("com.moalfarras.moplayerpro", 68, "com.moalfarras.moplayerpro", 68))
-        assertFalse("downgrade", archiveIsUpdate("com.moalfarras.moplayerpro", 60, "com.moalfarras.moplayerpro", 68))
-        assertFalse("Classic is not Pro", archiveIsUpdate("com.mo.moplayer", 99, "com.moalfarras.moplayerpro", 68))
-        assertFalse("unparseable APK", archiveIsUpdate(null, 99, "com.moalfarras.moplayerpro", 68))
+    fun downloadedApkMustMatchAdvertisedProductAndVersion() {
+        val pro = "com.moalfarras.moplayerpro"
+        assertTrue(archiveIsUpdate(pro, 69, pro, 68, 69))
+        assertFalse("same build", archiveIsUpdate(pro, 68, pro, 68, 68))
+        assertFalse("downgrade", archiveIsUpdate(pro, 60, pro, 68, 60))
+        assertFalse("Classic is not Pro", archiveIsUpdate("com.mo.moplayer", 99, pro, 68, 99))
+        assertFalse("unparseable APK", archiveIsUpdate(null, 99, pro, 68, 99))
+        assertFalse("wrong newer build", archiveIsUpdate(pro, 70, pro, 68, 69))
+        assertFalse("stale download", archiveIsUpdate(pro, 69, pro, 68, 70))
+    }
+
+    @Test
+    fun fileSizeMustMatchReleaseMetadataWhenSupplied() {
+        assertTrue(updateSizeMatches(1234, 1234))
+        assertTrue(updateSizeMatches(null, 1234))
+        assertFalse("truncated", updateSizeMatches(1234, 1233))
+        assertFalse("oversized", updateSizeMatches(1234, 1235))
+        assertFalse("empty file", updateSizeMatches(null, 0))
+        assertFalse("invalid metadata", updateSizeMatches(0, 1234))
+        assertFalse(updateSizeMatches(-1, 1234))
     }
 
     @Test
@@ -63,5 +77,8 @@ class UpdateVerificationTest {
         assertEquals(1000L to null, parseContentRange("bytes 1000-4999/*"))
         assertNull(parseContentRange("bytes */5000"))
         assertNull(parseContentRange(null))
+        assertNull(parseContentRange("bytes 1000-999/5000"))
+        assertNull(parseContentRange("bytes 1000-5000/5000"))
+        assertNull(parseContentRange("bytes 1000-4999/99999999999999999999999"))
     }
 }

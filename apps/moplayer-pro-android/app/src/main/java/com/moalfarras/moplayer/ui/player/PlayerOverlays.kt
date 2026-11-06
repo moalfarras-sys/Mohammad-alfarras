@@ -125,6 +125,7 @@ internal fun LiveOverlayTab.label(strings: Strings): String = when (this) {
     LiveOverlayTab.FAVORITES -> strings.navFavorites
 }
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 internal fun VideoSizeMode.toResizeMode(): Int = when (this) {
     VideoSizeMode.AUTO, VideoSizeMode.FIT -> AspectRatioFrameLayout.RESIZE_MODE_FIT
     VideoSizeMode.FILL -> AspectRatioFrameLayout.RESIZE_MODE_FILL

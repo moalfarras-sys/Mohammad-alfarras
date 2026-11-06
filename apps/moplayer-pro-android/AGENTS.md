@@ -73,3 +73,7 @@ If player behavior changed, test Media3 startup, LibVLC fallback, live stream er
 - Do not remove Media3/LibVLC fallback protection without replacing it with tested behavior.
 - Do not use Classic `moplayer` slug or package in Pro code.
 - Do not expose Supabase service role keys or provider secrets in the app.
+
+## Device regression gates
+
+`verify:android:pro` includes `lintDebug`. Run `node scripts/run-gradle.mjs pro connectedDebugAndroidTest` for Android-backed persistence, Keystore, updater and Media3 checks. Keep fixtures synthetic and local. Never interpret `serverOrder` as a display channel number without resolving the complete channel list: M3U imports may store zero-based ordering. Release publication must retain the existing signing certificate and publish exact SHA-256/size metadata.

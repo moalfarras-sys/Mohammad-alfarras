@@ -2,9 +2,11 @@ package com.moalfarras.moplayer.data.repository
 
 import com.moalfarras.moplayer.domain.model.DeviceActivationSession
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runCurrent
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -17,9 +19,9 @@ import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
-import java.util.concurrent.CountDownLatch
 import kotlin.random.Random
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ActivationSupportTest {
     /** Random whose jitter factor is exactly 1.0, so delays are the nominal schedule. */
     private val noJitter = object : Random() {
@@ -125,41 +127,62 @@ class ActivationSupportTest {
     }
 
     @Test
-    fun oneTimeRequestAnswerReachesACallerCancelledMeanwhile() = runBlocking {
+    fun oneTimeRequestAnswerReachesACallerCancelledMeanwhile() = runTest {
+        val callerDispatcher = StandardTestDispatcher(testScheduler, name = "caller")
+        val requestDispatcher = StandardTestDispatcher(testScheduler, name = "request")
         val started = CompletableDeferred<Unit>()
-        val release = CountDownLatch(1)
+        val release = CompletableDeferred<Unit>()
+        var requestFinished = false
         var delivered = -1
-        val caller = launch(Dispatchers.Default) {
-            delivered = runToCompletion(Dispatchers.IO) {
+        val caller = launch(callerDispatcher) {
+            delivered = runToCompletion(requestDispatcher) {
                 started.complete(Unit)
                 release.await()
+                requestFinished = true
                 42
             }
         }
-        started.await()
+        // Drain both dispatchers until the request is suspended. A latch on a real IO
+        // worker only signals entry; it does not prove withContext has suspended its caller.
+        runCurrent()
+        assertTrue(started.isCompleted)
+        assertTrue(caller.isActive)
         caller.cancel()
-        release.countDown()
+        release.complete(Unit)
+        runCurrent()
         caller.join()
+        assertTrue(requestFinished)
+        assertTrue(caller.isCancelled)
         assertEquals(42, delivered)
     }
 
     @Test
-    fun singleNonCancellableSwitchStillDropsTheAnswer() = runBlocking {
-        // Documents why runToCompletion nests the dispatcher switch.
+    fun singleNonCancellableSwitchStillDropsTheAnswer() = runTest {
+        // Force the dispatched return path. IO and Default share workers and a real
+        // request may finish before withContext suspends, bypassing that return path.
+        val callerDispatcher = StandardTestDispatcher(testScheduler, name = "caller")
+        val requestDispatcher = StandardTestDispatcher(testScheduler, name = "request")
         val started = CompletableDeferred<Unit>()
-        val release = CountDownLatch(1)
+        val release = CompletableDeferred<Unit>()
+        var requestFinished = false
         var delivered = -1
-        val caller = launch(Dispatchers.Default) {
-            delivered = withContext(kotlinx.coroutines.NonCancellable + Dispatchers.IO) {
+        val caller = launch(callerDispatcher) {
+            delivered = withContext(kotlinx.coroutines.NonCancellable + requestDispatcher) {
                 started.complete(Unit)
                 release.await()
+                requestFinished = true
                 42
             }
         }
-        started.await()
+        runCurrent()
+        assertTrue(started.isCompleted)
+        assertTrue(caller.isActive)
         caller.cancel()
-        release.countDown()
+        release.complete(Unit)
+        runCurrent()
         caller.join()
+        assertTrue(requestFinished)
+        assertTrue(caller.isCancelled)
         assertEquals(-1, delivered)
     }
 }

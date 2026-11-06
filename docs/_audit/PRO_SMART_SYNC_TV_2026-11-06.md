@@ -193,3 +193,24 @@ required activation/product/config routes returned HTTP 200. Product-page static
 version text still reflected the previous deployment at this checkpoint; final
 main deployment readback follows the merge. Old release files and prior metadata
 are retained for recovery.
+
+### CI cancellation-test race repaired
+
+A metadata-only follow-up (`5f983e41`) reproduced a pre-existing flaky unit test:
+`singleNonCancellableSwitchStillDropsTheAnswer` expected -1 but occasionally
+received 42. Its real-thread latch signalled entry into the request, without
+proving the caller had suspended in `withContext`. Completion could win that
+race and avoid the dispatched return path the test intended to exercise.
+
+Both cancellation checks now use the existing coroutines-test dependency, two
+distinct StandardTestDispatchers sharing one scheduler, and a suspendable gate.
+`runCurrent` establishes request suspension before cancellation and release. The
+checks still assert that the request finishes and caller is cancelled; nested
+`runToCompletion` must deliver 42, while the single switched context must drop
+it. No assertion, test or production behavior was removed. `verify:android`
+passes again (405 Pro tests plus Classic/Lint). APK bytes/tag are unchanged; this
+follow-up changes tests and documentation only.
+
+Primary reference for dispatched return cancellation and its no-dispatch
+exception: https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/common/src/Builders.common.kt
+IO/Default worker sharing: https://github.com/Kotlin/kotlinx.coroutines/blob/master/kotlinx-coroutines-core/jvm/src/Dispatchers.kt

@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.BringIntoViewSpec
@@ -79,6 +80,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -92,6 +94,8 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import coil3.compose.AsyncImage
 import com.moalfarras.moplayer.domain.model.MediaItem as AppMediaItem
 import com.moalfarras.moplayer.domain.model.VideoSizeMode
+import com.moalfarras.moplayer.ui.components.MediaActionButton
+import com.moalfarras.moplayer.ui.components.LocalReduceControlMotion
 import com.moalfarras.moplayer.ui.components.FocusGlow
 import com.moalfarras.moplayer.ui.components.GlassPanel
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
@@ -1109,10 +1113,13 @@ internal fun VodControls(
 ) {
     val strings = LocalStrings.current
     val ps = strings.player
+    val horizontalInset = if (isTv) SafeHorizontal else 16.dp
+    val verticalInset = if (isTv) SafeVertical else 12.dp
+    val reduceMotion = LocalReduceControlMotion.current
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(tween(250)),
-        exit = fadeOut(tween(400)),
+        enter = fadeIn(tween(if (reduceMotion) 0 else 180)),
+        exit = fadeOut(tween(if (reduceMotion) 0 else 220)),
         modifier = Modifier.fillMaxSize(),
     ) {
         Box(Modifier.fillMaxSize()) {
@@ -1133,7 +1140,7 @@ internal fun VodControls(
                 radius = 999.dp,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(horizontal = SafeHorizontal, vertical = SafeVertical)
+                    .padding(horizontal = horizontalInset, vertical = verticalInset)
                     .widthIn(max = 760.dp),
             ) {
                 Row(
@@ -1157,7 +1164,7 @@ internal fun VodControls(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = SafeHorizontal, vertical = SafeVertical)
+                    .padding(horizontal = horizontalInset, vertical = verticalInset)
                     .widthIn(max = 900.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -1178,13 +1185,13 @@ internal fun VodControls(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                ControlButton(Icons.Rounded.Replay10, "-10", accent) { onSeekBy(-10_000L) }
-                                FocusGlow(cornerRadius = 16.dp, focusRequester = playPauseFocusRequester, onClick = onPlayPause) {
+                                ControlButton(Icons.Rounded.Replay10, "-10", accent, compact = !isTv) { onSeekBy(-10_000L) }
+                                FocusGlow(modifier = if (isTv) Modifier else Modifier.weight(1f), cornerRadius = 16.dp, focusRequester = playPauseFocusRequester, onClick = onPlayPause) {
                                     Row(
                                         Modifier
                                             .clip(RoundedCornerShape(16.dp))
                                             .background(accent)
-                                            .padding(horizontal = 24.dp, vertical = 12.dp),
+                                            .padding(horizontal = if (isTv) 24.dp else 12.dp, vertical = 12.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     ) {
@@ -1206,45 +1213,26 @@ internal fun VodControls(
                                             },
                                             color = Color.Black,
                                             fontWeight = FontWeight.ExtraBold,
-                                            fontSize = 16.sp,
+                                            fontSize = 16.sp, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                            modifier = if (isTv) Modifier else Modifier.weight(1f, fill = false),
                                         )
                                     }
                                 }
-                                ControlButton(Icons.Rounded.Forward10, "+10", accent) { onSeekBy(10_000L) }
+                                ControlButton(Icons.Rounded.Forward10, "+10", accent, compact = !isTv) { onSeekBy(10_000L) }
                             }
                         }
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                SmallControlButton(Icons.Rounded.Refresh, ps.retry, accent, onRetry)
-                                SmallControlButton(Icons.Rounded.Audiotrack, strings.playerAudio, accent, onAudio)
-                                SmallControlButton(Icons.Rounded.Subtitles, strings.playerSubtitles, accent, onSubtitles)
-                                SmallControlButton(Icons.Rounded.UploadFile, strings.playerAddSubtitle, accent, onAddSubtitle)
-                                SmallControlButton(Icons.Rounded.HighQuality, strings.playerQuality, accent, onQuality)
-                                SmallControlButton(Icons.Rounded.Tune, strings.playerAspect, accent, onAspect)
-                                SmallControlButton(
-                                    Icons.Rounded.Favorite,
-                                    if (favoriteMarked) ps.removeFavorite else ps.addFavorite,
-                                    accent,
-                                    onFavorite,
-                                    tint = if (favoriteMarked) accent else Color.White,
-                                )
-                                if (canCast) SmallControlButton(Icons.Rounded.Cast, strings.playerCast, accent, onCast)
-                                SmallControlButton(Icons.AutoMirrored.Rounded.OpenInNew, strings.playerOpenExternal, accent, onExternal)
-                            }
-                            Text(
-                                if (touchHints(isTv)) ps.vodControlsHintTouch else ps.vodControlsHint,
-                                color = Color(0x99FFFFFF),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false).padding(start = 12.dp),
-                            )
-                        }
+                        PlayerTools(
+                            accent = accent, isTv = isTv, favoriteMarked = favoriteMarked,
+                            canCast = canCast, onRetry = onRetry, onAudio = onAudio,
+                            onSubtitles = onSubtitles, onAddSubtitle = onAddSubtitle,
+                            onQuality = onQuality, onAspect = onAspect, onFavorite = onFavorite,
+                            onCast = onCast, onExternal = onExternal,
+                        )
+                        Text(
+                            if (touchHints(isTv)) ps.vodControlsHintTouch else ps.vodControlsHint,
+                            color = Color(0xCCD1D5DF), style = MaterialTheme.typography.labelMedium,
+                            maxLines = 2, overflow = TextOverflow.Ellipsis,
+                        )
                     }
                 }
             }
@@ -1513,38 +1501,17 @@ internal fun ExternalLaunchScreen(
 }
 
 @Composable
-private fun ControlButton(icon: ImageVector, label: String, accent: Color, onClick: () -> Unit) {
+private fun ControlButton(icon: ImageVector, label: String, accent: Color, compact: Boolean = false, onClick: () -> Unit) {
     FocusGlow(cornerRadius = 18.dp, onClick = onClick, modifier = Modifier.clip(RoundedCornerShape(18.dp))) {
         GlassPanel(radius = 18.dp, highlighted = true, glow = accent.copy(alpha = 0.10f)) {
             Row(
-                modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+                modifier = Modifier.padding(horizontal = if (compact) 12.dp else 18.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Icon(icon, null, tint = accent, modifier = Modifier.size(24.dp))
-                Text(label, color = Color.White, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
+                Icon(icon, if (compact) label else null, tint = accent, modifier = Modifier.size(24.dp))
+                if (!compact) Text(label, color = Color.White, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
             }
-        }
-    }
-}
-
-@Composable
-private fun SmallControlButton(
-    icon: ImageVector,
-    label: String,
-    accent: Color,
-    onClick: () -> Unit,
-    tint: Color = accent,
-) {
-    FocusGlow(cornerRadius = 14.dp, onClick = onClick, modifier = Modifier.size(48.dp).clip(RoundedCornerShape(14.dp))) {
-        GlassPanel(
-            radius = 14.dp,
-            highlighted = true,
-            glow = accent.copy(alpha = 0.06f),
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(icon, label, tint = tint, modifier = Modifier.size(22.dp))
         }
     }
 }
@@ -1569,3 +1536,31 @@ internal fun TopNoticeStack(modifier: Modifier = Modifier, content: @Composable 
 
 /** Keeps a corner overlay inside the TV safe area. */
 internal fun Modifier.safeCornerPadding(): Modifier = padding(horizontal = SafeHorizontal, vertical = SafeVertical)
+
+/** Scrollable rather than squeezed: every tool has a readable name on TV and phone. */
+@Composable
+internal fun PlayerTools(
+    accent: Color, isTv: Boolean, favoriteMarked: Boolean, canCast: Boolean,
+    onRetry: () -> Unit, onAudio: () -> Unit, onSubtitles: () -> Unit,
+    onAddSubtitle: () -> Unit, onQuality: () -> Unit, onAspect: () -> Unit,
+    onFavorite: () -> Unit, onCast: () -> Unit, onExternal: () -> Unit,
+) {
+    val strings = LocalStrings.current
+    val ps = strings.player
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().testTag("player-tools").focusGroup(),
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        item("audio") { MediaActionButton(strings.playerAudio, Icons.Rounded.Audiotrack, accent, isTv, onAudio) }
+        item("subtitles") { MediaActionButton(strings.playerSubtitles, Icons.Rounded.Subtitles, accent, isTv, onSubtitles) }
+        item("quality") { MediaActionButton(strings.playerQuality, Icons.Rounded.HighQuality, accent, isTv, onQuality) }
+        item("aspect") { MediaActionButton(strings.playerAspect, Icons.Rounded.Tune, accent, isTv, onAspect) }
+        item("favorite") { MediaActionButton(if (favoriteMarked) ps.removeFavorite else ps.addFavorite,
+            Icons.Rounded.Favorite, accent, isTv, onFavorite, marked = favoriteMarked) }
+        item("subtitle-file") { MediaActionButton(strings.playerAddSubtitle, Icons.Rounded.UploadFile, accent, isTv, onAddSubtitle) }
+        if (canCast) item("cast") { MediaActionButton(strings.playerCast, Icons.Rounded.Cast, accent, isTv, onCast) }
+        item("external") { MediaActionButton(strings.playerOpenExternal, Icons.AutoMirrored.Rounded.OpenInNew, accent, isTv, onExternal) }
+        item("retry") { MediaActionButton(ps.retry, Icons.Rounded.Refresh, accent, isTv, onRetry) }
+    }
+}

@@ -14,6 +14,7 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import kotlinx.coroutines.runBlocking
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.CopyOnWriteArrayList
@@ -48,6 +49,7 @@ class Media3SessionInstrumentedTest {
         )
         try {
             val policy = Adaptive.performancePolicy(AppSettings(), Adaptive.performanceInfo(context))
+            runBlocking { FfmpegAudio.prepare() }
             instrumentation.runOnMainSync { engine = Media3Engine.create(context, false, policy) { callbacks } }
             val session = requireNotNull(engine)
             val originalPlayer = session.player

@@ -83,6 +83,33 @@ class HomeLogicTest {
     }
 
     @Test
+    fun shelvesDeduplicateAcrossRowsAndFillAfterFiltering() {
+        val a = item("a", ContentType.LIVE)
+        val b = item("b", ContentType.LIVE)
+        val movie = item("m", ContentType.MOVIE)
+        val rows = buildHomeRows(listOf(a, a), listOf(a, b), listOf(a, b, item("c", ContentType.LIVE)),
+            listOf(movie), listOf(movie, item("next", ContentType.MOVIE)), emptyList(), 2)
+        assertEquals(listOf(listOf("a"), listOf("b"), listOf("m"), listOf("next"), listOf("c")),
+            rows.map { row -> row.items.map { it.id } })
+    }
+
+    @Test
+    fun shelfIdentityIncludesServerAndType() {
+        val live = item("1", ContentType.LIVE)
+        val rows = buildHomeRows(listOf(live), listOf(live.copy(serverId = 2)), emptyList(),
+            listOf(item("1", ContentType.MOVIE)), emptyList(), listOf(item("1", ContentType.SERIES)), 2)
+        assertEquals(4, rows.sumOf { it.items.size })
+    }
+
+    @Test
+    fun duplicatesBeyondShelfLimitRemainAvailableToLaterRows() {
+        val channels = (1..4).map { item("$it", ContentType.LIVE) }
+        val rows = buildHomeRows(channels, channels, channels, emptyList(), emptyList(), emptyList(), 2)
+        assertEquals(listOf(listOf("1", "2"), listOf("3", "4")), rows.map { it.items.map { it.id } })
+        assertTrue(buildHomeRows(channels, channels, channels, emptyList(), emptyList(), emptyList(), 0).isEmpty())
+    }
+
+    @Test
     fun assistantUnderstandsArabicAndEnglish() {
         assertEquals(AiSuggestionMode.MOVIES, aiModeFor("اقترح لي أفلام جديدة"))
         assertEquals(AiSuggestionMode.SERIES, aiModeFor("مسلسل كوميدي"))

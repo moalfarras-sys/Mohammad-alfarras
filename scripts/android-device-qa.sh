@@ -25,6 +25,13 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# SettingsProvider can still reject writes just after boot/input become ready.
+# Keep these writes inside the bounded readiness loop, rather than exiting 255.
+disable_animations() {
+  for setting in window_animation_scale transition_animation_scale animator_duration_scale; do
+    "$sdk/platform-tools/adb" -s "$serial" shell settings put global "$setting" 0 >/dev/null 2>&1 || return 1
+  done
+}
 ready=false
 for ((attempt=0; attempt<180; attempt++)); do
   if ! kill -0 "$emulator_pid" 2>/dev/null; then
@@ -34,17 +41,15 @@ for ((attempt=0; attempt<180; attempt++)); do
   boot="$("$sdk/platform-tools/adb" -s "$serial" shell getprop sys.boot_completed 2>/dev/null || true)"
   if [[ "${boot//$'\r'/}" == 1 ]] &&
      "$sdk/platform-tools/adb" -s "$serial" shell pm path android >/dev/null 2>&1 &&
-     "$sdk/platform-tools/adb" -s "$serial" shell input keyevent 82 >/dev/null 2>&1; then
+     "$sdk/platform-tools/adb" -s "$serial" shell input keyevent 82 >/dev/null 2>&1 &&
+     disable_animations; then
     ready=true
     break
   fi
   sleep 2
 done
 if [[ "$ready" != true ]]; then
-  echo 'Timed out waiting for boot, package manager and input service.' >&2
+  echo 'Timed out waiting for boot, package manager, input and settings services.' >&2
   exit 1
 fi
-for setting in window_animation_scale transition_animation_scale animator_duration_scale; do
-  "$sdk/platform-tools/adb" -s "$serial" shell settings put global "$setting" 0
-done
 ANDROID_SERIAL="$serial" node scripts/run-gradle.mjs pro connectedDebugAndroidTest

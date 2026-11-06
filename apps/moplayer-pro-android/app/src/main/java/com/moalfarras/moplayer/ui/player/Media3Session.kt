@@ -5,6 +5,8 @@ package com.moalfarras.moplayer.ui.player
 import android.os.SystemClock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
@@ -36,8 +38,16 @@ internal fun rememberMedia3Engine(
 ): Media3Engine? {
     val context = LocalContext.current
     val currentCallbacks = rememberUpdatedState(callbacks)
-    val engine = remember(enabled, isLive, performancePolicy.mode, generation) {
-        if (enabled) Media3Engine.create(context, isLive, performancePolicy) { currentCallbacks.value } else null
+    // Keep composition/remote input responsive during the first native-library disk load.
+    // A disposed effect cannot publish readiness or create an orphan player afterwards.
+    val audioPrepared by produceState(false, enabled) {
+        if (enabled) {
+            FfmpegAudio.prepare()
+            value = true
+        }
+    }
+    val engine = remember(enabled, audioPrepared, isLive, performancePolicy.mode, generation) {
+        if (enabled && audioPrepared) Media3Engine.create(context, isLive, performancePolicy) { currentCallbacks.value } else null
     }
     // MediaSession: hardware media keys and "Now playing" (title, group and artwork come from each
     // load's metadata). One per player, released before it.

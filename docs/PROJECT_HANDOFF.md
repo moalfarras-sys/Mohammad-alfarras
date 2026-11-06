@@ -1,5 +1,11 @@
 # Project Handoff
 
+## 2026-11-06 cinematic UX follow-up
+
+See [cinematic / remote UX audit](_audit/PRO_CINEMATIC_UX_2026-11-06.md) for the
+working-branch design changes, reference products, evidence, qualification and
+remaining scope. Stable 2.7.4 (code 74) is published with verified ARM assets and production update metadata; see the audit for final deployment evidence and remaining hardware limits.
+
 ## 2026-11-06 Pro update verification
 
 See [Pro audit](_audit/MOPLAYER_PRO_AUDIT_2026-11-06.md) for 2.7.3 updater integrity, the reproduced Channel 0 repair, connected TV tests, branch handling and publication gates.

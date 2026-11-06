@@ -155,7 +155,6 @@ function releaseUpdate(product: string, fallbackConfig: object, latestRelease: L
   return {
     latestVersionName: String(latestRelease.version_name ?? ""),
     latestVersionCode: versionCode,
-    minimumVersionCode: versionCode,
     update: {
       ...updateFallback(fallbackConfig),
       latestVersionName: String(latestRelease.version_name ?? ""),
@@ -208,18 +207,17 @@ export async function GET(request: Request) {
   const settingsValue =
     typeof settingsRecord.value === "object" && settingsRecord.value ? (settingsRecord.value as Record<string, unknown>) : {};
   const releaseConfig = releaseUpdate(product, fallbackConfig, latestRelease);
+  const configuredMinimum = Number(settingsValue.minimumVersionCode ?? fallbackConfig.minimumVersionCode);
   const config: Record<string, unknown> = {
     ...fallbackConfig,
     ...settingsValue,
     ...releaseConfig,
+    minimumVersionCode: Number.isSafeInteger(configuredMinimum) && configuredMinimum > 0
+      ? configuredMinimum : fallbackConfig.minimumVersionCode,
     ...(latestRelease
       ? {
           latestVersionName: String(latestRelease.version_name ?? ""),
           latestVersionCode: Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
-          minimumVersionCode: Math.max(
-            Number(settingsValue.minimumVersionCode ?? 0) || 0,
-            Number(latestRelease.version_code) || fallbackConfig.minimumVersionCode,
-          ),
           update: {
             ...updateFallback(fallbackConfig),
             ...(typeof settingsValue.update === "object" && settingsValue.update ? settingsValue.update : {}),

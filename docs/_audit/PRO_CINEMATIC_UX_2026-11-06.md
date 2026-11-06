@@ -136,3 +136,26 @@ The GitHub candidate is a prerelease only. Per Android's versioning guidance,
 a later stable build must use versionCode 74 or higher; changing the name alone
 does not override Android's downgrade protection.
 Reference: https://developer.android.com/studio/publish/versioning
+
+
+RC qualification: `npm run verify:android` passed again (407 Pro unit tests,
+Classic checks and Lint). Signed minified emulator and ARM release builds passed.
+An in-place emulator upgrade retained the test library and showed version 73 /
+2.7.4-rc.1. Every ARM artifact's signature matches the existing SHA-256 certificate
+`97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`.
+The universal candidate contains ARM64 and ARMv7 only; x86 stays local for QA.
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| app-universal-release.apk | 56199529 | `396c193309527b57c9d1fbcd06a99af528874e6d32507d0af5bf6f95131d460e` |
+| app-arm64-v8a-release.apk | 34961883 | `690ad347a10f242bac356170a640d789dd9c6f133c167bb840a6d6b7a43eb33f` |
+| app-armeabi-v7a-release.apk | 31243445 | `e8661fcfbea982879cb7af56291e52ba805c64352f5847e66f725980ba3cc764` |
+
+Candidate URL: https://github.com/moalfarras-sys/Mohammad-alfarras/releases/tag/moplayer-pro-v2.7.4-rc.1
+
+The new CI TV job exited 255 after boot, before Gradle/tests. Settings writes
+were outside the readiness loop; they now retry within the same bounded loop.
+A mocked SDK test rejected the first settings write with 255 and verified that
+Gradle was reached after retry, while `bash -n` passed. This is an orchestration
+regression check, not a substitute for real Android tests. Remote CI reruns on
+the final commit; no production automatic update is enabled by this candidate.

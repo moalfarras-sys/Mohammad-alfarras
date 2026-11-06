@@ -101,3 +101,31 @@ been merged or deleted in this Pro-focused phase.
 - https://developer.android.com/tools/variables
 - https://supabase.com/docs/guides/database/connecting-to-postgres
 - https://vercel.com/docs/git/vercel-for-github
+
+## Publication and live acceptance completed
+
+PR #75 merged with history preserved as c35d2f078866bb6f3425383a4bb80b73c37b6627
+after every final-head check passed, including both device jobs and native
+Windows packaging/startup. The release tag targets the verified Android source
+e90a05498d36ad89783624c55f6798139a670b02. Release 2.7.3 was published at
+2026-11-06T16:21:13Z. All three public APKs were downloaded anonymously in full
+and matched their qualified sizes and SHA-256. Existing 2.7.2 assets remain intact.
+
+Migration 20261106163000 was committed atomically with its migration-history row.
+Live config returns source=supabase, version 2.7.3 / 72 and the qualified universal
+hash. Both Vercel projects deployed the merge successfully. Live Pro QR acceptance
+passed replacement/expiry, Classic/Pro isolation, confirmation, public legal M3U
+validation, concurrent one-time fetch, sensitive-payload removal, import ack and
+token retirement. The six temporary QA Redis records were removed afterwards.
+
+Fourteen superseded Dependabot PRs were closed without deleting their branches.
+GitHub's open Dependabot alert count changed from 79 to zero after the merge;
+the updated npm tree also has zero findings. No branch was merged merely to
+remove it from the open list.
+
+Shared fallback release metadata is updated to the same published artifact,
+size/hash and publication time for web/admin parity. Web and admin verification
+passed with that metadata. Release rollout remains reversible: retain old assets
+and restore only release/config publication fields, preserving unrelated runtime
+settings. Already-updated Android devices require a higher-version hotfix rather
+than installing an older version code.

@@ -154,6 +154,8 @@ Start here:
 
 - [Agent Guide](AGENTS.md)
 - [Development Workflow](docs/DEVELOPMENT_WORKFLOW.md)
+- [VS Code and MCP setup](docs/VSCODE_CODEX_MCP.md)
+- [MoPlayer Pro 2.7.3 verification](docs/_audit/MOPLAYER_PRO_AUDIT_2026-11-06.md)
 - [Project Handoff](docs/PROJECT_HANDOFF.md)
 - [Current Project State](docs/CURRENT_PROJECT_STATE.md)
 - [Production Guide](docs/PRODUCTION_GUIDE.md)

@@ -162,3 +162,17 @@ The root `.vercelignore` intentionally excludes Android source, Gradle output, l
 - Do not run `npm audit fix --force`; it can select unsafe major changes or downgrades.
 - Do not use APK split files for public download unless release metadata points to those exact files.
 - Do not assume live IPTV streams are available in the repository; use tests and a provided stream for final playback QA.
+
+## Combined daily development
+
+`npm run doctor` checks installed tools and env-file presence without printing
+secret values. `npm run dev` starts web at http://127.0.0.1:3000/en and admin at
+http://127.0.0.1:3100, with local cross-app URLs set only in child processes.
+Ignored env files are preserved. Occupied ports fail explicitly; Ctrl+C stops
+both owned servers. See DEV_ENVIRONMENT_AUDIT_2026-11-06.md and VSCODE_CODEX_MCP.md.
+
+Pro device QA: `node scripts/run-gradle.mjs pro connectedDebugAndroidTest`.
+Build production APKs separately with
+`node scripts/run-gradle.mjs pro assembleRelease -PincludeX86Abis=false`; mixed
+debug/release tasks intentionally include emulator ABIs. Preserve the existing
+signing identity and publish exact sizes/checksums before updating release rows.

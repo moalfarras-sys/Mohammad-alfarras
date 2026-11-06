@@ -124,3 +124,15 @@ Remote CI on code commit `1ed6a95b`: Pro and Classic Android checks, API 29 phon
 and API 36 TV device jobs, Windows/Linux desktop checks, admin/dashboard checks
 and both Vercel previews passed. The web browser-install/job was still running
 at this evidence snapshot; do not describe that pending job as passed.
+
+
+## 2.7.4 testing release preparation
+
+The user requested publication and continued development. Candidate packaging is
+now `2.7.4-rc.1`, versionCode 73, with the existing application id/certificate.
+This supersedes the earlier note that this branch had no version bump. The
+production config, fallback metadata and automatic updates remain on 2.7.3.
+The GitHub candidate is a prerelease only. Per Android's versioning guidance,
+a later stable build must use versionCode 74 or higher; changing the name alone
+does not override Android's downgrade protection.
+Reference: https://developer.android.com/studio/publish/versioning

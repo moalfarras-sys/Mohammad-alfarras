@@ -77,6 +77,9 @@ val LocalFocusGlowFocused = compositionLocalOf { false }
  */
 val LocalReduceMotion = staticCompositionLocalOf { true }
 
+/** User-requested or low-power reduction for short focus/press feedback, separate from backdrops. */
+val LocalReduceControlMotion = staticCompositionLocalOf { true }
+
 /**
  * Accepts a click only when at least [windowMs] passed since the last accepted one.
  * A window of 0 disables the guard.
@@ -127,7 +130,7 @@ fun FocusGlow(
     val currentOnClick by rememberUpdatedState(onClick)
     val guard = remember(clickGuardMs) { ClickGuard(clickGuardMs) }
 
-    val reduceMotion = LocalReduceMotion.current
+    val reduceMotion = LocalReduceControlMotion.current
     val targetScale = when {
         focused && pressed -> focusedScale * PRESSED_SCALE
         focused -> focusedScale

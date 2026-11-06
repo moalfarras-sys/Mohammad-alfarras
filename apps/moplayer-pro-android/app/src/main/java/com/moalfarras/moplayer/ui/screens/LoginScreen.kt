@@ -151,7 +151,7 @@ import com.moalfarras.moplayer.domain.model.DeviceActivationStatus
 import com.moalfarras.moplayer.domain.model.LoadProgress
 import com.moalfarras.moplayer.ui.components.AnimatedLoginBackground
 import com.moalfarras.moplayer.ui.components.GlassPanel
-import com.moalfarras.moplayer.ui.components.LocalReduceMotion
+import com.moalfarras.moplayer.ui.components.LocalReduceControlMotion
 import com.moalfarras.moplayer.ui.components.TvTextField
 import com.moalfarras.moplayer.ui.components.rememberTvTextFieldController
 import com.moalfarras.moplayer.ui.i18n.ArStrings
@@ -811,7 +811,7 @@ private fun LoginMethodCard(
     val visuals = LocalMoVisuals.current
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val scale by animateFloatAsState(if (focused) 1.03f else 1f, animationSpec = if (LocalReduceMotion.current) snap() else tween(180), label = "method-card-scale")
+    val scale by animateFloatAsState(if (focused) 1.03f else 1f, animationSpec = if (LocalReduceControlMotion.current) snap() else tween(180), label = "method-card-scale")
     val shape = RoundedCornerShape(20.dp)
     Surface(
         modifier = Modifier
@@ -899,7 +899,7 @@ private fun ModeTab(text: String, selected: Boolean, focusRequester: FocusReques
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
     val accent = LocalMoVisuals.current.accent
-    val scale by animateFloatAsState(if (focused) 1.04f else 1f, animationSpec = if (LocalReduceMotion.current) snap() else tween(180), label = "mode-tab-scale")
+    val scale by animateFloatAsState(if (focused) 1.04f else 1f, animationSpec = if (LocalReduceControlMotion.current) snap() else tween(180), label = "mode-tab-scale")
     val background by animateColorAsState(
         when {
             selected -> accent
@@ -956,7 +956,7 @@ private fun GlassActionButton(
     val accent = visuals.accent
     val interaction = remember { MutableInteractionSource() }
     val focused by interaction.collectIsFocusedAsState()
-    val scale by animateFloatAsState(if (focused) 1.04f else 1f, animationSpec = if (LocalReduceMotion.current) snap() else tween(180), label = "btn-scale")
+    val scale by animateFloatAsState(if (focused) 1.04f else 1f, animationSpec = if (LocalReduceControlMotion.current) snap() else tween(180), label = "btn-scale")
     val shape = RoundedCornerShape(999.dp)
     Box(
         modifier = modifier

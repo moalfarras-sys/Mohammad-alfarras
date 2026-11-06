@@ -36,6 +36,7 @@ class TvDockInstrumentedTest {
                 LocalLayoutDirection provides if (arabic) LayoutDirection.Rtl else LayoutDirection.Ltr,
                 LocalStrings provides strings,
                 LocalReduceMotion provides true,
+                LocalReduceControlMotion provides true,
             ) {
                 MoTheme {
                     BottomDock(AppSection.HOME, onSelect = { selected = it }, onSearch = {})

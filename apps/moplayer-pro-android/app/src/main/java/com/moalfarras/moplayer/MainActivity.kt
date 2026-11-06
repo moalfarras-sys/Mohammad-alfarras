@@ -251,6 +251,7 @@ private fun MoPlayerApp(
     val performancePolicy = remember(state.settings, devicePerformance) {
         Adaptive.performancePolicy(state.settings, devicePerformance)
     }
+    val reduceControlMotion = com.moalfarras.moplayer.core.shouldReduceControlMotion(state.settings.motionLevel, performancePolicy.mode)
     // Trailer capability = the ADMIN remote switch AND the user's own Settings switch, except in
     // PERFORMANCE mode: a WebView renderer (100+ MB) next to playback is what a 1 GB box cannot
     // afford. Not gated on reduceMotion (that wrongly killed mid-tier TVs); a muted trailer is only
@@ -313,6 +314,7 @@ private fun MoPlayerApp(
         LocalLayoutDirection provides if (appLanguage.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
         LocalStrings provides stringsFor(appLanguage),
         com.moalfarras.moplayer.ui.components.LocalReduceMotion provides performancePolicy.reduceMotion,
+        com.moalfarras.moplayer.ui.components.LocalReduceControlMotion provides reduceControlMotion,
         com.moalfarras.moplayer.ui.components.LocalPosterImageSize provides performancePolicy.posterImageSize,
         com.moalfarras.moplayer.ui.components.LocalPreviewTrailer provides previewTrailer,
         com.moalfarras.moplayer.ui.components.LocalTrailerErrorReporter provides viewModel::reportTrailerUnplayable,
@@ -506,9 +508,9 @@ private fun MoPlayerApp(
                                 state.section == AppSection.HOME &&
                                 !state.showExitDialog,
                             modifier = Modifier.align(Alignment.BottomCenter),
-                            enter = if (performancePolicy.reduceMotion) androidx.compose.animation.EnterTransition.None else
+                            enter = if (reduceControlMotion) androidx.compose.animation.EnterTransition.None else
                                 androidx.compose.animation.slideInVertically(initialOffsetY = { it / 3 }) + androidx.compose.animation.fadeIn(),
-                            exit = if (performancePolicy.reduceMotion) androidx.compose.animation.ExitTransition.None else
+                            exit = if (reduceControlMotion) androidx.compose.animation.ExitTransition.None else
                                 androidx.compose.animation.slideOutVertically(targetOffsetY = { it / 3 }) + androidx.compose.animation.fadeOut(),
                         ) {
                             BottomDock(

@@ -3,10 +3,36 @@ package com.moalfarras.moplayer.core
 import coil3.size.Size
 import com.moalfarras.moplayer.domain.model.AppSettings
 import com.moalfarras.moplayer.domain.model.PerformanceMode
+import com.moalfarras.moplayer.domain.model.MotionLevel
+import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class AdaptiveTest {
+    @Test
+    fun balancedTvKeepsRemoteFeedbackWhileCalmingBackgrounds() {
+        val settings = AppSettings(performanceMode = PerformanceMode.BALANCED, motionLevel = MotionLevel.BALANCED)
+        val result = Adaptive.performancePolicy(settings, device())
+        assertTrue(result.reduceMotion)
+        assertFalse(shouldReduceControlMotion(settings.motionLevel, result.mode))
+        assertTrue(shouldReduceControlMotion(MotionLevel.LOW, result.mode))
+        assertTrue(shouldReduceControlMotion(MotionLevel.RICH, PerformanceMode.PERFORMANCE))
+    }
+
+    @Test
+    fun lowMotionIsRespectedEvenInQualityMode() {
+        val result = Adaptive.performancePolicy(
+            AppSettings(performanceMode = PerformanceMode.QUALITY, motionLevel = MotionLevel.LOW),
+            device(memoryClassMb = 512, totalRamMb = 7800, cpuCores = 8),
+        )
+        assertTrue(result.reduceMotion)
+        assertFalse(result.enableParticles)
+        assertFalse(result.enableWeatherEffects)
+        assertFalse(result.enableFocusBackdropUpdates)
+        assertTrue(result.enablePreviewPane)
+    }
+
     private fun device(
         isLowRam: Boolean = false,
         memoryClassMb: Int = 192,

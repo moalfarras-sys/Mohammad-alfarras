@@ -159,7 +159,7 @@ private fun DockButton(
     val expandedWidth = if (factor < 1f) 104f else 118f * factor
     val idleWidth = if (factor < 1f) 44f else 48f * factor
     val buttonHeight = if (isTv) 52f else if (factor < 1f) 42f else DOCK_BUTTON_HEIGHT * factor
-    val reduceMotion = LocalReduceMotion.current
+    val reduceMotion = LocalReduceControlMotion.current
     val width by animateDpAsState(
         if (isTv) 80.dp else if (expanded) expandedWidth.dp else idleWidth.dp,
         animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.88f, stiffness = 420f),

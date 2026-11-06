@@ -80,3 +80,25 @@ Results are appended after final device qualification. Existing 2.7.4 assets,
 source credentials, activation logic and protected settings are retained. A
 stable 2.7.5 uses code 75, signed by the existing certificate. Physical-TV testing
 does not certify all ARM codecs, all providers, HDR/4K or every other device.
+
+
+### Qualified device results
+
+- Final Android verification passes: 409 Pro unit tests, Classic checks and Lint
+  (zero errors; 101 existing warnings). Signed minified release build passes.
+- All 14 connected checks passed on API 36 TV emulator and on the actual Android
+  11 ARMv7 Smart TV Pro; physical run 50.601 s. This includes real Media3 audio
+  playback/reuse/resume, Keystore, updater validation, Room and remote UI checks.
+- An additional real local-HTTP M3U integration test passed on the emulator and
+  on the physical TV (1.683 s): initial import, fresh background skip with no
+  extra request, simulated stale catalog, second HTTP response with new channel,
+  updated Room count and retained favorite. This uses an isolated database and
+  loopback server; it does not mutate the user's provider catalog.
+- Temporary debug/test packages were removed after each physical run. Production
+  app/data were retained. The existing signing certificate allowed an in-place
+  upgrade to 2.7.5/code 75 on the TV. Cold launch completed in 2.310 s in this run;
+  not a comparative benchmark. The library and history remained present.
+- Real after-upgrade Home screenshot confirms one card for the previously
+  duplicated series. Before: `/tmp/pro-real-tv-awake.png`. After:
+  `/tmp/pro275-real-resume.png`. No private images or XML enter Git.
+- PR: https://github.com/moalfarras-sys/Mohammad-alfarras/pull/77

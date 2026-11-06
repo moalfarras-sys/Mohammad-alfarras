@@ -9,9 +9,12 @@ image="system-images;android-${api};${target};x86_64"
 serial=emulator-5554
 name="pro-qa-${api}"
 log="${RUNNER_TEMP:-/tmp}/pro-emulator-${api}.log"
+# avdmanager and emulator can otherwise choose different XDG/legacy Android homes.
+export ANDROID_AVD_HOME="${RUNNER_TEMP:-/tmp}/pro-qa-avds"
+mkdir -p "$ANDROID_AVD_HOME"
 
 "$sdk/cmdline-tools/latest/bin/sdkmanager" emulator "$image"
-echo no | "$sdk/cmdline-tools/latest/bin/avdmanager" create avd --force --name "$name" --package "$image" --device "$device"
+echo no | "$sdk/cmdline-tools/latest/bin/avdmanager" create avd --force --name "$name" --package "$image" --device "$device" --path "$ANDROID_AVD_HOME/$name.avd"
 "$sdk/platform-tools/adb" start-server
 "$sdk/emulator/emulator" -avd "$name" -port 5554 -no-window -gpu swiftshader -no-snapshot -noaudio -no-boot-anim -camera-back none -memory 2048 > "$log" 2>&1 &
 emulator_pid=$!
@@ -43,5 +46,5 @@ if [[ "$ready" != true ]]; then
 fi
 for setting in window_animation_scale transition_animation_scale animator_duration_scale; do
   "$sdk/platform-tools/adb" -s "$serial" shell settings put global "$setting" 0
- done
+done
 ANDROID_SERIAL="$serial" node scripts/run-gradle.mjs pro connectedDebugAndroidTest

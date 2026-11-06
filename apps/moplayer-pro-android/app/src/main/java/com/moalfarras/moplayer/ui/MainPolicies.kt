@@ -201,3 +201,17 @@ internal fun seriesOriginFor(current: AppSection, returnSection: AppSection, pre
     val candidate = if (current == AppSection.PLAYER) returnSection else current
     return if (candidate in seriesOrigins) candidate else previousOrigin
 }
+
+
+/** A catalog age probe is cheap but still throttled; source switches bypass the same-source TTL. */
+internal fun shouldCheckLibraryRefresh(key: String, previousKey: String, lastCheck: Long,
+    now: Long, playing: Boolean, busy: Boolean): Boolean =
+    key.isNotBlank() && !playing && !busy &&
+        (key != previousKey || lastCheck == 0L || now < lastCheck || now - lastCheck >= 5 * 60_000L)
+
+
+/** Some catalogs put the series identifier only in id, as refreshSeriesDetails already supports. */
+internal fun seriesEpisodeKey(series: MediaItem?): Pair<Long, String>? = series?.let {
+    val id = it.seriesId.ifBlank { it.id }
+    if (it.serverId > 0 && id.isNotBlank()) it.serverId to id else null
+}

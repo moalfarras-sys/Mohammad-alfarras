@@ -49,6 +49,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -129,7 +131,7 @@ import java.util.Date
 import java.util.Locale
 
 /** How often the admin config is re-read while the app is visible (the view model throttles too). */
-private const val CONFIG_POLL_MS = 30 * 60_000L
+private const val CONFIG_POLL_MS = 5 * 60_000L
 
 /** The app-scoped updater, for screens that are not handed one. */
 @Composable
@@ -151,6 +153,27 @@ fun AppUpdateEffects(manager: UpdateManager, deferInstaller: Boolean, onRefreshC
     val activity = LocalContext.current.findActivity()
     val refresh by rememberUpdatedState(onRefreshConfig)
     val deferred = rememberUpdatedState(deferInstaller)
+    val strings = LocalStrings.current
+    val currentStrings by rememberUpdatedState(strings)
+    var announcedVersion by rememberSaveable { mutableIntStateOf(0) }
+    // Discover releases without stealing focus or opening an installer over playback.
+    // Download/install remains an explicit action in Settings, as Android requires.
+    LaunchedEffect(manager, lifecycleOwner, activity) {
+        if (activity == null) return@LaunchedEffect
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            combine(manager.state, snapshotFlow { deferred.value }) { state, playing ->
+                (state as? UpdateState.Available)?.info?.takeUnless { playing }
+            }.filterNotNull().collect { info ->
+                if (announcedVersion != info.latestVersionCode) {
+                    announcedVersion = info.latestVersionCode
+                    val copy = currentStrings
+                    Toast.makeText(activity,
+                        "${copy.settings.updateAvailable(info.latestVersionName)} · ${copy.navSettings} › ${copy.paneAbout}",
+                        Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
     LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             while (true) {

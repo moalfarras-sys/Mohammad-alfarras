@@ -361,8 +361,17 @@ interface MediaDao {
             addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
             episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
             tvgId, catchup, genre, releaseDate
-        FROM media
+        FROM media AS m
         WHERE serverId = :serverId AND watchPositionMs > 0 AND watchDurationMs > 0 AND type != 'LIVE'
+          AND watchPositionMs < watchDurationMs * 0.95
+          AND (m.type != 'EPISODE' OR m.seriesId = '' OR NOT EXISTS (
+            SELECT 1 FROM media AS newer
+            WHERE newer.serverId = m.serverId AND newer.type = 'EPISODE'
+              AND newer.seriesId = m.seriesId AND newer.lastPlayedAt > 0
+              AND (newer.lastPlayedAt > m.lastPlayedAt
+                OR (newer.lastPlayedAt = m.lastPlayedAt AND newer.updatedAt > m.updatedAt)
+                OR (newer.lastPlayedAt = m.lastPlayedAt AND newer.updatedAt = m.updatedAt AND newer.id > m.id))
+          ))
         ORDER BY lastPlayedAt DESC, updatedAt DESC
         """
     )
@@ -375,8 +384,17 @@ interface MediaDao {
             addedAtUnknown, serverOrder, containerExtension, seriesId, seasonNumber,
             episodeNumber, isFavorite, watchPositionMs, watchDurationMs, lastPlayedAt,
             tvgId, catchup, genre, releaseDate
-        FROM media
+        FROM media AS m
         WHERE serverId IN (SELECT id FROM servers) AND watchPositionMs > 0 AND watchDurationMs > 0 AND type != 'LIVE'
+          AND watchPositionMs < watchDurationMs * 0.95
+          AND (m.type != 'EPISODE' OR m.seriesId = '' OR NOT EXISTS (
+            SELECT 1 FROM media AS newer
+            WHERE newer.serverId = m.serverId AND newer.type = 'EPISODE'
+              AND newer.seriesId = m.seriesId AND newer.lastPlayedAt > 0
+              AND (newer.lastPlayedAt > m.lastPlayedAt
+                OR (newer.lastPlayedAt = m.lastPlayedAt AND newer.updatedAt > m.updatedAt)
+                OR (newer.lastPlayedAt = m.lastPlayedAt AND newer.updatedAt = m.updatedAt AND newer.id > m.id))
+          ))
         ORDER BY lastPlayedAt DESC, updatedAt DESC
         """
     )

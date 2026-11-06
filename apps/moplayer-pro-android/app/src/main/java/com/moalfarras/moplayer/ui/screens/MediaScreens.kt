@@ -435,14 +435,14 @@ fun SeriesDetailsScreen(
     val seasons = remember(episodes) { episodes.map { it.seasonNumber.coerceAtLeast(1) }.distinct().sorted().ifEmpty { listOf(1) } }
     // The episode that takes focus when the screen opens: the restored one (back from the player),
     // else the last watched, else the first episode.
-    val entryEpisode = remember(series.id, episodes.isEmpty()) { entryEpisodeFor(episodes, restoreFocusItem ?: focused) }
-    var selectedSeason by remember(series.id) { mutableIntStateOf(entryEpisode?.seasonNumber?.coerceAtLeast(1) ?: seasons.first()) }
+    val entryEpisode = remember(series.serverId, series.id, episodes, restoreFocusItem?.let(::mediaKey)) { entryEpisodeFor(episodes, restoreFocusItem ?: focused) }
+    var selectedSeason by remember(series.serverId, series.id) { mutableIntStateOf(entryEpisode?.seasonNumber?.coerceAtLeast(1) ?: seasons.first()) }
+    var entryConsumed by remember(series.serverId, series.id) { mutableStateOf(false) }
     LaunchedEffect(entryEpisode?.let(::mediaKey)) {
-        entryEpisode?.let { selectedSeason = it.seasonNumber.coerceAtLeast(1) }
+        if (!entryConsumed) entryEpisode?.let { selectedSeason = it.seasonNumber.coerceAtLeast(1) }
     }
-    var entryConsumed by remember(series.id) { mutableStateOf(false) }
     val seasonEpisodes = remember(episodes, selectedSeason) { episodes.filter { it.seasonNumber.coerceAtLeast(1) == selectedSeason } }
-    val backdrop = remember(series.id, series.backdropUrl, series.posterUrl) { backdropUrlFrom(series) }
+    val backdrop = remember(series.serverId, series.id, series.backdropUrl, series.posterUrl) { backdropUrlFrom(series) }
     val selectedSeasonFocus = remember { FocusRequester() }
     var screenHasFocus by remember { mutableStateOf(false) }
     val wrappedOnFocus: (MediaItem) -> Unit = { item ->

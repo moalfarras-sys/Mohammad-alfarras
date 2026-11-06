@@ -462,6 +462,7 @@ private fun attachVlcViews(player: MediaPlayer, texture: TextureView, state: Vlc
  * the view. Zoom: scaled relative to the video (see [libVlcFillScale]) so it fills the view and
  * crops the overflow. The native setters take the input lock, so they run on the worker.
  */
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 private fun applyLibVlcSizing(state: VlcViewState, worker: VlcWorker, mode: Int, force: Boolean) {
     val player = state.player ?: return
     val view = state.texture ?: return

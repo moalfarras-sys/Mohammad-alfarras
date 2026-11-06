@@ -1,7 +1,6 @@
 /**
- * MoPlayer PC — High-Fidelity Cinematic Installer Splash Generator
- * Uses 'sharp' and an AI-generated premium dark background to create
- * a stunning, borderless GIF for Squirrel.Windows.
+ * Optional installer artwork preview. Uses only repository assets so it can
+ * be reproduced in CI. The current NSIS installer uses native pages.
  */
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -13,7 +12,10 @@ const buildDir = path.join(appRoot, "build");
 const assetsDir = path.join(appRoot, "src", "renderer", "assets");
 
 const iconPath = path.join(assetsDir, "moplayer-splash-logo.png");
-const bgPath = "C:\\Users\\Moalf\\.gemini\\antigravity-ide\\brain\\16861b1d-2960-445a-88bf-561a12362f60\\premium_dark_bg_1781260866665.png";
+const background = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500">
+  <defs><radialGradient id="glow"><stop stop-color="#563020"/><stop offset="1" stop-color="#08090c"/></radialGradient></defs>
+  <rect width="400" height="500" fill="url(#glow)"/>
+</svg>`);
 
 async function generateArtwork() {
   await mkdir(buildDir, { recursive: true });
@@ -49,7 +51,7 @@ async function generateArtwork() {
   `);
 
   // 3. Generate Splash GIF via Sharp (400x500)
-  const splashBuffer = await sharp(bgPath)
+  const splashBuffer = await sharp(background)
     .resize(400, 500, { fit: "cover", position: "center" })
     .modulate({ brightness: 0.9, saturation: 1.2 }) // Make it moody and rich
     .composite([
@@ -103,4 +105,7 @@ async function generateArtwork() {
   console.log("High-fidelity cinematic installer splash GIF written to build directory.");
 }
 
-generateArtwork().catch(console.error);
+generateArtwork().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

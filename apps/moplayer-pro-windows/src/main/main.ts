@@ -149,9 +149,8 @@ function createWindow(state = store.publicState()) {
 
   mainWindow.webContents.on("did-finish-load", () => {
     void store.log("Renderer finished loading.");
-    if (isSmokeTest) {
-      setTimeout(() => app.exit(0), 1500);
-    }
+    // Smoke succeeds only after React mounts and calls app:smokeReady through
+    // the preload bridge. Loading an empty HTML shell is not a passing test.
   });
 
   mainWindow.once("ready-to-show", () => {

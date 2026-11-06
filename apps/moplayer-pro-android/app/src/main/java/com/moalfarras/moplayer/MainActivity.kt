@@ -251,6 +251,7 @@ private fun MoPlayerApp(
     val performancePolicy = remember(state.settings, devicePerformance) {
         Adaptive.performancePolicy(state.settings, devicePerformance)
     }
+    val reduceControlMotion = com.moalfarras.moplayer.core.shouldReduceControlMotion(state.settings.motionLevel, performancePolicy.mode)
     // Trailer capability = the ADMIN remote switch AND the user's own Settings switch, except in
     // PERFORMANCE mode: a WebView renderer (100+ MB) next to playback is what a 1 GB box cannot
     // afford. Not gated on reduceMotion (that wrongly killed mid-tier TVs); a muted trailer is only
@@ -312,6 +313,8 @@ private fun MoPlayerApp(
     CompositionLocalProvider(
         LocalLayoutDirection provides if (appLanguage.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
         LocalStrings provides stringsFor(appLanguage),
+        com.moalfarras.moplayer.ui.components.LocalReduceMotion provides performancePolicy.reduceMotion,
+        com.moalfarras.moplayer.ui.components.LocalReduceControlMotion provides reduceControlMotion,
         com.moalfarras.moplayer.ui.components.LocalPosterImageSize provides performancePolicy.posterImageSize,
         com.moalfarras.moplayer.ui.components.LocalPreviewTrailer provides previewTrailer,
         com.moalfarras.moplayer.ui.components.LocalTrailerErrorReporter provides viewModel::reportTrailerUnplayable,
@@ -505,15 +508,17 @@ private fun MoPlayerApp(
                                 state.section == AppSection.HOME &&
                                 !state.showExitDialog,
                             modifier = Modifier.align(Alignment.BottomCenter),
-                            enter = androidx.compose.animation.slideInVertically(initialOffsetY = { it }) + androidx.compose.animation.fadeIn(),
-                            exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it }) + androidx.compose.animation.fadeOut(),
+                            enter = if (reduceControlMotion) androidx.compose.animation.EnterTransition.None else
+                                androidx.compose.animation.slideInVertically(initialOffsetY = { it / 3 }) + androidx.compose.animation.fadeIn(),
+                            exit = if (reduceControlMotion) androidx.compose.animation.ExitTransition.None else
+                                androidx.compose.animation.slideOutVertically(targetOffsetY = { it / 3 }) + androidx.compose.animation.fadeOut(),
                         ) {
                             BottomDock(
                                 selected = state.dockFocusSection ?: state.section,
                                 restoreFocusSection = state.dockFocusSection,
                                 onSelect = viewModel::select,
                                 onSearch = { viewModel.select(AppSection.SEARCH) },
-                                modifier = Modifier.padding(bottom = if (tv.isCompact) 10.dp else 18.dp),
+                                modifier = Modifier.padding(bottom = if (tv.isTv) tv.verticalSafePadding else if (tv.isCompact) 10.dp else 18.dp),
                                 contentFocusRequester = homeContentFocus,
                             )
                         }

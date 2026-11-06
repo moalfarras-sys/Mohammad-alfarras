@@ -13,17 +13,17 @@ test.describe("public site smoke", () => {
 
   test("English work surface loads", async ({ page }) => {
     await page.goto("/en/work");
-    await expect(page.getByRole("heading", { name: /Selected Engineering Work/i })).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: "Explore the decisions behind the interface." }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /Projects that are live/i })).toBeVisible();
+    await expect(page.getByRole("group", { name: "Filter projects" })).toBeVisible();
 
-    const caseStudyLink = page.locator(".work-spotlight-media");
+    const caseStudyLink = page.getByRole("link", { name: /^Read the case —/ }).first();
     await expect(caseStudyLink).toHaveAttribute("href", /^\/en\/work\/.+/);
+    await caseStudyLink.click();
+    await expect(page).toHaveURL(/\/en\/work\/.+/);
 
-    await page.getByRole("button", { name: /Ask the assistant about this project/i }).click();
+    await page.getByRole("button", { name: "Ask the assistant", exact: true }).click();
     await expect(page.locator(".mo-ai-panel")).toBeVisible();
-    await expect(page.locator(".mo-ai-form input")).toHaveValue(/Explain the .+ project/, {
+    await expect(page.locator(".mo-ai-form input")).toHaveValue(/Walk me through the .+ case study/, {
       timeout: 10_000,
     });
   });
@@ -33,7 +33,7 @@ test.describe("public site smoke", () => {
     await page.goto("/ar/work");
 
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    await expect(page.getByRole("heading", { name: "اكتشف القرارات خلف الواجهة." })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /مشاريع.*تعمل فعلاً/ })).toBeVisible();
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
     );

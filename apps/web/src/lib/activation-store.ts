@@ -28,11 +28,15 @@ async function redis<T = unknown>(command: (string | number)[]): Promise<T> {
     },
     body: JSON.stringify(command),
     cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) {
     throw new Error(`Upstash command failed: HTTP ${res.status}`);
   }
-  const data = (await res.json()) as { result: T };
+  const data = (await res.json()) as { result: T; error?: string };
+  if (data.error || !Object.hasOwn(data, "result")) {
+    throw new Error("Activation storage request failed.");
+  }
   return data.result;
 }
 
@@ -90,7 +94,7 @@ const REQUEST_TTL_SECONDS = 60 * 60;
 const DEVICE_TTL_SECONDS = 60 * 60 * 24 * 60; // 60 days
 
 const requestKey = (code: string) => `act:req:${code}`;
-const deviceCodeKey = (publicDeviceId: string) => `act:devcode:${publicDeviceId}`;
+const deviceCodeKey = (publicDeviceId: string, productSlug: string) => `act:devcode:${productSlug}:${publicDeviceId}`;
 const deviceKey = (publicDeviceId: string) => `act:device:${publicDeviceId}`;
 const licenseKey = (publicDeviceId: string) => `act:license:${publicDeviceId}`;
 
@@ -119,7 +123,8 @@ export async function readDeviceSetting<T>(key: string): Promise<T | null> {
     return redisGetJson<T>(key);
   }
   const supabase = createSupabaseAdminClient();
-  const { data } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
+  const { data, error } = await supabase.from("app_settings").select("value").eq("key", key).maybeSingle();
+  if (error) throw new Error("Could not read activation storage.");
   return (data?.value ?? null) as T | null;
 }
 
@@ -133,10 +138,43 @@ export async function writeDeviceSetting(
     return;
   }
   const supabase = createSupabaseAdminClient();
-  await supabase.from("app_settings").upsert(
+  const { error } = await supabase.from("app_settings").upsert(
     { key, value, description: opts?.description ?? null, updated_at: new Date().toISOString() },
     { onConflict: "key" },
   );
+  if (error) throw new Error("Could not write activation storage.");
+}
+
+/** Replace exactly the value that was read. Only one concurrent source pull can win. */
+export async function replaceDeviceSettingIfUnchanged(
+  key: string,
+  expected: unknown,
+  value: unknown,
+  opts: { ttlSeconds: number; description?: string },
+): Promise<boolean> {
+  if (activationStoreUsesRedis()) {
+    const changed = await redis<number>([
+      "EVAL",
+      "if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end " +
+        "redis.call('SET', KEYS[1], ARGV[2], 'EX', ARGV[3]); return 1",
+      1,
+      key,
+      JSON.stringify(expected),
+      JSON.stringify(value),
+      Math.max(1, Math.ceil(opts.ttlSeconds)),
+    ]);
+    return changed === 1;
+  }
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("app_settings")
+    .update({ value, description: opts.description ?? null, updated_at: new Date().toISOString() })
+    .eq("key", key)
+    .eq("value", JSON.stringify(expected))
+    .select("key")
+    .maybeSingle();
+  if (error) throw new Error("Could not replace activation storage.");
+  return Boolean(data);
 }
 
 export async function deleteDeviceSettings(...keys: string[]): Promise<void> {
@@ -147,7 +185,8 @@ export async function deleteDeviceSettings(...keys: string[]): Promise<void> {
     return;
   }
   const supabase = createSupabaseAdminClient();
-  await supabase.from("app_settings").delete().in("key", real);
+  const { error } = await supabase.from("app_settings").delete().in("key", real);
+  if (error) throw new Error("Could not clear activation storage.");
 }
 
 /* ------------------------------------------------------------------ *
@@ -171,7 +210,7 @@ export async function registerDevice(input: {
     return;
   }
   const supabase = createSupabaseAdminClient();
-  await supabase.from("devices").upsert(
+  const { error } = await supabase.from("devices").upsert(
     {
       public_device_id: input.publicDeviceId,
       name: input.name,
@@ -183,23 +222,29 @@ export async function registerDevice(input: {
     },
     { onConflict: "public_device_id" },
   );
+  if (error) throw new Error("Could not register device.");
 }
 
 export async function expireDeviceWaitingRequests(publicDeviceId: string, productSlug: string): Promise<void> {
   if (activationStoreUsesRedis()) {
-    const oldCode = await redis<string | null>(["GET", deviceCodeKey(publicDeviceId)]);
+    const oldCode = (await redisGetJson<string>(deviceCodeKey(publicDeviceId, productSlug))) ??
+      (await redisGetJson<string>(`act:devcode:${publicDeviceId}`));
     if (typeof oldCode === "string" && oldCode) {
-      await redisDel(requestKey(oldCode));
+      const previous = await getActivationRequest(oldCode, productSlug);
+      if (previous?.publicDeviceId === publicDeviceId && previous.status === "waiting") {
+        await setActivationStatus(oldCode, "expired");
+      }
     }
     return;
   }
   const supabase = createSupabaseAdminClient();
-  await supabase
+  const { error } = await supabase
     .from("activation_requests")
     .update({ status: "expired", updated_at: new Date().toISOString() })
     .eq("public_device_id", publicDeviceId)
-    .eq("product_slug", productSlug)
+    .or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`)
     .eq("status", "waiting");
+  if (error) throw new Error("Could not expire activation code.");
 }
 
 /** Returns true if the code was stored, false if it already existed (caller retries). */
@@ -230,7 +275,7 @@ export async function createActivationRequest(input: {
       "NX",
     ]);
     if (stored !== "OK") return false;
-    await redisSetJson(deviceCodeKey(input.publicDeviceId), input.code, REQUEST_TTL_SECONDS);
+    await redisSetJson(deviceCodeKey(input.publicDeviceId, input.productSlug), input.code, REQUEST_TTL_SECONDS);
     return true;
   }
   const supabase = createSupabaseAdminClient();
@@ -246,6 +291,7 @@ export async function createActivationRequest(input: {
     })
     .select("id")
     .single();
+  if (error && error.code !== "23505") throw new Error("Could not create activation code.");
   return Boolean(!error && data);
 }
 
@@ -269,7 +315,8 @@ export async function getActivationRequest(code: string, productSlug: string | n
   if (productSlug !== null) {
     query = query.or(productSlug === "moplayer" ? "product_slug.eq.moplayer,product_slug.is.null" : `product_slug.eq.${productSlug}`);
   }
-  const { data } = await query.maybeSingle();
+  const { data, error } = await query.maybeSingle();
+  if (error) throw new Error("Could not read activation code.");
   if (!data) return null;
   return {
     publicDeviceId: data.public_device_id,
@@ -298,7 +345,8 @@ export async function setActivationStatus(
   const supabase = createSupabaseAdminClient();
   const update: Record<string, unknown> = { status, updated_at: new Date().toISOString() };
   if (extra?.activatedAt) update.activated_at = extra.activatedAt;
-  await supabase.from("activation_requests").update(update).eq("device_code", code);
+  const { error } = await supabase.from("activation_requests").update(update).eq("device_code", code);
+  if (error) throw new Error("Could not update activation code.");
 }
 
 /** Marks the device active and issues/refreshes its free license. */
@@ -315,16 +363,18 @@ export async function activateDeviceAndLicense(publicDeviceId: string, deviceNam
     return;
   }
   const supabase = createSupabaseAdminClient();
-  const { data: device } = await supabase
+  const { data: device, error } = await supabase
     .from("devices")
     .update({ status: "active", name: deviceName, last_seen_at: now, updated_at: now })
     .eq("public_device_id", publicDeviceId)
     .select("id")
     .single();
+  if (error || !device?.id) throw new Error("Could not activate device.");
   if (device?.id) {
-    await supabase
+    const { error: licenseError } = await supabase
       .from("licenses")
       .upsert({ device_id: device.id, plan: "free", status: "active", updated_at: now }, { onConflict: "device_id" });
+    if (licenseError) throw new Error("Could not activate device license.");
   }
 }
 

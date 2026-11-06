@@ -767,16 +767,8 @@ fun ChannelRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            if (item.type == ContentType.LIVE && item.serverOrder != Int.MAX_VALUE) {
-                Text(
-                    item.serverOrder.toString(),
-                    color = if (focused) visuals.accent else Color.White.copy(alpha = 0.55f),
-                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    textAlign = TextAlign.End,
-                    maxLines = 1,
-                    modifier = Modifier.widthIn(min = 26.dp),
-                )
-            }
+            // A provider sorting key may be zero-based; only the full player list can
+            // resolve a display channel number consistently.
             ChannelLogo(item, width = logoSize, monogramSize = (logoSize.value * 0.38f).sp)
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
@@ -791,7 +783,7 @@ fun ChannelRow(
                 if (meta.isNotBlank()) {
                     Text(
                         meta,
-                        color = Color.White.copy(alpha = 0.60f),
+                        color = visuals.textMuted,
                         style = MaterialTheme.typography.labelMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,

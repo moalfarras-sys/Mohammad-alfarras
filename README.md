@@ -1,5 +1,7 @@
 # Moalfarras Space
 
+Current operational state: [Project Status](PROJECT_STATUS.md) and [November production audit](docs/_audit/PRODUCTION_AUDIT_2026-11-05.md).
+
 Production monorepo for:
 
 - Public website: `https://moalfarras.space`
@@ -82,6 +84,12 @@ Required production values:
 - `ADMIN_SESSION_SECRET`
 - `NEXT_PUBLIC_WEB_APP_URL=https://moalfarras.space`
 - `NEXT_PUBLIC_ADMIN_APP_URL=https://admin.moalfarras.space`
+
+## Daily development
+
+Run `npm run doctor` to check tool availability without displaying secrets.
+`npm run dev` starts web on port 3000 and admin on port 3100 with local cross-app links.
+See [workstation notes](docs/DEV_ENVIRONMENT_AUDIT_2026-11-06.md).
 
 ## Verification
 

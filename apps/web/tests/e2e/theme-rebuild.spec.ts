@@ -4,9 +4,9 @@ test("home renders the intentional dark-only experience", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/en");
 
-  await expect(
-    page.getByRole("heading", { name: /premium websites and digital experiences/i }),
-  ).toBeVisible();
+  // The hero is CMS-managed; verify the usable heading and action, not retired copy.
+  await expect(page.locator("main h1")).toBeVisible();
+  await expect(page.locator("main h1")).not.toBeEmpty();
   await expect(page.getByRole("button", { name: /toggle theme/i })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /start a project/i }).first()).toBeVisible();
 });
@@ -21,7 +21,7 @@ test("mobile dock is visible and routes stay reachable", async ({ page }) => {
 
 test("key inner pages render redesigned surfaces", async ({ page }) => {
   await page.goto("/en/work");
-  await expect(page.getByRole("heading", { name: /Selected Engineering Work/i })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: /Projects that are live/i })).toBeVisible();
 
   await page.goto("/en/cv");
   await expect(page.getByRole("heading", { level: 1, name: /Mohammad/i })).toBeVisible();

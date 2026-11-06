@@ -44,10 +44,10 @@ val LuxuryAmber = Color(0xFFFFD78A)
 
 val MidnightBlack = Color(0xFF060509)
 val DeepNavy      = Color(0xFF0E0C0D)
-val MoSurface     = Color(0xFF141118)
-val MoSurfaceHigh = Color(0xFF221C1B)
+val MoSurface     = Color(0xFF12151D)
+val MoSurfaceHigh = Color(0xFF202633)
 val MoTextPrimary = Color(0xFFFBF9F4)
-val MoTextMuted   = Color(0xFFC3B7A6)
+val MoTextMuted   = Color(0xFFD1D5DF)
 val MoLiveRed     = Color(0xFFFF3B4D)
 val MoSuccess     = Color(0xFF7FD98A)
 
@@ -108,32 +108,24 @@ object MoMotion {
     val damping   = 0.62f // Spring damping ratio
 }
 
-// Latin brand faces (English / LTR UI).
-private val DisplayFamily = FontFamily(
-    Font(R.font.manrope, FontWeight.ExtraBold),
-    Font(R.font.manrope, FontWeight.Bold),
+// Static instances of the bundled OFL fonts. Labeling the same variable-font file with
+// several FontWeights does not select its wght axis on older Android; Manrope then
+// rendered every requested weight at its default ExtraLight 200. Static 500/600/700
+// instances keep TV text readable and deterministic on our full API 23+ range.
+private val LatinFamily = FontFamily(
+    Font(R.font.manrope_medium, FontWeight.Medium),
+    Font(R.font.manrope_semibold, FontWeight.SemiBold),
+    Font(R.font.manrope_bold, FontWeight.Bold),
 )
-
-private val BodyFamily = FontFamily(
-    Font(R.font.manrope, FontWeight.Medium),
-    Font(R.font.manrope, FontWeight.SemiBold),
+private val ArabicFamily = FontFamily(
+    Font(R.font.cairo_medium, FontWeight.Medium),
+    Font(R.font.cairo_semibold, FontWeight.SemiBold),
+    Font(R.font.cairo_bold, FontWeight.Bold),
 )
-
-// Arabic faces (Cairo) for the RTL UI. Compose matches a FontFamily by weight ONLY, with no
-// per-script glyph fallback between fonts in the same family — so mixing Manrope (Latin-only) and
-// Cairo at the same weights silently shadowed Cairo and left Arabic on a system fallback. Selecting
-// a Cairo-only family for Arabic makes it actually render in Cairo; Cairo also covers Latin
-// (numbers, English titles), so mixed strings still shape correctly.
-private val ArabicDisplayFamily = FontFamily(
-    Font(R.font.cairo, FontWeight.ExtraBold),
-    Font(R.font.cairo, FontWeight.Bold),
-)
-
-private val ArabicBodyFamily = FontFamily(
-    Font(R.font.cairo, FontWeight.Medium),
-    Font(R.font.cairo, FontWeight.SemiBold),
-    Font(R.font.cairo, FontWeight.Bold),
-)
+private val DisplayFamily = LatinFamily
+private val BodyFamily = LatinFamily
+private val ArabicDisplayFamily = ArabicFamily
+private val ArabicBodyFamily = ArabicFamily
 
 private fun colors(accent: Color): ColorScheme = darkColorScheme(
     primary            = accent,
@@ -173,20 +165,23 @@ internal fun typeScaleFor(isTv: Boolean, widthDp: Int, heightDp: Int): Float {
 private fun appTypography(scale: Float, arabic: Boolean, isTv: Boolean): Typography {
     val display = if (arabic) ArabicDisplayFamily else DisplayFamily
     val body = if (arabic) ArabicBodyFamily else BodyFamily
-    // labelSmall is the smallest style in the app (badges, metadata); keep it at the 12sp TV floor.
+    // labelSmall is the smallest style in the app (badges, metadata); keep it at the 13sp TV floor.
     val labelSmallSize = (if (isTv) TV_MIN_SECONDARY_SP else 11f) * scale
     return Typography(
         displayLarge   = TextStyle(fontFamily = display, fontWeight = FontWeight.ExtraBold, fontSize = (52 * scale).sp, lineHeight = (56 * scale).sp),
         displayMedium  = TextStyle(fontFamily = display, fontWeight = FontWeight.ExtraBold, fontSize = (42 * scale).sp, lineHeight = (46 * scale).sp),
+        displaySmall   = TextStyle(fontFamily = display, fontWeight = FontWeight.Bold,      fontSize = (36 * scale).sp, lineHeight = (44 * scale).sp),
         headlineLarge  = TextStyle(fontFamily = display, fontWeight = FontWeight.Bold,      fontSize = (34 * scale).sp, lineHeight = (38 * scale).sp),
         headlineMedium = TextStyle(fontFamily = display, fontWeight = FontWeight.Bold,      fontSize = (28 * scale).sp, lineHeight = (32 * scale).sp),
+        headlineSmall  = TextStyle(fontFamily = display, fontWeight = FontWeight.Bold,      fontSize = (24 * scale).sp, lineHeight = (32 * scale).sp),
         titleLarge     = TextStyle(fontFamily = display, fontWeight = FontWeight.Bold,      fontSize = (22 * scale).sp, lineHeight = (26 * scale).sp),
         titleMedium    = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = (18 * scale).sp, lineHeight = (22 * scale).sp),
+        titleSmall     = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = (16 * scale).sp, lineHeight = (24 * scale).sp),
         bodyLarge      = TextStyle(fontFamily = body,    fontWeight = FontWeight.Medium,    fontSize = (16 * scale).sp, lineHeight = (24 * scale).sp),
         bodyMedium     = TextStyle(fontFamily = body,    fontWeight = FontWeight.Medium,    fontSize = (14 * scale).sp, lineHeight = (21 * scale).sp),
-        bodySmall      = TextStyle(fontFamily = body,    fontWeight = FontWeight.Medium,    fontSize = (12 * scale).sp, lineHeight = (18 * scale).sp),
+        bodySmall      = TextStyle(fontFamily = body,    fontWeight = FontWeight.Medium,    fontSize = ((if (isTv) 13 else 12) * scale).sp, lineHeight = (20 * scale).sp),
         labelLarge     = TextStyle(fontFamily = body,    fontWeight = FontWeight.Bold,      fontSize = (15 * scale).sp, lineHeight = (18 * scale).sp),
-        labelMedium    = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = (13 * scale).sp, lineHeight = (16 * scale).sp),
+        labelMedium    = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = ((if (isTv) 14 else 13) * scale).sp, lineHeight = (19 * scale).sp),
         labelSmall     = TextStyle(fontFamily = body,    fontWeight = FontWeight.SemiBold,  fontSize = labelSmallSize.sp, lineHeight = (labelSmallSize + 3 * scale).sp),
     )
 }

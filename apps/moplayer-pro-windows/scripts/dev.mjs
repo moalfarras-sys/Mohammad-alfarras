@@ -1,15 +1,14 @@
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const workspaceRoot = path.resolve(appRoot, "..", "..");
 const binExt = process.platform === "win32" ? ".cmd" : "";
 const viteBin = path.join(workspaceRoot, "node_modules", ".bin", `vite${binExt}`);
 const tscBin = path.join(workspaceRoot, "node_modules", ".bin", `tsc${binExt}`);
-const electronBin = process.platform === "win32"
-  ? path.join(workspaceRoot, "node_modules", "electron", "dist", "electron.exe")
-  : path.join(workspaceRoot, "node_modules", ".bin", "electron");
+const electronBin = createRequire(import.meta.url)("electron");
 
 function run(command, args, options = {}) {
   const child = spawn(command, args, {
@@ -28,6 +27,7 @@ const launchTimer = setTimeout(() => {
   electron = run(electronBin, ["."], {
     env: {
       ...process.env,
+      ELECTRON_RUN_AS_NODE: undefined,
       VITE_DEV_SERVER_URL: "http://127.0.0.1:5179",
     },
   });

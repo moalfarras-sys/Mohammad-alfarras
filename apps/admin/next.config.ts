@@ -2,6 +2,8 @@ import path from "node:path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Preserve the repository's maintained agent guide during local development.
+  agentRules: false,
   transpilePackages: ["@moalfarras/shared"],
   experimental: {
     serverActions: {

@@ -10,7 +10,7 @@ package com.moalfarras.moplayer.ui.i18n
  */
 
 /** Left-to-right isolate (LRI…PDI): for data that is always LTR (URLs, dates, numbers, usernames). */
-fun String.ltr(): String = if (isEmpty()) this else "⁦$this⁩"
+fun String.ltr(): String = if (isEmpty()) this else "\u2066$this\u2069"
 
 /** First-strong isolate (FSI…PDI): for free text that may be Arabic or Latin (channel or movie titles). */
-fun String.isolate(): String = if (isEmpty()) this else "⁨$this⁩"
+fun String.isolate(): String = if (isEmpty()) this else "\u2068$this\u2069"

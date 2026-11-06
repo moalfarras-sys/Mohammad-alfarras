@@ -608,13 +608,14 @@ private fun heroKicker(item: MediaItem?, h: HomeStrings): String = when (item?.t
     null -> h.rowLiveTv
 }
 
-/** One metadata line under the hero title: category + channel number, or rating/year/length/genre. */
+/** Hero metadata. Channel numbers require the complete zap list, not a raw sorting key. */
 internal fun heroMeta(item: MediaItem?, h: HomeStrings, strings: Strings): String {
     if (item == null) return h.heroWelcomeHint
     val parts = if (item.type == ContentType.LIVE) {
         listOfNotNull(
             item.categoryName.takeIf { it.isNotBlank() }?.isolate(),
-            item.serverOrder.takeIf { it != Int.MAX_VALUE }?.let(h.channelNumber),
+            // serverOrder may be a zero-based import index rather than a provider channel number.
+            // The player resolves numbering against the complete channel list; Home cannot infer it.
         )
     } else {
         listOfNotNull(

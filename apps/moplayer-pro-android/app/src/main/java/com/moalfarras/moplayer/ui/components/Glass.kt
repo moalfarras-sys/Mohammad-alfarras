@@ -36,6 +36,7 @@ fun GlassPanel(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val visuals = LocalMoVisuals.current
+    val reduceMotion = LocalReduceControlMotion.current
 
     val bg by animateColorAsState(
         targetValue = if (highlighted) {
@@ -43,11 +44,13 @@ fun GlassPanel(
         } else {
             visuals.surface.copy(alpha = 0.82f)
         },
+        animationSpec = if (reduceMotion) snap() else tween(180),
         label = "glass-bg",
     )
 
     val borderAlpha by animateFloatAsState(
         targetValue = if (highlighted) 0.72f else 0.22f,
+        animationSpec = if (reduceMotion) snap() else tween(180),
         label = "glass-border-alpha",
     )
 

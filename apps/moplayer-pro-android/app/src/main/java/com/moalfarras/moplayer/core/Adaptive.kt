@@ -91,6 +91,10 @@ data class PerformancePolicy(
     val isPerformance: Boolean = mode == PerformanceMode.PERFORMANCE
 }
 
+/** Short input feedback is cheap; calm TV backdrops must not disable remote feedback. */
+internal fun shouldReduceControlMotion(motion: MotionLevel, mode: PerformanceMode): Boolean =
+    motion == MotionLevel.LOW || mode == PerformanceMode.PERFORMANCE
+
 // Below this the box is a 1 GB-class device (they report ~0.9-1.4 GB total).
 private const val LOW_TOTAL_RAM_MB = 1_500
 private const val HIGH_TOTAL_RAM_MB = 3_500
@@ -259,10 +263,10 @@ object Adaptive {
             PerformanceMode.BALANCED, PerformanceMode.AUTO -> PerformancePolicy(
                 mode = PerformanceMode.BALANCED,
                 tier = info.tier,
-                reduceMotion = tvCalmMotion,
+                reduceMotion = tvCalmMotion || settings.motionLevel == MotionLevel.LOW,
                 enableParticles = !tvCalmMotion && settings.motionLevel != MotionLevel.LOW,
                 enableWeatherEffects = !tvCalmMotion && settings.motionLevel != MotionLevel.LOW,
-                enableFocusBackdropUpdates = !tvCalmMotion,
+                enableFocusBackdropUpdates = !tvCalmMotion && settings.motionLevel != MotionLevel.LOW,
                 enablePreviewPane = settings.previewEnabled,
                 enableWidgets = true,
                 enableAutoPlayLastLive = settings.autoPlayLastLive,
@@ -275,10 +279,10 @@ object Adaptive {
             PerformanceMode.QUALITY -> PerformancePolicy(
                 mode = mode,
                 tier = info.tier,
-                reduceMotion = false,
-                enableParticles = true,
-                enableWeatherEffects = true,
-                enableFocusBackdropUpdates = true,
+                reduceMotion = settings.motionLevel == MotionLevel.LOW,
+                enableParticles = settings.motionLevel != MotionLevel.LOW,
+                enableWeatherEffects = settings.motionLevel != MotionLevel.LOW,
+                enableFocusBackdropUpdates = settings.motionLevel != MotionLevel.LOW,
                 enablePreviewPane = settings.previewEnabled,
                 enableWidgets = true,
                 enableAutoPlayLastLive = settings.autoPlayLastLive,

@@ -19,6 +19,12 @@ vi.mock("@/lib/activation-store", () => ({
     if (fake.failWrites) throw new Error("store unavailable");
     fake.settings.set(key, value);
   }),
+  replaceDeviceSettingIfUnchanged: vi.fn(async (key: string, expected: unknown, value: unknown) => {
+    if (fake.failWrites) throw new Error("store unavailable");
+    if (JSON.stringify(fake.settings.get(key)) !== JSON.stringify(expected)) return false;
+    fake.settings.set(key, value);
+    return true;
+  }),
   deleteDeviceSettings: vi.fn(async (...keys: string[]) => {
     for (const key of keys) fake.settings.delete(key);
   }),
@@ -265,6 +271,38 @@ describe("Classic M3U source handoff keeps the EPG URL", () => {
         epgUrl: "https://epg.example.com/guide.xml",
       },
     });
+    vi.unstubAllGlobals();
+  });
+
+  it("returns source credentials to only one of two simultaneous pulls", async () => {
+    await post(sourcePOST, {
+      code: CLASSIC_CODE,
+      productSlug: "moplayer",
+      source: { type: "m3u", playlistUrl: "https://cdn.example.com/list.m3u" },
+    });
+    const pull = () => sourceGET(new Request(
+      `https://moalfarras.space/api/app/activation/source?publicDeviceId=${CLASSIC_DEVICE}&token=${TOKEN}&product=moplayer`,
+    ));
+    const results = await Promise.all([pull(), pull()]);
+    const bodies = await Promise.all(results.map((response) => response.json()));
+    expect(bodies.filter((body) => body.status === "source_available")).toHaveLength(1);
+    expect(bodies.filter((body) => body.status === "empty")).toHaveLength(1);
+    expect(fake.settings.get(security.deviceSourceQueueSettingKey(CLASSIC_DEVICE))).not.toHaveProperty("encryptedPayload");
+    vi.unstubAllGlobals();
+  });
+
+  it("does not disclose a source when removing its stored credentials fails", async () => {
+    await post(sourcePOST, {
+      code: CLASSIC_CODE,
+      productSlug: "moplayer",
+      source: { type: "m3u", playlistUrl: "https://cdn.example.com/list.m3u" },
+    });
+    fake.failWrites = true;
+    const response = await sourceGET(new Request(
+      `https://moalfarras.space/api/app/activation/source?publicDeviceId=${CLASSIC_DEVICE}&token=${TOKEN}&product=moplayer`,
+    ));
+    expect(response.status).toBe(500);
+    expect(await response.json()).not.toHaveProperty("source");
     vi.unstubAllGlobals();
   });
 });

@@ -3,12 +3,10 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 
 const appRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const workspaceRoot = path.resolve(appRoot, "..", "..");
-const electronBin = process.platform === "win32"
-  ? path.join(workspaceRoot, "node_modules", "electron", "dist", "electron.exe")
-  : path.join(workspaceRoot, "node_modules", ".bin", "electron");
+const electronBin = createRequire(import.meta.url)("electron");
 const outDir = path.join(appRoot, "qa-screenshots");
 const screens = ["home", "live", "guide", "matches", "multi", "multi-1", "multi-2", "multi-3", "multi-4", "multi-picker", "movies", "series", "search", "favorites", "settings", "license", "support", "player", "login"];
 const rtlScreens = ["home", "matches", "multi", "multi-1", "multi-2", "multi-3", "multi-4", "multi-picker", "settings", "login"];
@@ -23,6 +21,7 @@ async function run(screen, options = {}) {
     if (options.language) args.push(`--qa-language=${options.language}`);
     const child = spawn(electronBin, args, {
       cwd: appRoot,
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: undefined },
       stdio: "inherit",
       shell: false,
     });

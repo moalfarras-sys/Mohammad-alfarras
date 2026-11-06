@@ -1,0 +1,123 @@
+name: Native App Quality
+
+on:
+  pull_request:
+    paths:
+      - "apps/moplayer-android/**"
+      - "apps/moplayer-pro-android/**"
+      - "apps/moplayer-pro-windows/**"
+      - "scripts/run-gradle.mjs"
+      - "scripts/android-device-qa.sh"
+      - "package.json"
+      - "package-lock.json"
+      - ".gitattributes"
+      - ".github/workflows/native-app-quality.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/moplayer-android/**"
+      - "apps/moplayer-pro-android/**"
+      - "apps/moplayer-pro-windows/**"
+      - "scripts/run-gradle.mjs"
+      - "scripts/android-device-qa.sh"
+      - "package.json"
+      - "package-lock.json"
+      - ".gitattributes"
+      - ".github/workflows/native-app-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [classic, pro]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+      - name: Install Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;35.0.0 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Android unit tests
+        run: npm run verify:android:${{ matrix.product }}
+
+  pro-device:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api: 29
+            target: google_apis
+            device: pixel_2
+          - api: 36
+            target: android-tv
+            device: tv_1080p
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+      - uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Verify Pro on Android
+        run: bash scripts/android-device-qa.sh "${{ matrix.api }}" "${{ matrix.target }}" "${{ matrix.device }}"
+      - name: Upload device test reports
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: pro-device-api-${{ matrix.api }}
+          path: |
+            apps/moplayer-pro-android/app/build/reports/androidTests/connected/
+            ${{ runner.temp }}/pro-emulator-${{ matrix.api }}.log
+
+  desktop:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run verify:windows
+      - name: HLS rewriting and seekable stream proxy
+        run: npm --prefix apps/moplayer-pro-windows run qa:stream-proxy
+      - name: Build Windows installers
+        if: runner.os == 'Windows'
+        run: npm run dist:windows
+      - name: Desktop startup smoke
+        if: runner.os == 'Windows'
+        run: npm --prefix apps/moplayer-pro-windows run smoke -- --packaged

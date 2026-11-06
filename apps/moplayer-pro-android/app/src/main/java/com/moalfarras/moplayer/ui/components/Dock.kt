@@ -2,6 +2,7 @@ package com.moalfarras.moplayer.ui.components
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.horizontalScroll
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -43,6 +45,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.moalfarras.moplayer.ui.AppSection
 import com.moalfarras.moplayer.ui.i18n.LocalStrings
@@ -55,9 +58,9 @@ private data class DockItem(val section: AppSection, val label: String, val icon
 
 /**
  * Floating navigation dock. Entering it with the D-pad always lands on the current section
- * (never on the geometrically nearest button). Exactly one pill is expanded at a time — the
- * focused button while the dock has focus, otherwise the current section — so the centered dock
- * never shifts while moving.
+ * (never on the geometrically nearest button). TV targets keep fixed widths and always show
+ * labels. On phones one pill expands: the focused button, or the current section when content
+ * has focus. The active-section indicator remains distinct from remote focus.
  */
 @Composable
 fun BottomDock(
@@ -130,6 +133,7 @@ fun BottomDock(
                     active = active,
                     dockHasFocus = dockHasFocus,
                     factor = tv.factor,
+                    isTv = tv.isTv,
                     focusRequester = focusRequesterFor(item.section),
                     upFocusRequester = contentFocusRequester,
                 ) { if (item.section == AppSection.SEARCH) onSearch() else onSelect(item.section) }
@@ -144,6 +148,7 @@ private fun DockButton(
     active: Boolean,
     dockHasFocus: Boolean,
     factor: Float,
+    isTv: Boolean,
     focusRequester: FocusRequester,
     upFocusRequester: FocusRequester?,
     onClick: () -> Unit,
@@ -153,15 +158,17 @@ private fun DockButton(
     val expanded = if (dockHasFocus) focused else active
     val expandedWidth = if (factor < 1f) 104f else 118f * factor
     val idleWidth = if (factor < 1f) 44f else 48f * factor
-    val buttonHeight = if (factor < 1f) 42f else DOCK_BUTTON_HEIGHT * factor
+    val buttonHeight = if (isTv) 52f else if (factor < 1f) 42f else DOCK_BUTTON_HEIGHT * factor
+    val reduceMotion = LocalReduceControlMotion.current
     val width by animateDpAsState(
-        if (expanded) expandedWidth.dp else idleWidth.dp,
-        animationSpec = spring(dampingRatio = 0.8f, stiffness = 420f),
+        if (isTv) 80.dp else if (expanded) expandedWidth.dp else idleWidth.dp,
+        animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.88f, stiffness = 420f),
         label = "dock-w",
     )
 
     FocusGlow(
         modifier = Modifier
+            .testTag("dock-${item.section.name.lowercase()}")
             .onFocusChanged { focused = it.isFocused }
             .then(if (upFocusRequester != null) Modifier.focusProperties { up = upFocusRequester } else Modifier)
             .width(width)
@@ -202,7 +209,7 @@ private fun DockButton(
                         tint = contentColor,
                         modifier = Modifier.size(maxOf(18f, 20 * factor).dp),
                     )
-                    if (expanded) {
+                    if (expanded && !isTv) {
                         Spacer(Modifier.width(6.dp))
                         Text(
                             item.label,
@@ -211,6 +218,15 @@ private fun DockButton(
                             maxLines = 1,
                         )
                     }
+                }
+                if (isTv) {
+                    Text(
+                        item.label,
+                        color = contentColor,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
                 // Current-section indicator; stays on the active button while focus moves.
                 if (active && !hasFocus) {

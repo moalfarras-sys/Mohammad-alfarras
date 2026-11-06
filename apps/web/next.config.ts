@@ -5,6 +5,8 @@ const adminAppUrl = process.env.NEXT_PUBLIC_ADMIN_APP_URL || "https://admin.moal
 const moosSiteUrl = "https://moos-site.moalfarras-moos.workers.dev";
 
 const nextConfig: NextConfig = {
+  // Preserve the repository's maintained agent guide during local development.
+  agentRules: false,
   transpilePackages: ["@moalfarras/shared"],
   async redirects() {
     return [

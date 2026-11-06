@@ -1088,14 +1088,7 @@ private fun LivePreviewPane(item: MediaItem?, epg: LiveEpgSnapshot, modifier: Mo
                     )
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         LiveBadge(strings.badgeLive)
-                        if (item.serverOrder != Int.MAX_VALUE) {
-                            Text(
-                                h.channelNumber(item.serverOrder),
-                                color = Color.White.copy(alpha = 0.72f),
-                                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                                maxLines = 1,
-                            )
-                        }
+                        // Provider sort order is not a resolved display channel number.
                     }
                     Text(
                         item.title,

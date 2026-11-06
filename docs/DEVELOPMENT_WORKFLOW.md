@@ -7,14 +7,14 @@ This file keeps daily development predictable for humans and AI agents.
 From the repository root:
 
 ```powershell
-npm install
+npm ci
 ```
 
 Android projects use their own Gradle wrappers:
 
 ```powershell
-apps/moplayer-android/gradlew.bat tasks
-apps/moplayer-pro-android/gradlew.bat tasks
+node scripts/run-gradle.mjs classic tasks
+node scripts/run-gradle.mjs pro tasks
 ```
 
 Secrets stay in ignored local files:
@@ -24,6 +24,11 @@ Secrets stay in ignored local files:
 - Android `local.properties`
 
 Use `.env.example` files as templates only.
+
+Use Node 24, JDK 17, Android SDK 36 and build-tools 35.0.0/36.0.0.
+Set `JAVA_HOME` and `ANDROID_HOME` for local Android verification. The launcher
+selects the Windows or POSIX wrapper automatically. Flutter QA uses Flutter
+3.47.4 (`npm run verify:ios`); an iOS archive still requires macOS/Xcode.
 
 ## Local Development
 
@@ -82,6 +87,7 @@ Use official docs and release notes first. Keep the implementation conservative:
 | --- | --- |
 | Public pages, app APIs, activation, downloads | `npm run verify:web` |
 | Admin UI or admin actions | `npm run verify:admin` |
+| iOS/Flutter shared code | `npm run verify:ios`; macOS/Xcode for device/archive QA |
 | Shared slug/product helpers | `npm run verify:web` and `npm run verify:admin` |
 | Supabase migrations | Verify affected API/admin flows and document migration order |
 | MoPlayer Classic Android | `npm run verify:android:classic` |
@@ -89,6 +95,13 @@ Use official docs and release notes first. Keep the implementation conservative:
 | MoPlayer Pro Windows PC | `npm run verify:windows`, `npm run dist:windows`, and `npm --prefix apps/moplayer-pro-windows run qa:screens` before release |
 | Player/live playback changes | Android unit tests plus manual/emulator playback QA when a stream is available |
 | Production deploy | `npm run verify:production` |
+
+After the web production build, run `npm --prefix apps/web run test:e2e`.
+Playwright starts an isolated production server on port 4317. Use
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` for an already-installed compatible
+Chromium, or install the Playwright browser. An explicit `PLAYWRIGHT_BASE_URL`
+targets an existing deployment. `verify:production` covers web, admin, optional
+dashboard and Android; Windows packaging and Flutter remain explicit extra gates.
 
 ## Production Deploy Checklist
 

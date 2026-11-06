@@ -71,6 +71,7 @@ function buildSignedSession(email: string): string {
 }
 
 function verifySignedSession(token: string): boolean {
+  if (token.split(".").length !== 4) return false;
   const [version = "", encodedEmail = "", ts = "", sig = ""] = token.split(".");
   if (!version || !encodedEmail || !ts || !sig || version !== SESSION_VERSION) return false;
   let email = "";
@@ -79,7 +80,7 @@ function verifySignedSession(token: string): boolean {
   } catch {
     return false;
   }
-  if (!email) return false;
+  if (!email || !envAdminEmails().includes(email)) return false;
   const payload = `${version}.${encodedEmail}.${ts}`;
   const expected = createHmac("sha256", sessionSecret()).update(payload).digest("hex");
   const sigBuf = Buffer.from(sig);
@@ -87,8 +88,10 @@ function verifySignedSession(token: string): boolean {
   if (sigBuf.length !== expectedBuf.length) return false;
   if (!timingSafeEqual(sigBuf, expectedBuf)) return false;
   const issuedAt = Number(ts);
-  if (!Number.isFinite(issuedAt)) return false;
-  return Date.now() - issuedAt < SESSION_MAX_AGE * 1000;
+  if (!Number.isSafeInteger(issuedAt) || issuedAt <= 0) return false;
+  const age = Date.now() - issuedAt;
+  // Allow small clock differences between server instances, never future-dated sessions.
+  return age >= -60_000 && age < SESSION_MAX_AGE * 1000;
 }
 
 export function verifyAdminPassword(candidate: string, creds: AdminCredentials): boolean {

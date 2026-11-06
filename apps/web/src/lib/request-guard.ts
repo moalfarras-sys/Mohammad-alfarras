@@ -11,11 +11,20 @@ type LimitInput = {
   windowSeconds: number;
 };
 
-// Rate limiting prefers Upstash Redis (atomic INCR + EXPIRE, self-expiring keys,
+// Rate limiting prefers Upstash Redis (one atomic script, self-expiring keys,
 // stays enforced during Supabase outages — the same store activation uses). The
 // Supabase path below remains only as a fallback for environments without Redis.
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+const INCREMENT_WINDOW = `
+local count = redis.call('INCR', KEYS[1])
+local ttl = redis.call('TTL', KEYS[1])
+if ttl < 0 then
+  redis.call('EXPIRE', KEYS[1], ARGV[1])
+  ttl = tonumber(ARGV[1])
+end
+return {count, ttl}
+`;
 
 function clientAddress(request: Request) {
   return (
@@ -41,31 +50,27 @@ async function redis<T = unknown>(command: (string | number)[]): Promise<T> {
     },
     body: JSON.stringify(command),
     cache: "no-store",
+    signal: AbortSignal.timeout(5_000),
   });
   if (!res.ok) {
     throw new Error(`Upstash command failed: HTTP ${res.status}`);
   }
-  const data = (await res.json()) as { result: T };
+  const data = (await res.json()) as { result?: T; error?: string };
+  if (data.error || data.result === undefined) throw new Error("Request guard storage failed");
   return data.result;
 }
 
 /** Returns a 429 response when limited, null when allowed or Redis unavailable but handled. */
 async function rateLimitWithRedis(key: string, input: LimitInput): Promise<NextResponse | null | "unavailable"> {
   try {
-    const count = await redis<number>(["INCR", key]);
-    if (count === 1) {
-      await redis(["EXPIRE", key, String(input.windowSeconds)]);
+    const [count, ttl] = await redis<[number, number]>(["EVAL", INCREMENT_WINDOW, 1, key, input.windowSeconds]);
+    if (!Number.isSafeInteger(count) || count < 1 || !Number.isSafeInteger(ttl) || ttl < 0) {
+      return "unavailable";
     }
     if (count > input.limit) {
-      let ttl = await redis<number>(["TTL", key]);
-      if (ttl < 0) {
-        // A lost EXPIRE would otherwise lock the bucket forever — re-arm it.
-        await redis(["EXPIRE", key, String(input.windowSeconds)]);
-        ttl = input.windowSeconds;
-      }
       return NextResponse.json(
         { ok: false, error: "rate_limited", retryAfterSeconds: Math.max(1, ttl) },
-        { status: 429 },
+        { status: 429, headers: { "Retry-After": String(Math.max(1, ttl)) } },
       );
     }
     return null;

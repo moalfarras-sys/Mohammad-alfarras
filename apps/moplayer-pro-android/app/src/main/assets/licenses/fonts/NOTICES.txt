@@ -1,0 +1,9 @@
+Static TV font instances are derived from the bundled variable fonts in res/font.
+Manrope source metadata: Copyright 2019 The Manrope Project Authors
+(https://github.com/sharanda/manrope).
+The upstream Manrope OFL also retains the 2018 project copyright notice.
+Cairo source metadata: Copyright 2009 The Cairo Project Authors
+(https://github.com/Gue3bara/Cairo).
+Both are distributed under the SIL Open Font License 1.1; full texts are adjacent.
+Weights 500, 600 and 700 are instantiated with fontTools 4.68.0. All other axes
+are pinned to their source defaults. Original variable files are retained.

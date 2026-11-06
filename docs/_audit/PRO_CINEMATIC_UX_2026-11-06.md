@@ -63,8 +63,7 @@ for test fixtures. No production metadata or automatic update is changed here.
 - Final `lintDebug`: zero errors; 101 existing warnings remain. A new test-only
   RememberInComposition error was corrected rather than suppressed.
 - `assembleDebug` and `assembleDebugAndroidTest` pass.
-- Android TV API 36: 12 tests passed before the final narrow-layout refinement;
-  final rerun is recorded below.
+- Android TV API 36: all 12 tests passed again on the final committed source.
 - Phone API 36: ten applicable tests pass; the two TV-only dock tests skip.
   Includes real Room/Keystore/updater/Media3 checks and five player UI checks.
 - D-pad traverses all nine tools in English and mirrored Arabic, including lazy
@@ -79,11 +78,49 @@ for test fixtures. No production metadata or automatic update is changed here.
 Local QA files (intentionally ignored/untracked; synthetic content only):
 `/tmp/pro-cinematic-before-home.png`, `/tmp/pro-cinematic-after-home.png`,
 `/tmp/pro-cinematic-phone-player.png`, `/tmp/pro-cinematic-phone-login.png`.
-The initial after-Home capture predates suppression of description == title;
-final source removes that extra repeated line. No competitor screenshots or
+Final Home captures: `/tmp/pro-cinematic-final-home-1080.png`,
+`/tmp/pro-cinematic-final-home-720.png`, `/tmp/pro-cinematic-final-home-4k.png`.
+Reviewed native 720p/1080p UI captures and restored 1920x1080 afterwards.
+A requested 3840x2160 logical viewport still produced a 1920x1080 framebuffer
+capture; this is not a native 4K visual qualification.
+The emulator was limited to 1536 MB for final checks to avoid host contention;
+its adaptive low-device policy suppresses optional widgets. This differs from
+some earlier baseline captures and is not evidence of removed widget settings.
+The final capture also suppresses descriptions identical to the title. No competitor screenshots or
 private provider assets were copied into the product.
 
 Physical TVs/phones, ARM LibVLC/HDR/4K decoding and long-duration playback remain
 unqualified in this pass. UI resolution captures do not establish codec support.
 Production release remains subject to the existing signed-release and playback
 gates; no version bump or automatic production update is included in this PR.
+
+
+## Final local runtime evidence
+
+The final signed, minified `assembleRelease -PincludeX86Abis=true --max-workers=2`
+succeeded and the x86_64 artifact was installed in the TV emulator. It is a local
+QA artifact, not a newly published 2.7.3 asset. The public production release is
+unchanged. Unit/debug/test builds and final Lint passed; the original 101 warnings
+remain visible. Phone tests were rerun after remembering the test focus/state
+holders; ten applicable checks pass, two TV-only dock checks skip.
+
+The phone app imported a local synthetic M3U with two live channels and one VOD
+item. Media3 reached PLAYING and position advanced with buffered HLS data; the
+rendered test-pattern frame was captured. This is a short smoke check, not a
+long-duration or physical-device qualification. A cold FFmpeg library load was
+reported by debug StrictMode on main (~322 ms on this emulator); follow up with
+measured background preparation before claiming improved cold playback startup.
+
+PR: https://github.com/moalfarras-sys/Mohammad-alfarras/pull/76
+
+
+The TV source-error path was also exercised when the local fixture HTTP server
+was stopped by the interrupted session. After restarting the server, OK/retry
+returned the MediaSession to PLAYING and a rendered frame was captured. This
+checks error/retry recovery only; still-frame captures and a PLAYING session do
+not establish sustained moving-video smoothness or a frame-drop benchmark.
+
+Remote CI on code commit `1ed6a95b`: Pro and Classic Android checks, API 29 phone
+and API 36 TV device jobs, Windows/Linux desktop checks, admin/dashboard checks
+and both Vercel previews passed. The web browser-install/job was still running
+at this evidence snapshot; do not describe that pending job as passed.

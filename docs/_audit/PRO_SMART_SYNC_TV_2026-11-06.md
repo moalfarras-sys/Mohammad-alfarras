@@ -139,3 +139,57 @@ that run but Compose checks failed with no hierarchy. Recorded that failure;
 temporarily disabled screensaver and extended the display timeout for the final
 rerun, with original values (enabled=1, timeout=300000 ms) saved for restoration.
 No app assertions were weakened or skipped to work around the device state.
+
+
+### Final 2.7.5 qualification
+
+- Final source: `85117a8f`; `npm run verify:production` passed (web/admin
+  typecheck, Lint, builds and tests, dashboard build, Classic and Pro checks).
+  Pro has 405 passing unit tests; Lint has zero errors and 101 existing warnings.
+- Final signed/minified release build passed. All 17 connected tests passed on
+  the API 36 TV emulator (17.136 s) and physical Android 11 ARMv7 TV (117.295 s),
+  including local-HTTP refresh, Room search/resume, updater, Keystore, Media3
+  and remote navigation. Physical qualification is not a codec/4K/HDR matrix.
+- GitHub stable release was published at `2026-11-06T19:52:31Z`:
+  https://github.com/moalfarras-sys/Mohammad-alfarras/releases/tag/moplayer-pro-v2.7.5
+  All three files were anonymously downloaded completely and verified:
+
+| APK | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Universal ARM | 56203839 | `21353385f397483c0b0afb0d1219ac4ddd7f00d20f16dfcc1d50e96e2af2ffff` |
+| ARM64 | 34966194 | `ac35aee64d11b4857a390d2a7425633abe73fcfce0099710e98c25d8a700a93b` |
+| ARMv7 | 31247764 | `9230d24585c00350a3f088149814e15bed590b11807d7fb70d9c98d0baa40e3c` |
+
+Existing production signing certificate SHA-256 is unchanged:
+`97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`.
+
+The final release was installed in-place on the user's TV without clearing data.
+One first-open observation remained at the preparing-library screen; force-stop
+and reopen restored the catalog. No contemporary app crash was found. Do not
+report a proven root cause or use activity launch time as time-to-library-ready.
+Further cold starts were inspected separately. Final Home D-pad capture
+`/tmp/pro275-final-home-clean.png` shows the larger VOD resume cards, orange focus,
+Arabic labels and bottom dock; automatic live rows are absent. Local QA images
+and XML are deliberately excluded from Git.
+
+Two subsequent cold rechecks each showed the full catalog/Home in a screenshot
+captured six seconds after activity start. The initial delay did not reproduce;
+its cause remains unconfirmed. Original TV display values were restored and
+read back (`screensaver_enabled=1`, `screen_off_timeout=300000`). Only the
+production package remains; temporary debug/test packages were removed.
+
+All PR checks on final Android source `85117a8f` passed, including GitHub's
+API 29 phone and API 36 TV connected jobs, Android Classic/Pro, desktop builds,
+web/admin/dashboard and both Vercel previews.
+
+### Production activation
+
+Migration `20261106220000_moplayer_pro_275_release.sql` passed a rolled-back dry
+run, then was applied atomically with its migration-history entry after saving
+a private release/config backup. Production config now returns latest 75,
+minimum 45 and `forceUpdate=false`; the full public latest-download response
+matched 56,203,839 bytes and the universal SHA-256 above. Both domains and the
+required activation/product/config routes returned HTTP 200. Product-page static
+version text still reflected the previous deployment at this checkpoint; final
+main deployment readback follows the merge. Old release files and prior metadata
+are retained for recovery.

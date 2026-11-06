@@ -91,3 +91,5 @@ layouts as well as English remote traversal. Do not replace it with an icon-only
 fixed row. Home shelf identity includes server, content type and item id; dedupe
 before limiting and preserve dedicated full catalogs. TV Home has no leading
 Smart picks shelf, so update restoration offsets if its leading items change.
+
+Prepare FFmpeg native availability on IO before creating the main-thread Media3 engine. Keep the asynchronous Compose owner lifecycle tested; native preparation must not create a player after disposal.

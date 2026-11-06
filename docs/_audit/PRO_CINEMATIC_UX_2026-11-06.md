@@ -177,3 +177,42 @@ and Media3's synchronized, cached LibraryLoader
 https://github.com/androidx/media/blob/release/libraries/common/src/main/java/androidx/media3/common/util/LibraryLoader.java
 
 Stable packaging uses versionCode 74, allowing an in-place update from RC code 73.
+
+
+## Stable publication and production handoff
+
+Published https://github.com/moalfarras-sys/Mohammad-alfarras/releases/tag/moplayer-pro-v2.7.4
+at 2026-11-06T18:28:53Z, from Android source `0c1fb1fe` (versionCode 74).
+The ARM APKs retain the production certificate. Every anonymous GitHub download
+and the complete public `/api/app/download/latest?product=moplayer2` transfer
+matched the local signature-qualified artifact by size and SHA-256.
+
+| Stable asset | Bytes | SHA-256 |
+| --- | ---: | --- |
+| app-universal-release.apk | 56199797 | `05d8ee4d8fdec8ffbc3326efa90a78798e5edd031116b112dab3f54cbb440d84` |
+| app-arm64-v8a-release.apk | 34962165 | `c5d5e2e6bbeec3df978564ceabc8ec2ba8dbf8c044be9333b2b8c83662e3e987` |
+| app-armeabi-v7a-release.apk | 31243733 | `2be4c92a10d3590cc5ac65c62846dfed5322133c605d5fb1264643d8f1a010ba` |
+
+Full `npm run verify:production` passed before the release metadata transaction.
+The data migration was tested inside a rolled-back transaction, then applied
+atomically with migration history. Public config reads back latest code 74 and
+forceUpdate false; old APKs/releases remain present for recovery. The private
+pre-change release/config snapshot is `/tmp/pro274-release-db-before.json` (0600).
+A rollback must preserve newer admin edits; inspect that snapshot before restoring
+release/config fields. An installed code 74 cannot be downgraded in place to code
+72/73; a forward hotfix needs code 75+.
+
+Production smoke exposed another root cause: the config API overwrote the admin's
+minimum supported code with every latest release. Removed that coupling; minimum
+support comes from valid explicit settings, or the product fallback if absent or
+invalid. Four route tests cover optional publication, forced policy, missing
+settings and invalid values. The saved admin minimum is 45; latest is 74. Force
+policy and minimum no longer silently rise together. A second full production
+verification covers this API change before deployment.
+
+Physical ARM/HDR/4K and sustained moving-video smoothness remain unqualified;
+publication does not turn emulator/static-frame evidence into those certifications.
+
+Final local verification after the API repair: `npm run verify:production` passed.
+Android source `0c1fb1fe` also completed its remote CI jobs, including API 29
+phone and API 36 TV; the metadata/API handoff follows in the next commit.

@@ -1,5 +1,11 @@
 # Project Handoff
 
+## 2026-11-06 cinematic UX follow-up
+
+See [cinematic / remote UX audit](_audit/PRO_CINEMATIC_UX_2026-11-06.md) for the
+working-branch design changes, reference products, evidence, qualification and
+remaining scope. Production remains 2.7.3; this follow-up does not change updates.
+
 ## 2026-11-06 Pro update verification
 
 See [Pro audit](_audit/MOPLAYER_PRO_AUDIT_2026-11-06.md) for 2.7.3 updater integrity, the reproduced Channel 0 repair, connected TV tests, branch handling and publication gates.

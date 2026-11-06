@@ -162,3 +162,5 @@ Start here:
 - [Deployment Notes](docs/deployment.md)
 - [Android Projects](docs/android-projects.md)
 - [Architecture](docs/architecture.md)
+
+MoPlayer Pro design follow-up: [cinematic and remote UX audit](docs/_audit/PRO_CINEMATIC_UX_2026-11-06.md).

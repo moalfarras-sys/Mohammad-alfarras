@@ -179,17 +179,26 @@ internal fun buildHomeRows(
     latestSeries: List<MediaItem>,
     limit: Int,
 ): List<HomeRow> {
+    if (limit <= 0) return emptyList()
     val rows = mutableListOf<HomeRow>()
-    val recent = recentLive.filter { it.type == ContentType.LIVE }.take(limit)
-    val favorites = favoriteLive.filter { it.type == ContentType.LIVE }.take(limit)
-    val live = latestLive.filter { it.type == ContentType.LIVE }.take(limit)
+    // Identity is scoped to source and content type. A provider may reuse a numeric id.
+    val seen = mutableSetOf<Triple<Long, ContentType, String>>()
+    fun shelf(input: List<MediaItem>, accepts: (MediaItem) -> Boolean): List<MediaItem> =
+        input.asSequence().filter(accepts)
+            .filter { seen.add(Triple(it.serverId, it.type, it.id)) }.take(limit).toList()
+    val recent = shelf(recentLive) { it.type == ContentType.LIVE }
+    val favorites = shelf(favoriteLive) { it.type == ContentType.LIVE }
     val personalLive = recent.isNotEmpty() || favorites.isNotEmpty()
     if (recent.isNotEmpty()) rows += HomeRow(HomeRowKind.CONTINUE_LIVE, recent)
     if (favorites.isNotEmpty()) rows += HomeRow(HomeRowKind.FAVORITE_CHANNELS, favorites)
+    val live = shelf(latestLive) { it.type == ContentType.LIVE }
     if (!personalLive && live.isNotEmpty()) rows += HomeRow(HomeRowKind.LIVE_TV, live)
-    resume.filter { it.type != ContentType.LIVE }.take(limit).takeIf { it.isNotEmpty() }?.let { rows += HomeRow(HomeRowKind.RESUME_VOD, it) }
-    latestMovies.take(limit).takeIf { it.isNotEmpty() }?.let { rows += HomeRow(HomeRowKind.LATEST_MOVIES, it) }
-    latestSeries.take(limit).takeIf { it.isNotEmpty() }?.let { rows += HomeRow(HomeRowKind.LATEST_SERIES, it) }
+    shelf(resume) { it.type != ContentType.LIVE }.takeIf { it.isNotEmpty() }
+        ?.let { rows += HomeRow(HomeRowKind.RESUME_VOD, it) }
+    shelf(latestMovies) { it.type == ContentType.MOVIE }.takeIf { it.isNotEmpty() }
+        ?.let { rows += HomeRow(HomeRowKind.LATEST_MOVIES, it) }
+    shelf(latestSeries) { it.type == ContentType.SERIES }.takeIf { it.isNotEmpty() }
+        ?.let { rows += HomeRow(HomeRowKind.LATEST_SERIES, it) }
     if (personalLive && live.isNotEmpty()) {
         val datedAdditions = live.any { !it.addedAtUnknown && it.addedAt > 0 }
         rows += HomeRow(if (datedAdditions) HomeRowKind.NEW_CHANNELS else HomeRowKind.LIVE_TV, live)
@@ -324,7 +333,7 @@ fun HomeScreen(
             showNotification = false
         }
     }
-    val leadingItems = 1 + if (hasContent) 0 else 1
+    val leadingItems = (if (tv.isTv) 0 else 1) + if (hasContent) 0 else 1
 
     CompositionLocalProvider(LocalReduceMotion provides performancePolicy.reduceMotion) {
         if (!tv.isTv) {
@@ -446,6 +455,8 @@ fun HomeScreen(
                     showClock = settings.showClockWidget,
                     showWidgets = performancePolicy.enableWidgets,
                     animate = !performancePolicy.reduceMotion,
+                    accent = accent,
+                    onSmartPicks = { showAssistant = true },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = tv.contentPadding, end = tv.contentPadding, top = tv.verticalSafePadding),
@@ -467,11 +478,6 @@ fun HomeScreen(
                                     },
                                 ),
                         ) {
-                            item(key = "smart-picks") {
-                                Box(Modifier.fillMaxWidth().padding(horizontal = tv.contentPadding)) {
-                                    SmartPicksButton(accent = accent, onClick = { showAssistant = true })
-                                }
-                            }
                             if (!hasContent) {
                                 item(key = "empty") {
                                     EmptyState(
@@ -540,6 +546,8 @@ private fun HomeHero(
     showClock: Boolean,
     showWidgets: Boolean,
     animate: Boolean,
+    accent: Color,
+    onSmartPicks: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val tv = rememberTvScale()
@@ -547,7 +555,7 @@ private fun HomeHero(
     val h = strings.home
     val showWeatherCluster = showClock || (showWeather && weather.hasRealWeather)
     CompositionLocalProvider(LocalTextStyle provides LocalTextStyle.current.copy(shadow = HeroTextShadow)) {
-        Row(modifier, verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(tv.u(24f))) {
+        Row(modifier.padding(bottom = tv.u(8f)), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(tv.u(24f))) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(tv.u(4f))) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(tv.u(10f))) {
                     Image(
@@ -567,7 +575,7 @@ private fun HomeHero(
                 Text(
                     item?.title?.takeIf { it.isNotBlank() } ?: h.heroWelcome,
                     color = Color.White,
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                    style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -578,11 +586,29 @@ private fun HomeHero(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
+                val description = item?.description?.trim().orEmpty()
+                    .takeUnless { it.equals(item?.title?.trim(), ignoreCase = true) }.orEmpty()
+                if (description.isNotBlank()) {
+                    Text(description, color = Color.White.copy(alpha = 0.86f),
+                        style = MaterialTheme.typography.bodyMedium, maxLines = 2,
+                        overflow = TextOverflow.Ellipsis)
+                }
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(tv.u(12f))) {
+                    Box(Modifier.width(tv.u(24f)).height(2.dp).background(accent))
+                    Text(strings.pressOkToPlay, color = Color.White.copy(alpha = 0.72f),
+                        style = MaterialTheme.typography.labelMedium, maxLines = 1)
+                }
             }
-            Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(tv.u(6f))) {
+            Column(Modifier.widthIn(max = tv.u(300f)), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(tv.u(6f))) {
                 if (showWidgets && showWeatherCluster) {
                     HeroWeatherClock(weather, showWeather, showClock, animate)
                 }
+                com.moalfarras.moplayer.ui.components.MediaActionButton(
+                    label = h.smartPicksTitle, icon = Icons.Rounded.AutoAwesome,
+                    accent = accent, isTv = true, onClick = onSmartPicks,
+                    modifier = Modifier.padding(vertical = tv.u(4f)),
+                )
                 AccountSummaryLine(activeServer)
                 if (showWidgets) {
                     when {
@@ -874,42 +900,6 @@ private fun CampaignPill(phase: HomeNotificationPhase, type: String, titleOverri
                 maxLines = 1,
             )
             else -> Unit
-        }
-    }
-}
-
-@Composable
-private fun SmartPicksButton(accent: Color, onClick: () -> Unit) {
-    val tv = rememberTvScale()
-    val h = LocalStrings.current.home
-    FocusGlow(
-        modifier = Modifier.heightIn(min = tv.u(40f)),
-        cornerRadius = 999.dp,
-        onClick = onClick,
-        focusedScale = FocusScale.Button,
-        glowElevation = 10.dp,
-    ) {
-        val focused = LocalFocusGlowFocused.current
-        val content = if (focused) Color(0xFF15110D) else Color.White
-        Row(
-            Modifier
-                .clip(RoundedCornerShape(999.dp))
-                .background(
-                    if (focused) {
-                        Brush.horizontalGradient(listOf(Color.White.copy(alpha = 0.95f), Color.White.copy(alpha = 0.95f)))
-                    } else {
-                        Brush.horizontalGradient(listOf(accent.copy(alpha = 0.26f), Color(0xB3121014)))
-                    },
-                )
-                .border(1.dp, if (focused) Color.Transparent else accent.copy(alpha = 0.38f), RoundedCornerShape(999.dp))
-                .padding(horizontal = tv.u(14f), vertical = tv.u(8f)),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(tv.u(10f)),
-        ) {
-            Icon(Icons.Rounded.AutoAwesome, null, tint = if (focused) Color(0xFF15110D) else accent, modifier = Modifier.size(tv.u(18f)))
-            Text(h.smartPicksTitle, color = content, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.ExtraBold), maxLines = 1)
-            Text(h.smartPicksSubtitle, color = content.copy(alpha = 0.72f), style = MaterialTheme.typography.labelMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = content.copy(alpha = 0.8f), modifier = Modifier.size(tv.u(18f)))
         }
     }
 }

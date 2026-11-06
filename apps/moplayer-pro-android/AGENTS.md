@@ -81,3 +81,13 @@ If player behavior changed, test Media3 startup, LibVLC fallback, live stream er
 ## TV typography and motion
 
 Use the bundled static Manrope/Cairo Medium/SemiBold/Bold instances. Registering the original variable file under multiple weights does not select its weight axis on all supported Android versions. Keep both font licenses in APK assets. TV dock labels remain visible; preserve RTL remote direction and reduced-motion behavior. Run connected UI tests after navigation changes and visually inspect English/Arabic at TV resolutions.
+
+## Media actions and personalized shelves
+
+Use `MediaActionButton` for labeled media tools: TV uses the installed Compose for
+TV Surface with explicit product state colors; phone uses the established touch
+wrapper. Keep the keyed `PlayerTools` strip scrollable and test narrow Arabic
+layouts as well as English remote traversal. Do not replace it with an icon-only
+fixed row. Home shelf identity includes server, content type and item id; dedupe
+before limiting and preserve dedicated full catalogs. TV Home has no leading
+Smart picks shelf, so update restoration offsets if its leading items change.

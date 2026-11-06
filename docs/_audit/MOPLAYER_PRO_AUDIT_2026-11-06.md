@@ -70,3 +70,26 @@ artifacts, source merge, metadata and public download/config readback are checke
 - https://developer.android.com/studio/publish/app-signing — existing signing identity.
 - https://developer.android.com/studio/test/command-line — connected instrumentation.
 
+## Final local build and release preparation
+
+After the Home repair, unit tests, Lint, debug and minified release builds passed;
+five connected tests passed again. Arabic Settings and corrected Home were
+visually inspected; the stale Channel 0 line is gone. The signed x86_64 release
+rendered the synthetic HLS video and survived Home/return and channel switching.
+Production packaging was rerun separately with `assembleRelease -PincludeX86Abis=false`
+to keep universal downloads ARM-only (mixed debug/release tasks include emulator ABIs).
+Universal size: 56,178,052 bytes; SHA-256:
+`abf62fc783f2fb6ce60159018cec3d6aabbc9a87945c7294849d39952725ab4d`.
+
+A synthetic legacy AVI/MSMPEG4v3 playback attempt on x86_64 produced the no-picture
+error. Existing policy deliberately disables LibVLC on x86/x86_64 because its
+surface attach was known to crash there. This is a platform limitation, not a
+passed LibVLC acceptance test; do not remove that safety guard without ARM/device
+coverage. LibVLC rendering on actual ARM hardware remains an explicit release QA
+limit. No crash/ANR was observed during the listed TV UI checks.
+
+Release metadata migration `20261106163000_moplayer_pro_273_release.sql` was
+executed inside a verified-TLS Postgres transaction, read back with all three
+expected sizes, then rolled back. Prior Pro release/assets/config rows are
+backed up privately. Config merges preserve unrelated runtime/update fields.
+The old published APKs and release rows are retained for rollback.

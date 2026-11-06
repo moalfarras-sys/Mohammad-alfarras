@@ -13,6 +13,8 @@ import androidx.media3.exoplayer.audio.AudioRendererEventListener
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 private const val AUDIO_LOG_TAG = "MoPlayerAudio"
 
@@ -61,6 +63,14 @@ internal fun <T> insertExtensionRenderer(out: MutableList<T>, renderer: T, mode:
 
 internal object FfmpegAudio {
     private val logged = AtomicBoolean(false)
+
+    /** Probe/load JNI off main before constructing the session. LibraryLoader caches the result;
+     * failure still permits the platform audio renderer and existing fallback chain. */
+    suspend fun prepare() {
+        withContext(Dispatchers.IO) {
+            runCatching { FfmpegLibrary.isAvailable() }
+        }
+    }
 
     fun createRenderer(handler: Handler, listener: AudioRendererEventListener, sink: AudioSink): Renderer? {
         val result = try {

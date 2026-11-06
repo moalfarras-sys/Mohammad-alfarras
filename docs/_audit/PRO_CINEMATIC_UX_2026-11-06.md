@@ -159,3 +159,21 @@ A mocked SDK test rejected the first settings write with 255 and verified that
 Gradle was reached after retry, while `bash -n` passed. This is an orchestration
 regression check, not a substitute for real Android tests. Remote CI reruns on
 the final commit; no production automatic update is enabled by this candidate.
+
+## Stable 2.7.4 / code 74 preparation
+
+A real cold-start StrictMode trace showed FFmpeg JNI disk loading on main.
+The Compose Media3 owner now awaits a guarded native availability probe on IO
+before constructing its main-thread player. Platform renderers and the fallback
+chain remain available when FFmpeg is absent. No library is eagerly loaded in
+Application startup; player ownership and effects still cancel when disabled or
+disposed. Added a Compose session regression test for async preparation,
+enable/disable and surface-generation replacement; the real audio/zap test now
+uses the same background preparation path. No fixed startup speedup is claimed.
+
+Primary references: Android startup optimization
+https://developer.android.com/topic/performance/appstartup/analysis-optimization
+and Media3's synchronized, cached LibraryLoader
+https://github.com/androidx/media/blob/release/libraries/common/src/main/java/androidx/media3/common/util/LibraryLoader.java
+
+Stable packaging uses versionCode 74, allowing an in-place update from RC code 73.

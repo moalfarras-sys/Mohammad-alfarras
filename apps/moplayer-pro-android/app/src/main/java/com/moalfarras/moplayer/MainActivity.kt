@@ -312,6 +312,7 @@ private fun MoPlayerApp(
     CompositionLocalProvider(
         LocalLayoutDirection provides if (appLanguage.isRtl) LayoutDirection.Rtl else LayoutDirection.Ltr,
         LocalStrings provides stringsFor(appLanguage),
+        com.moalfarras.moplayer.ui.components.LocalReduceMotion provides performancePolicy.reduceMotion,
         com.moalfarras.moplayer.ui.components.LocalPosterImageSize provides performancePolicy.posterImageSize,
         com.moalfarras.moplayer.ui.components.LocalPreviewTrailer provides previewTrailer,
         com.moalfarras.moplayer.ui.components.LocalTrailerErrorReporter provides viewModel::reportTrailerUnplayable,
@@ -505,15 +506,17 @@ private fun MoPlayerApp(
                                 state.section == AppSection.HOME &&
                                 !state.showExitDialog,
                             modifier = Modifier.align(Alignment.BottomCenter),
-                            enter = androidx.compose.animation.slideInVertically(initialOffsetY = { it }) + androidx.compose.animation.fadeIn(),
-                            exit = androidx.compose.animation.slideOutVertically(targetOffsetY = { it }) + androidx.compose.animation.fadeOut(),
+                            enter = if (performancePolicy.reduceMotion) androidx.compose.animation.EnterTransition.None else
+                                androidx.compose.animation.slideInVertically(initialOffsetY = { it / 3 }) + androidx.compose.animation.fadeIn(),
+                            exit = if (performancePolicy.reduceMotion) androidx.compose.animation.ExitTransition.None else
+                                androidx.compose.animation.slideOutVertically(targetOffsetY = { it / 3 }) + androidx.compose.animation.fadeOut(),
                         ) {
                             BottomDock(
                                 selected = state.dockFocusSection ?: state.section,
                                 restoreFocusSection = state.dockFocusSection,
                                 onSelect = viewModel::select,
                                 onSearch = { viewModel.select(AppSection.SEARCH) },
-                                modifier = Modifier.padding(bottom = if (tv.isCompact) 10.dp else 18.dp),
+                                modifier = Modifier.padding(bottom = if (tv.isTv) tv.verticalSafePadding else if (tv.isCompact) 10.dp else 18.dp),
                                 contentFocusRequester = homeContentFocus,
                             )
                         }

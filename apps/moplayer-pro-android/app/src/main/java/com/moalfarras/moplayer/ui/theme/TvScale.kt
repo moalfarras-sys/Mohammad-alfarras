@@ -42,7 +42,7 @@ data class TvScale(
 }
 
 /** Smallest secondary text on the TV canvas (labels, metadata). Body text uses 14sp and up. */
-const val TV_MIN_SECONDARY_SP = 12f
+const val TV_MIN_SECONDARY_SP = 13f
 
 /**
  * TV scale factor. Standard Android TV configurations (1080p@xhdpi, 720p@tvdpi, the emulator)
@@ -96,7 +96,7 @@ fun rememberTvScale(): TvScale {
                 panelPadding = (18 * factor).dp,
                 isTv = true,
                 isCompact = false,
-                bottomBarHeight = (82 * factor).dp,
+                bottomBarHeight = (90 * canvas).dp,
                 shortestScreenDp = shortest,
                 maxOfWidthHeightDp = longest,
                 isLandscape = true,

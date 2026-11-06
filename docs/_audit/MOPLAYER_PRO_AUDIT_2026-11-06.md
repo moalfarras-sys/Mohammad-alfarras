@@ -98,3 +98,17 @@ Remote TV CI exposed a boot race in the emulator action: sys.boot_completed was
 1 before `input keyevent 82` was accepted, aborting before Gradle ran. Replaced
 the action boot wrapper with a bounded script that waits for boot, package manager
 and input readiness, retains logs, and always cleans up its own emulator.
+
+## TV design included in final 2.7.3 candidate
+
+The subsequent TV design pass is documented in [TV design](TV_DESIGN_2026-11-06.md).
+It fixes variable-font weight selection, completes typography roles, labels all
+TV dock targets, strengthens contrast, preserves safe margins and propagates
+reduced motion. Seven connected TV tests passed after final changes, including
+English/Arabic remote navigation and non-overlapping labels. Final signed ARM
+release built successfully. The pre-design candidate hashes above are superseded.
+
+Final universal: 56,183,214 bytes; SHA-256 `44d609c23f9db2f758f7acc836cb5c94e2399e8771ad88f30f894983222cdcad`.
+The final migration was dry-run/read-back/rolled-back again with all three
+updated sizes. Qualified artifacts are copied outside mutable Gradle outputs.
+Public release remains a draft until the final design head passes remote CI.

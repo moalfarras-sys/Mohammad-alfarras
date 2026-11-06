@@ -77,3 +77,7 @@ If player behavior changed, test Media3 startup, LibVLC fallback, live stream er
 ## Device regression gates
 
 `verify:android:pro` includes `lintDebug`. Run `node scripts/run-gradle.mjs pro connectedDebugAndroidTest` for Android-backed persistence, Keystore, updater and Media3 checks. Keep fixtures synthetic and local. Never interpret `serverOrder` as a display channel number without resolving the complete channel list: M3U imports may store zero-based ordering. Release publication must retain the existing signing certificate and publish exact SHA-256/size metadata.
+
+## TV typography and motion
+
+Use the bundled static Manrope/Cairo Medium/SemiBold/Bold instances. Registering the original variable file under multiple weights does not select its weight axis on all supported Android versions. Keep both font licenses in APK assets. TV dock labels remain visible; preserve RTL remote direction and reduced-motion behavior. Run connected UI tests after navigation changes and visually inspect English/Arabic at TV resolutions.

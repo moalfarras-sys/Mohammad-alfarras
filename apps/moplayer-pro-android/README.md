@@ -22,3 +22,5 @@ This is the Pro line that evolved from the earlier Compose prototype. The instal
 `npm run verify:android:pro` runs unit tests and Android Lint. With an emulator/device connected, run `node scripts/run-gradle.mjs pro connectedDebugAndroidTest`. Device tests cover Room catalog persistence, Android Keystore, update rejection and a real Media3 session using generated local audio. They do not certify physical TV codecs or 4K playback.
 
 Updates require a valid matching SHA-256, the exact advertised package/version, and the advertised file size when supplied. Preserve release metadata when publishing; Android also enforces the signing identity during installation.
+
+TV readability uses static Manrope/Cairo weights with bundled SIL OFL notices. See [TV design verification](../../docs/_audit/TV_DESIGN_2026-11-06.md) for typography, labeled navigation, motion and device-test coverage.

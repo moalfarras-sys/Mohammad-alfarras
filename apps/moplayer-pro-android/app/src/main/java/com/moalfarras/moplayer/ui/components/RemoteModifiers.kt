@@ -3,6 +3,7 @@ package com.moalfarras.moplayer.ui.components
 import android.os.SystemClock
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -126,6 +127,7 @@ fun FocusGlow(
     val currentOnClick by rememberUpdatedState(onClick)
     val guard = remember(clickGuardMs) { ClickGuard(clickGuardMs) }
 
+    val reduceMotion = LocalReduceMotion.current
     val targetScale = when {
         focused && pressed -> focusedScale * PRESSED_SCALE
         focused -> focusedScale
@@ -134,7 +136,7 @@ fun FocusGlow(
     }
     val scale by animateFloatAsState(
         targetValue = targetScale,
-        animationSpec = spring(dampingRatio = 0.72f, stiffness = 420f),
+        animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.88f, stiffness = 420f),
         label = "focus-scale",
     )
 

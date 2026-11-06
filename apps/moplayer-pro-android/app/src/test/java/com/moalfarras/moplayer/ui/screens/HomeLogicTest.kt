@@ -21,92 +21,25 @@ class HomeLogicTest {
     private fun item(id: String, type: ContentType, title: String = id, addedAt: Long = 0, addedAtUnknown: Boolean = false) =
         MediaItem(id = id, serverId = 1, type = type, categoryId = "c", title = title, streamUrl = "", addedAt = addedAt, addedAtUnknown = addedAtUnknown)
 
-    @Test
-    fun liveRowsLeadHome() {
-        val rows = buildHomeRows(
-            recentLive = listOf(item("r1", ContentType.LIVE)),
-            favoriteLive = listOf(item("f1", ContentType.LIVE), item("m9", ContentType.MOVIE)),
-            latestLive = listOf(item("l1", ContentType.LIVE, addedAt = 5)),
-            resume = listOf(item("v1", ContentType.MOVIE)),
-            latestMovies = listOf(item("m1", ContentType.MOVIE)),
-            latestSeries = listOf(item("s1", ContentType.SERIES)),
-            limit = 15,
-        )
-        assertEquals(
-            listOf(
-                HomeRowKind.CONTINUE_LIVE,
-                HomeRowKind.FAVORITE_CHANNELS,
-                HomeRowKind.RESUME_VOD,
-                HomeRowKind.LATEST_MOVIES,
-                HomeRowKind.LATEST_SERIES,
-                HomeRowKind.NEW_CHANNELS,
-            ),
-            rows.map { it.kind },
-        )
-        // Only live items make it into the favorite channels row.
-        assertEquals(listOf("f1"), rows[1].items.map { it.id })
+    @Test fun homeKeepsResumeFavoritesAndVodWithoutAutomaticLiveShelves() {
+        val favorite = item("fav", ContentType.LIVE)
+        val movie = item("movie", ContentType.MOVIE)
+        val series = item("series", ContentType.SERIES)
+        val rows = buildHomeRows(listOf(favorite), listOf(movie), listOf(movie, item("new", ContentType.MOVIE)), listOf(series), 15)
+        assertEquals(listOf(HomeRowKind.RESUME_VOD, HomeRowKind.LATEST_MOVIES,
+            HomeRowKind.LATEST_SERIES, HomeRowKind.FAVORITE_CHANNELS), rows.map { it.kind })
+        assertEquals(1, rows.flatMap { it.items }.count { it.id == movie.id })
+        assertEquals(listOf("fav"), rows.single { it.style == com.moalfarras.moplayer.ui.components.LaneStyle.Channel }.items.map { it.id })
     }
 
-    @Test
-    fun firstTimeUsersStillGetLiveTvFirst() {
-        val rows = buildHomeRows(
-            recentLive = emptyList(),
-            favoriteLive = emptyList(),
-            latestLive = listOf(item("l1", ContentType.LIVE, addedAtUnknown = true)),
-            resume = emptyList(),
-            latestMovies = listOf(item("m1", ContentType.MOVIE)),
-            latestSeries = emptyList(),
-            limit = 15,
-        )
-        assertEquals(listOf(HomeRowKind.LIVE_TV, HomeRowKind.LATEST_MOVIES), rows.map { it.kind })
-    }
-
-    @Test
-    fun undatedChannelsAreNotCalledRecentlyAdded() {
-        val rows = buildHomeRows(
-            recentLive = listOf(item("r1", ContentType.LIVE)),
-            favoriteLive = emptyList(),
-            latestLive = listOf(item("l1", ContentType.LIVE, addedAtUnknown = true)),
-            resume = emptyList(),
-            latestMovies = emptyList(),
-            latestSeries = emptyList(),
-            limit = 15,
-        )
-        assertEquals(HomeRowKind.LIVE_TV, rows.last().kind)
-    }
-
-    @Test
-    fun rowsRespectTheShelfLimit() {
-        val many = (1..40).map { item("l$it", ContentType.LIVE) }
-        val rows = buildHomeRows(many, emptyList(), emptyList(), emptyList(), emptyList(), emptyList(), limit = 15)
-        assertEquals(15, rows.single().items.size)
-    }
-
-    @Test
-    fun shelvesDeduplicateAcrossRowsAndFillAfterFiltering() {
-        val a = item("a", ContentType.LIVE)
-        val b = item("b", ContentType.LIVE)
-        val movie = item("m", ContentType.MOVIE)
-        val rows = buildHomeRows(listOf(a, a), listOf(a, b), listOf(a, b, item("c", ContentType.LIVE)),
-            listOf(movie), listOf(movie, item("next", ContentType.MOVIE)), emptyList(), 2)
-        assertEquals(listOf(listOf("a"), listOf("b"), listOf("m"), listOf("next"), listOf("c")),
-            rows.map { row -> row.items.map { it.id } })
-    }
-
-    @Test
-    fun shelfIdentityIncludesServerAndType() {
-        val live = item("1", ContentType.LIVE)
-        val rows = buildHomeRows(listOf(live), listOf(live.copy(serverId = 2)), emptyList(),
-            listOf(item("1", ContentType.MOVIE)), emptyList(), listOf(item("1", ContentType.SERIES)), 2)
-        assertEquals(4, rows.sumOf { it.items.size })
-    }
-
-    @Test
-    fun duplicatesBeyondShelfLimitRemainAvailableToLaterRows() {
-        val channels = (1..4).map { item("$it", ContentType.LIVE) }
-        val rows = buildHomeRows(channels, channels, channels, emptyList(), emptyList(), emptyList(), 2)
-        assertEquals(listOf(listOf("1", "2"), listOf("3", "4")), rows.map { it.items.map { it.id } })
-        assertTrue(buildHomeRows(channels, channels, channels, emptyList(), emptyList(), emptyList(), 0).isEmpty())
+    @Test fun shelfLimitsApplyAfterDuplicatesAndRespectSourceAndType() {
+        val movie = item("same", ContentType.MOVIE)
+        val rows = buildHomeRows(emptyList(), listOf(movie, movie),
+            listOf(movie, movie.copy(serverId = 2), item("next", ContentType.MOVIE)),
+            listOf(item("same", ContentType.SERIES)), 2)
+        assertEquals(listOf(listOf("same"), listOf("same", "next"), listOf("same")), rows.map { it.items.map { it.id } })
+        assertTrue(buildHomeRows(emptyList(), emptyList(), emptyList(), emptyList(), 2).isEmpty())
+        assertTrue(buildHomeRows(emptyList(), listOf(movie), emptyList(), emptyList(), 0).isEmpty())
     }
 
     @Test

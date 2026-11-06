@@ -2,6 +2,8 @@ package com.moalfarras.moplayer.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -154,26 +156,20 @@ private val HomeReadabilityScrim = Brush.verticalGradient(
 // Home rows — Live TV leads (M10)
 // ─────────────────────────────────────────────────────────────────────────────
 
-internal enum class HomeRowKind { CONTINUE_LIVE, FAVORITE_CHANNELS, LIVE_TV, RESUME_VOD, LATEST_MOVIES, LATEST_SERIES, NEW_CHANNELS }
+internal enum class HomeRowKind { FAVORITE_CHANNELS, RESUME_VOD, LATEST_MOVIES, LATEST_SERIES }
 
 internal data class HomeRow(val kind: HomeRowKind, val items: List<MediaItem>) {
     val style: LaneStyle
         get() = when (kind) {
-            HomeRowKind.CONTINUE_LIVE, HomeRowKind.FAVORITE_CHANNELS, HomeRowKind.LIVE_TV, HomeRowKind.NEW_CHANNELS -> LaneStyle.Channel
+            HomeRowKind.FAVORITE_CHANNELS -> LaneStyle.Channel
             else -> LaneStyle.Poster
         }
 }
 
-/**
- * Home row order for an IPTV app: last watched channels, favorite channels, then resumable
- * movies/series and the latest additions. A first-time user (nothing watched or favorited yet)
- * still gets a Live TV row first. The trailing channel row is only called "recently added" when
- * the source actually reports added dates.
- */
+/** Home prioritizes resumable VOD, favorites and new movies/series. Live history and
+ * recently added channels belong in Live TV, not automatic Home shelves. */
 internal fun buildHomeRows(
-    recentLive: List<MediaItem>,
     favoriteLive: List<MediaItem>,
-    latestLive: List<MediaItem>,
     resume: List<MediaItem>,
     latestMovies: List<MediaItem>,
     latestSeries: List<MediaItem>,
@@ -186,31 +182,19 @@ internal fun buildHomeRows(
     fun shelf(input: List<MediaItem>, accepts: (MediaItem) -> Boolean): List<MediaItem> =
         input.asSequence().filter(accepts)
             .filter { seen.add(Triple(it.serverId, it.type, it.id)) }.take(limit).toList()
-    val recent = shelf(recentLive) { it.type == ContentType.LIVE }
-    val favorites = shelf(favoriteLive) { it.type == ContentType.LIVE }
-    val personalLive = recent.isNotEmpty() || favorites.isNotEmpty()
-    if (recent.isNotEmpty()) rows += HomeRow(HomeRowKind.CONTINUE_LIVE, recent)
-    if (favorites.isNotEmpty()) rows += HomeRow(HomeRowKind.FAVORITE_CHANNELS, favorites)
-    val live = shelf(latestLive) { it.type == ContentType.LIVE }
-    if (!personalLive && live.isNotEmpty()) rows += HomeRow(HomeRowKind.LIVE_TV, live)
     shelf(resume) { it.type != ContentType.LIVE }.takeIf { it.isNotEmpty() }
         ?.let { rows += HomeRow(HomeRowKind.RESUME_VOD, it) }
     shelf(latestMovies) { it.type == ContentType.MOVIE }.takeIf { it.isNotEmpty() }
         ?.let { rows += HomeRow(HomeRowKind.LATEST_MOVIES, it) }
     shelf(latestSeries) { it.type == ContentType.SERIES }.takeIf { it.isNotEmpty() }
         ?.let { rows += HomeRow(HomeRowKind.LATEST_SERIES, it) }
-    if (personalLive && live.isNotEmpty()) {
-        val datedAdditions = live.any { !it.addedAtUnknown && it.addedAt > 0 }
-        rows += HomeRow(if (datedAdditions) HomeRowKind.NEW_CHANNELS else HomeRowKind.LIVE_TV, live)
-    }
+    shelf(favoriteLive) { it.type == ContentType.LIVE }.takeIf { it.isNotEmpty() }
+        ?.let { rows += HomeRow(HomeRowKind.FAVORITE_CHANNELS, it) }
     return rows
 }
 
 private fun HomeRow.title(h: HomeStrings, strings: Strings): String = when (kind) {
-    HomeRowKind.CONTINUE_LIVE -> h.rowContinueLive
     HomeRowKind.FAVORITE_CHANNELS -> h.rowFavoriteChannels
-    HomeRowKind.LIVE_TV -> h.rowLiveTv
-    HomeRowKind.NEW_CHANNELS -> h.rowNewChannels
     HomeRowKind.RESUME_VOD -> h.rowResumeVod
     HomeRowKind.LATEST_MOVIES -> strings.railLatestMovies
     HomeRowKind.LATEST_SERIES -> strings.railLatestSeries
@@ -225,8 +209,6 @@ fun HomeScreen(
     weather: WeatherSnapshot,
     football: List<FootballMatch>,
     continueWatching: List<MediaItem>,
-    recentLive: List<MediaItem>,
-    latestLive: List<MediaItem>,
     latestMovies: List<MediaItem>,
     latestSeries: List<MediaItem>,
     activeServer: ServerProfile?,
@@ -238,6 +220,7 @@ fun HomeScreen(
     onPlay: (MediaItem) -> Unit,
     onFavorite: (MediaItem) -> Unit,
     accent: Color,
+    onBrowseLive: () -> Unit,
     syncing: Boolean = false,
     favoriteLive: List<MediaItem> = emptyList(),
     // Shared with the dock: Up from the dock requests it, and the rows' focus restorer puts the
@@ -247,8 +230,8 @@ fun HomeScreen(
     val tv = rememberTvScale()
     val strings = LocalStrings.current
     val h = strings.home
-    val rows = remember(recentLive, favoriteLive, latestLive, continueWatching, latestMovies, latestSeries) {
-        buildHomeRows(recentLive, favoriteLive, latestLive, continueWatching, latestMovies, latestSeries, HOME_SHELF_LIMIT)
+    val rows = remember(favoriteLive, continueWatching, latestMovies, latestSeries) {
+        buildHomeRows(favoriteLive, continueWatching, latestMovies, latestSeries, HOME_SHELF_LIMIT)
     }
     val hasContent = rows.isNotEmpty()
     val allContent = remember(rows) {
@@ -368,16 +351,15 @@ fun HomeScreen(
                     }
                     if (!hasContent) {
                         item(key = "empty") {
-                            EmptyState(
-                                title = if (syncing) strings.homeLibraryLoadingTitle else strings.homeLibraryEmptyTitle,
-                                message = if (syncing) strings.homeLibraryLoadingBody else strings.homeLibraryEmptyBody,
-                                modifier = Modifier.padding(horizontal = tv.contentPadding).fillMaxWidth().heightIn(min = 200.dp),
-                            )
+                            HomeBrowseState(syncing, accent, onBrowseLive,
+                                Modifier.padding(horizontal = tv.contentPadding).fillMaxWidth().height(200.dp))
                         }
                     }
                     itemsIndexed(rows, key = { _, row -> row.kind.name }) { index, row ->
                         MediaLane(
                             title = row.title(h, strings),
+                            modifier = rememberHomeShelfEntrance(!performancePolicy.reduceMotion),
+                            cardWidth = if (tv.isTv && row.style == LaneStyle.Poster) tv.u(if (row.kind == HomeRowKind.RESUME_VOD) 122f else 112f) else null,
                             items = row.items,
                             onFocus = wrappedOnFocus,
                             onClick = onPlay,
@@ -480,16 +462,15 @@ fun HomeScreen(
                         ) {
                             if (!hasContent) {
                                 item(key = "empty") {
-                                    EmptyState(
-                                        title = if (syncing) strings.homeLibraryLoadingTitle else strings.homeLibraryEmptyTitle,
-                                        message = if (syncing) strings.homeLibraryLoadingBody else strings.homeLibraryEmptyBody,
-                                        modifier = Modifier.padding(horizontal = tv.contentPadding).fillMaxWidth().height(tv.u(200f)),
-                                    )
+                                    HomeBrowseState(syncing, accent, onBrowseLive,
+                                        Modifier.padding(horizontal = tv.contentPadding).fillMaxWidth().height(tv.u(200f)))
                                 }
                             }
                             itemsIndexed(rows, key = { _, row -> row.kind.name }) { index, row ->
                                 MediaLane(
                                     title = row.title(h, strings),
+                                    modifier = rememberHomeShelfEntrance(!performancePolicy.reduceMotion),
+                                    cardWidth = if (row.style == LaneStyle.Poster) tv.u(if (row.kind == HomeRowKind.RESUME_VOD) 122f else 112f) else null,
                                     items = row.items,
                                     onFocus = wrappedOnFocus,
                                     onClick = onPlay,
@@ -1390,3 +1371,32 @@ private fun AssistantInfoPill(label: String, value: Int, modifier: Modifier = Mo
 
 private fun String.toZoneId(): ZoneId =
     runCatching { ZoneId.of(this) }.getOrDefault(ZoneId.systemDefault())
+
+
+/** One small compositor-only entrance per shelf; no per-frame layout or continuous animation. */
+@Composable
+private fun rememberHomeShelfEntrance(animate: Boolean): Modifier {
+    val progress = remember(animate) { Animatable(if (animate) 0f else 1f) }
+    LaunchedEffect(progress) { if (animate) progress.animateTo(1f, tween(180)) }
+    return Modifier.graphicsLayer {
+        alpha = 0.75f + 0.25f * progress.value
+        translationY = (1f - progress.value) * 8.dp.toPx()
+    }
+}
+
+
+/** A live-only source still has a working focus target even with automatic live shelves removed. */
+@Composable
+internal fun HomeBrowseState(syncing: Boolean, accent: Color, onBrowseLive: () -> Unit, modifier: Modifier = Modifier) {
+    val strings = LocalStrings.current
+    val h = strings.home
+    val tv = rememberTvScale()
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        EmptyState(if (syncing) strings.homeLibraryLoadingTitle else h.homeBrowseTitle,
+            if (syncing) strings.homeLibraryLoadingBody else h.homeBrowseBody,
+            Modifier.fillMaxWidth().weight(1f))
+        com.moalfarras.moplayer.ui.components.MediaActionButton(strings.navLive, Icons.Rounded.LiveTv,
+            accent, tv.isTv, onBrowseLive)
+    }
+}

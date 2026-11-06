@@ -102,3 +102,40 @@ does not certify all ARM codecs, all providers, HDR/4K or every other device.
   duplicated series. Before: `/tmp/pro-real-tv-awake.png`. After:
   `/tmp/pro275-real-resume.png`. No private images or XML enter Git.
 - PR: https://github.com/moalfarras-sys/Mohammad-alfarras/pull/77
+
+
+### User-directed Home and search refinement (same unpublished 2.7.5 candidate)
+
+The user requested removing live recent-watch and newly-added-channel Home rows.
+Removed both, including their Home paging subscriptions; Live TV remains in the
+dock. Home now presents resume VOD, latest movies/series and favorite channels,
+without adding automatic live shelves under another name. The no-shelf state
+explains browsing from the dock rather than falsely calling a live-only library
+empty. Resume posters are 122 normalized TV dp, new-release posters 112; themes,
+Arabic fonts and the bottom dock remain. A 180ms compositor-only shelf entrance
+has no continuous loop or per-frame layout and is skipped with reduced motion.
+
+Search remains on local FTS4: query-only Arabic/English network-name spellings,
+split letter/digit queries (MBC2 / MBC 2), exact-title ranking, numeric-token
+boundary priority (channel 2 before 20/21), and favorites as a relevance tie-break.
+No title/index/schema is rewritten and no query/catalog is sent to an AI server.
+Added actual Room ranking tests with ambiguous names/numbers and aliases;
+substring fallback and source scope are retained. General typo correction or
+semantic natural-language understanding are not claimed.
+
+The existing GitHub 2.7.5 draft was never published; its assets are replaced with
+the final candidate after these requested changes and requalification.
+
+
+Search references: https://www.sqlite.org/fts3.html (existing FTS4 prefix/index
+behavior retained). The final Home tests replace obsolete tests for shelves the
+user explicitly removed. Current unit count is 405 (not the earlier 409); fewer
+shelf tests reflect removed behavior, not skipped failures. Real Room search tests
+verify MBC2, Arabic MBC/BeIN spelling, 2 versus 20 and exact versus extended titles.
+
+A repeat physical UI run was invalidated when Google's DreamActivity/screensaver
+became resumed instead of the test activity. Catalog/HTTP/update checks passed in
+that run but Compose checks failed with no hierarchy. Recorded that failure;
+temporarily disabled screensaver and extended the display timeout for the final
+rerun, with original values (enabled=1, timeout=300000 ms) saved for restoration.
+No app assertions were weakened or skipped to work around the device state.

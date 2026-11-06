@@ -104,6 +104,24 @@ class CatalogPersistenceInstrumentedTest {
         }
     }
 
+    @Test fun searchRanksExactNamesAndNumbersWithArabicNetworkAliases() = runBlocking {
+        val name = "search-qa-${UUID.randomUUID()}.db"
+        val db = Room.databaseBuilder(context, MoPlayerDatabase::class.java, name).build()
+        try {
+            val serverId = db.serverDao().upsert(server())
+            val writer = CatalogWriter(db, serverId)
+            val titles = listOf("MBC 20", "MBC 2", "MBC2 HD", "beIN Sports 10", "beIN Sports 1", "The Journey Extended", "The Journey")
+            titles.forEachIndexed { n, title -> writer.add(MediaItem("qa-$n", serverId,
+                ContentType.LIVE, "qa", title = title, streamUrl = "http://127.0.0.1/$n")) }
+            writer.finish(listOf(ContentType.LIVE), emptyList())
+            assertEquals("MBC 2", db.mediaDao().searchRowsOnce(serverId, "MBC2").first().title)
+            assertEquals("MBC 2", db.mediaDao().searchRowsOnce(serverId, "إم بي سي ٢").first().title)
+            assertEquals("beIN Sports 1", db.mediaDao().searchRowsOnce(serverId, "بي إن سبورت ١").first().title)
+            assertEquals("The Journey", db.mediaDao().searchRowsOnce(serverId, "the journey").first().title)
+            assertTrue(db.mediaDao().searchRowsOnce(serverId, "unknown-no-such-title").isEmpty())
+        } finally { db.close(); context.deleteDatabase(name) }
+    }
+
     private fun server() = ServerEntity(name = "Local QA", kind = LoginKind.M3U,
         baseUrl = "", username = "", password = "", playlistUrl = "http://127.0.0.1/qa.m3u",
         createdAt = 1, lastSyncAt = 0, host = "127.0.0.1", accountStatus = "", expiryDate = 0,

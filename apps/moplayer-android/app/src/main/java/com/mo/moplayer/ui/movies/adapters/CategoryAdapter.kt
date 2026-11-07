@@ -83,10 +83,12 @@ class CategoryAdapter(
             }
         }
 
-        private fun animateFocus(view: View, hasFocus: Boolean) {
-            val translationX = if (hasFocus) 10f else 0f
+        private fun animateFocus(view: View, @Suppress("UNUSED_PARAMETER") hasFocus: Boolean) {
+            // Full-width rail rows use their focus outline; horizontal movement clips
+            // that outline against the RecyclerView in both physical directions.
+            view.animate().cancel()
             view.animate()
-                .translationX(translationX)
+                .translationX(0f)
                 .setDuration(150)
                 .start()
         }

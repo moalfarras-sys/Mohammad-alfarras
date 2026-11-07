@@ -381,6 +381,7 @@ class MoviesActivity : BaseTvActivity() {
             kotlinx.coroutines.flow.combine(tvUiPreferences.layoutStyle, tvUiPreferences.posterSize) { layoutStyle, posterSize ->
                 layoutStyle to posterSize
             }.collect { (layoutStyle, posterSize) ->
+                movieAdapter.setLayoutStyle(layoutStyle)
                 val metrics = tvUiPreferences.posterMetrics(posterSize)
                 binding.rvMovies.layoutManager =
                     if (layoutStyle == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.GRID) {

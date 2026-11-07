@@ -1,0 +1,1 @@
+Arabic UI uses static Cairo weights 500, 600 and 700, retained from the MoPlayer Pro bundled font assets. Copyright 2009 The Cairo Project Authors (https://github.com/Gue3bara/Cairo). Licensed under SIL OFL 1.1; full license is adjacent. Static instances were generated with fontTools 4.68.0.

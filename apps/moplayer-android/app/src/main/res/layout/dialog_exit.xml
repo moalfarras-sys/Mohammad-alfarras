@@ -43,7 +43,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
-            android:fontFamily="@font/dmsans_medium"
+            android:fontFamily="@font/ui_body_medium"
             android:text="@string/exit_title"
             android:textColor="@color/htc_text_primary"
             android:textSize="24sp"

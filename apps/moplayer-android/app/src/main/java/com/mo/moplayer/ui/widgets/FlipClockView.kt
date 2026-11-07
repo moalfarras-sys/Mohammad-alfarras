@@ -90,8 +90,8 @@ class FlipClockView @JvmOverloads constructor(
         
         val minute = calendar.get(Calendar.MINUTE)
         
-        val hourStr = String.format("%02d", hour)
-        val minuteStr = String.format("%02d", minute)
+        val hourStr = String.format(Locale.ROOT, "%02d", hour)
+        val minuteStr = String.format(Locale.ROOT, "%02d", minute)
         
         val hour1 = hourStr[0].toString()
         val hour2 = hourStr[1].toString()

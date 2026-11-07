@@ -743,7 +743,7 @@
     <string name="settings_ui_intro">اختر الخلفية، أو صورة المدينة، أو صورتك الخاصة، ولون التمييز، واللغة، وحجم الواجهة.</string>
     <string name="settings_background_animation_desc">تشغيل أو إيقاف حركة الخلفية</string>
     <string name="settings_poster_size">حجم البوستر</string>
-    <string name="settings_layout_style">طريقة العرض</string>
+    <string name="settings_layout_style">عرض المكتبة</string>
     <string name="settings_accent_color">لون التمييز</string>
     <string name="settings_accent_color_desc">يغيّر لون الأزرار وإطار التحديد والبطاقات والشارات وأيقونات الشريط</string>
     <string name="settings_custom_background">صورة خلفية مخصصة</string>

@@ -41,7 +41,7 @@ function checksum(file) {
   return createHash("sha256").update(readFileSync(file)).digest("hex");
 }
 
-run(process.platform === "win32" ? "gradlew.bat" : "./gradlew", ["assembleSideloadRelease", "-PuniversalSideloadApk=true"], androidDir);
+run(process.platform === "win32" ? "gradlew.bat" : "./gradlew", ["assembleSideloadRelease", "-PuniversalSideloadApk=true", "-PincludeX86Abis=false"], androidDir);
 
 mkdirSync(publicDir, { recursive: true });
 

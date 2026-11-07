@@ -31,7 +31,7 @@
     <dimen name="spacing_xl">24dp</dimen>
     
     <!-- Screen Margins -->
-    <dimen name="screen_margin_horizontal">24dp</dimen>
+    <dimen name="screen_margin_horizontal">48dp</dimen>
     <dimen name="screen_margin_vertical">16dp</dimen>
     
     <!-- Logo -->
@@ -53,11 +53,11 @@
     <dimen name="flip_clock_text_size">28sp</dimen>
     
     <!-- Dock -->
-    <dimen name="dock_height">52dp</dimen>
-    <dimen name="dock_icon_size">21dp</dimen>
-    <dimen name="dock_label_size">8sp</dimen>
+    <dimen name="dock_height">66dp</dimen>
+    <dimen name="dock_icon_size">24dp</dimen>
+    <dimen name="dock_label_size">11sp</dimen>
     <dimen name="dock_horizontal_margin">100dp</dimen>
-    <dimen name="dock_bottom_margin">8dp</dimen>
+    <dimen name="dock_bottom_margin">24dp</dimen>
     <dimen name="dock_corner_radius">22dp</dimen>
     <dimen name="home_top_action_size">34dp</dimen>
     <dimen name="home_action_rail_height">38dp</dimen>
@@ -74,7 +74,7 @@
     <dimen name="top_bar_height">42dp</dimen>
     <dimen name="home_widget_gap">6dp</dimen>
     <dimen name="home_empty_width">480dp</dimen>
-    <dimen name="home_content_bottom_padding">70dp</dimen>
+    <dimen name="home_content_bottom_padding">112dp</dimen>
 
     <dimen name="settings_rail_width">168dp</dimen>
     <dimen name="settings_shell_margin">6dp</dimen>

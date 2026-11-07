@@ -63,3 +63,48 @@ If player behavior changed, test startup, live stream error, `EndReached`, fast 
 - Do not commit `build-output`, `.gradle`, `.kotlin`, generated APKs, keystores, or `local.properties`.
 - Do not remove lifecycle guards or retry-token checks without replacing them with safer behavior.
 - Do not add provider keys directly to the app when the public web API can proxy server-side data.
+
+## Playback regression gates
+
+Classic verification includes Lint and fails on errors. Run
+`ANDROID_SERIAL=<device> node scripts/run-gradle.mjs classic connectedSideloadDebugAndroidTest`
+for actual player/framework checks; the fixtures are local and contain no source
+credentials. Own and release every initialized engine, fence load callbacks, and
+announce a surface change before fallback preparation. Native VLC must signal
+READY when Playing and never attach an already attached video layout twice.
+Separate system Play/Pause from toggle actions. Pause visible video in onStop,
+preserve explicit pause, and test both default VLC and the Media3 path.
+
+`build-output` may contain stale reports copied from another workstation; verify
+report timestamps and the new command result. Never claim zero issues merely
+because abortOnError=false returned success. Primary evidence and narrow Lint
+exceptions: `../../docs/_audit/CLASSIC_PLAYER_AUDIT_2026-11-07.md`.
+
+Keep TV and Liquid motion constants aligned. Semantic font families have Arabic
+alternatives; do not overwrite localized faces with Typeface.DEFAULT. Fixed digital
+clock cells use Locale.ROOT digits. OFF/reduced/hidden/detached weather must not
+restart a frame callback, and constrained TVs keep the lightweight path. Live
+metadata is a real program title, not a duplicate Live badge; fence delayed guide
+results by content/load owner. Visual tests wait for deferred Home chrome before
+checking bounds and D-pad reachability.
+
+Home is intentionally limited to latest movies, latest series and VOD resume.
+All three populated shelves must fit together above the dock at each interface
+size, in Arabic and English. Home uses its own compact holder/view type; never
+share that holder with portrait library grids. Progress-only changes must update
+the real Room-to-UI path without reloading covers, fading rows or stealing focus.
+Keep Home's preview and weather layers hidden during D-pad browsing. Settings
+horizontal controls must keep their neighbors in RTL and return to the category
+rail only at the physical edge; hidden options cannot be focus targets.
+
+
+Native font-family XML must include platform and compat attributes; verify both
+Resources.getFont and ResourcesCompat, including Arabic/night/fullscreen themes.
+Movie details must keep all visible actions fully on screen with long content;
+scroll text above pinned actions. Library Rows uses a horizontal holder, not a
+one-column portrait grid. Keep its pool types separate from Home/grid holders.
+Poster metadata/position changes must not clear or reload an unchanged cover.
+System MediaSession callbacks and notification PendingIntents retain the owner
+that created them; old state publications cannot adopt a newer generation.
+On owned fresh QA phone emulators, acknowledge immersive-mode confirmation before
+injecting keys. Never add INJECT_EVENTS to the app or remove focus assertions.

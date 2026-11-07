@@ -6,6 +6,7 @@
     android:background="@drawable/selector_settings_category_premium"
     android:gravity="center_vertical"
     android:orientation="horizontal"
+    android:minHeight="48dp"
     android:paddingHorizontal="@dimen/settings_card_padding"
     android:paddingVertical="@dimen/settings_category_padding_vertical"
     android:focusable="true"
@@ -27,8 +28,11 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_marginStart="@dimen/spacing_md"
+        android:textDirection="locale"
+        android:maxLines="2"
+        android:ellipsize="end"
         android:textColor="@color/htc_text_primary"
-        android:fontFamily="@font/dmsans_medium"
+        android:fontFamily="@font/ui_body_medium"
         android:textSize="@dimen/settings_category_text_size"
         tools:text="Server Settings" />
 

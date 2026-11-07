@@ -47,10 +47,11 @@ class PlaybackService : Service() {
         private const val EXTRA_POSITION_MS = "position_ms"
         private const val EXTRA_DURATION_MS = "duration_ms"
 
-        fun start(context: Context, title: String, isLive: Boolean) {
+        fun start(context: Context, title: String, isLive: Boolean, controlGeneration: Long = 0L) {
             val intent = Intent(context, PlaybackService::class.java).apply {
                 putExtra("title", title)
                 putExtra("isLive", isLive)
+                putExtra(PlayerBroadcastBridge.EXTRA_CONTROL_GENERATION, controlGeneration)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -69,7 +70,8 @@ class PlaybackService : Service() {
             isLive: Boolean,
             isPlaying: Boolean,
             positionMs: Long,
-            durationMs: Long
+            durationMs: Long,
+            controlGeneration: Long = 0L,
         ) {
             val intent = Intent(context, PlaybackService::class.java).apply {
                 action = ACTION_UPDATE_STATE
@@ -78,6 +80,7 @@ class PlaybackService : Service() {
                 putExtra(EXTRA_IS_PLAYING, isPlaying)
                 putExtra(EXTRA_POSITION_MS, positionMs)
                 putExtra(EXTRA_DURATION_MS, durationMs)
+                putExtra(PlayerBroadcastBridge.EXTRA_CONTROL_GENERATION, controlGeneration)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
@@ -93,6 +96,7 @@ class PlaybackService : Service() {
     private var currentTitle: String = ""
     private var isLive: Boolean = false
     private var engine: PlayerEngine? = null
+    private var controlGeneration = 0L
     private var sessionState: Int = PlaybackStateCompat.STATE_PLAYING
     private var sessionPositionMs: Long = 0L
     private var sessionDurationMs: Long = -1L
@@ -116,6 +120,22 @@ class PlaybackService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val incomingOwner = intent?.getLongExtra(PlayerBroadcastBridge.EXTRA_CONTROL_GENERATION, controlGeneration) ?: controlGeneration
+        val transportAction = intent?.action in setOf(ACTION_PLAY_PAUSE, ACTION_STOP, ACTION_NEXT, ACTION_PREV, ACTION_FORWARD, ACTION_REWIND)
+        // Notification intents retain the owner that created them. A delayed state publication
+        // also cannot roll a newer owner back to an earlier monotonic generation.
+        if ((transportAction && incomingOwner != controlGeneration) ||
+            (!transportAction && incomingOwner > 0L && controlGeneration > incomingOwner)) {
+            if (controlGeneration == 0L) stopSelf(startId)
+            return START_NOT_STICKY
+        }
+        if (incomingOwner != controlGeneration) {
+            controlGeneration = incomingOwner
+            sessionState = PlaybackStateCompat.STATE_PLAYING
+            sessionPositionMs = 0L
+            sessionDurationMs = -1L
+            initMediaSession()
+        }
         currentTitle = intent?.getStringExtra("title") ?: currentTitle.ifBlank { getString(R.string.app_name) }
         isLive = intent?.getBooleanExtra("isLive", isLive) == true
 
@@ -158,6 +178,7 @@ class PlaybackService : Service() {
 
     override fun onDestroy() {
         abandonAudioFocus()
+        mediaSession?.setCallback(null)
         mediaSession?.release()
         mediaSession = null
         engine?.removeCallback(callback)
@@ -182,43 +203,63 @@ class PlaybackService : Service() {
     }
 
     private fun initMediaSession() {
-        mediaSession = MediaSessionCompat(this, "MoPlayerService").apply {
+        mediaSession?.setCallback(null)
+        mediaSession?.release()
+        val owner = controlGeneration
+        val session = MediaSessionCompat(this, "MoPlayerService")
+        mediaSession = session
+        session.apply {
             setFlags(
                 MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
                     MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS
             )
             setCallback(object : MediaSessionCompat.Callback() {
+                private fun ownsPlayback() = controlGeneration == owner && this@PlaybackService.mediaSession === session
                 override fun onPlay() {
+                    if (!ownsPlayback()) return
+                    if (sessionState == PlaybackStateCompat.STATE_PLAYING) return
+                    sessionState = PlaybackStateCompat.STATE_PLAYING
                     requestAudioFocus()
-                    sendControl(PlayerBroadcastBridge.CONTROL_TYPE_PLAY_PAUSE)
+                    sendControl(PlayerBroadcastBridge.CONTROL_TYPE_PLAY)
                 }
 
                 override fun onPause() {
-                    sendControl(PlayerBroadcastBridge.CONTROL_TYPE_PLAY_PAUSE)
+                    if (!ownsPlayback()) return
+                    if (com.mo.moplayer.BuildConfig.DEBUG) android.util.Log.d("ClassicPlayback", "session pause caller=${this@PlaybackService.mediaSession?.currentControllerInfo?.packageName} state=$sessionState owner=$controlGeneration")
+                    if (sessionState == PlaybackStateCompat.STATE_PAUSED) return
+                    sessionState = PlaybackStateCompat.STATE_PAUSED
+                    sendControl(PlayerBroadcastBridge.CONTROL_TYPE_PAUSE,
+                        systemPause = this@PlaybackService.mediaSession?.currentControllerInfo?.packageName == "android")
                 }
 
                 override fun onStop() {
+                    if (!ownsPlayback()) return
                     sendControl(PlayerBroadcastBridge.CONTROL_TYPE_STOP)
                     stopSelf()
                 }
 
                 override fun onFastForward() {
+                    if (!ownsPlayback()) return
                     sendControl(PlayerBroadcastBridge.CONTROL_TYPE_FORWARD)
                 }
 
                 override fun onRewind() {
+                    if (!ownsPlayback()) return
                     sendControl(PlayerBroadcastBridge.CONTROL_TYPE_REWIND)
                 }
 
                 override fun onSeekTo(pos: Long) {
+                    if (!ownsPlayback()) return
                     sendSeekTo(pos)
                 }
 
                 override fun onSkipToNext() {
+                    if (!ownsPlayback()) return
                     sendControl(PlayerBroadcastBridge.CONTROL_TYPE_NEXT)
                 }
 
                 override fun onSkipToPrevious() {
+                    if (!ownsPlayback()) return
                     sendControl(PlayerBroadcastBridge.CONTROL_TYPE_PREV)
                 }
             })
@@ -357,7 +398,11 @@ class PlaybackService : Service() {
     }
 
     private fun servicePendingIntent(action: String, requestCode: Int): PendingIntent {
-        val intent = Intent(this, PlaybackService::class.java).setAction(action)
+        val intent = Intent(this, PlaybackService::class.java).setAction(action).apply {
+            data = android.net.Uri.Builder().scheme("moplayer").authority("playback")
+                .appendPath(controlGeneration.toString()).appendPath(action).build()
+            putExtra(PlayerBroadcastBridge.EXTRA_CONTROL_GENERATION, controlGeneration)
+        }
         return PendingIntent.getService(
             this,
             requestCode,
@@ -366,10 +411,12 @@ class PlaybackService : Service() {
         )
     }
 
-    private fun sendControl(controlType: Int) {
+    private fun sendControl(controlType: Int, systemPause: Boolean = false) {
         sendBroadcast(Intent(PlayerBroadcastBridge.ACTION_MEDIA_CONTROL).apply {
             setPackage(packageName)
             putExtra(PlayerBroadcastBridge.EXTRA_CONTROL_TYPE, controlType)
+            putExtra(PlayerBroadcastBridge.EXTRA_CONTROL_GENERATION, controlGeneration)
+            putExtra(PlayerBroadcastBridge.EXTRA_SYSTEM_PAUSE, systemPause)
         })
     }
 
@@ -377,6 +424,7 @@ class PlaybackService : Service() {
         sendBroadcast(Intent(PlayerBroadcastBridge.ACTION_MEDIA_CONTROL).apply {
             setPackage(packageName)
             putExtra(PlayerBroadcastBridge.EXTRA_CONTROL_TYPE, PlayerBroadcastBridge.CONTROL_TYPE_SEEK_TO)
+            putExtra(PlayerBroadcastBridge.EXTRA_CONTROL_GENERATION, controlGeneration)
             putExtra(PlayerBroadcastBridge.EXTRA_SEEK_POSITION_MS, positionMs)
         })
     }

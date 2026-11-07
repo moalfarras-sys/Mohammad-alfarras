@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MoPlayer" parent="Base.Theme.MoPlayer">
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+    <style name="Theme.MoPlayer.Neon" parent="Base.Theme.MoPlayer.Neon">
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

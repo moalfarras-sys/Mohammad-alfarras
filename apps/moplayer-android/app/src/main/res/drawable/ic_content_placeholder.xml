@@ -3,12 +3,15 @@
 
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/cinematic_surface" />
+            <size android:width="120dp" android:height="180dp" />
+            <gradient android:angle="315" android:startColor="#14263F" android:endColor="#0B1425" />
         </shape>
     </item>
 
     <item
         android:gravity="center"
+        android:width="36dp"
+        android:height="36dp"
         android:drawable="@drawable/ic_movie_placeholder_icon" />
 
 </layer-list>

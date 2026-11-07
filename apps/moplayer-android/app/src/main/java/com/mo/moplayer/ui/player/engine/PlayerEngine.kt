@@ -23,6 +23,9 @@ interface PlayerEngine {
     /** True when content is actively rendering (or buffering with the intention to play). */
     val isPlaying: Boolean
 
+    /** Play intent also remains true while buffering. */
+    val playWhenReady: Boolean get() = isPlaying
+
     /** Current position in milliseconds. */
     val currentPositionMs: Long
 
@@ -82,6 +85,7 @@ interface PlayerEngine {
 
     /** Callbacks the UI can observe. */
     interface Callback {
+        fun onEngineChanged() {}
         fun onPlaybackStateChanged(state: Int) {}
         fun onIsPlayingChanged(isPlaying: Boolean) {}
         fun onPlaybackError(error: PlaybackError) {}

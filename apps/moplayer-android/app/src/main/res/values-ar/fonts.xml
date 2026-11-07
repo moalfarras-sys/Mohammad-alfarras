@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Font families have locale alternatives; original Latin font binaries are retained. -->
+    <item type="font" name="dmsans">@font/cairo</item>
+    <item type="font" name="outfit">@font/cairo</item>
+</resources>

@@ -1759,10 +1759,11 @@ class SettingsActivity : BaseTvActivity() {
             SettingsPanel.ABOUT -> "about"
         }
         categoryAdapter.setSelectedCategory(categoryId)
+        // Explicit links depend on logical XML order, not the first layout frame.
+        applyPanelFocusMap(panel, panelView)
         
         // Restore or set focus on panel
         panelView.post {
-            applyPanelFocusMap(panel, panelView)
             if (focusPanel) restorePanelFocus(panel, panelView)
             val duration = System.currentTimeMillis() - switchStartMs
             Log.d("SettingsPanelPerf", "panel=${panel.name} switchDurationMs=$duration")
@@ -1794,10 +1795,7 @@ class SettingsActivity : BaseTvActivity() {
         val savedFocusId = lastPanelFocusId[panel]
         if (savedFocusId != null && savedFocusId != View.NO_ID) {
             val savedView = panelView.findViewById<View>(savedFocusId)
-            if (savedView != null && savedView.isFocusable && savedView.visibility == View.VISIBLE) {
-                savedView.requestFocus()
-                return
-            }
+            if (savedView != null && savedView.isFocusable && savedView.isShown && savedView.requestFocus()) return
         }
         
         // Otherwise, focus on first element in panel
@@ -1806,15 +1804,24 @@ class SettingsActivity : BaseTvActivity() {
     }
 
     private fun applyPanelFocusMap(panel: SettingsPanel, panelView: View) {
-        val first = getPanelPreferredFirstFocusable(panel) ?: return
+        if (getPanelPreferredFirstFocusable(panel) == null) return
         val focusables = collectVisibleFocusableViews(panelView)
             .filter { it.id != View.NO_ID }
             .distinctBy { it.id }
 
         if (focusables.isEmpty()) return
 
-        FocusMapRegistry.mapVerticalChain(focusables, leftTarget = binding.rvCategories)
+        val rtl = binding.root.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        FocusMapRegistry.mapVerticalChain(focusables)
+        focusables.forEach { view ->
+            view.nextFocusLeftId = if (rtl) view.id else binding.rvCategories.id
+            view.nextFocusRightId = if (rtl) binding.rvCategories.id else view.id
+        }
         if (panel == SettingsPanel.INTERFACE) {
+            // The vertical chain follows logical layout order; Arabic must still enter
+            // the first color at the logical start of the strip, rather than the left edge.
+            binding.optionPosterSize.nextFocusDownId = binding.optionLayoutStyle.id
+            binding.optionLayoutStyle.nextFocusDownId = binding.colorChipGreen.id
             FocusMapRegistry.mapHorizontalStrip(
                 listOf(
                     binding.colorChipGreen,
@@ -1841,14 +1848,11 @@ class SettingsActivity : BaseTvActivity() {
             )
         }
 
-        // Keep right navigation inside content area unless explicit next-focus exists.
+        // Horizontal strips keep their neighbors; their leading edge returns to the rail.
         focusables.forEach { view ->
-            if (view.nextFocusRightId == View.NO_ID) {
-                view.nextFocusRightId = view.id
-            }
+            if (view.nextFocusLeftId == View.NO_ID) view.nextFocusLeftId = if (rtl) view.id else binding.rvCategories.id
+            if (view.nextFocusRightId == View.NO_ID) view.nextFocusRightId = if (rtl) binding.rvCategories.id else view.id
         }
-
-        first.nextFocusLeftId = binding.rvCategories.id
     }
 
     private fun getPanelPreferredFirstFocusable(panel: SettingsPanel): View? {
@@ -1860,7 +1864,7 @@ class SettingsActivity : BaseTvActivity() {
             SettingsPanel.UPDATE -> binding.btnCheckAppUpdate
             SettingsPanel.ABOUT -> binding.btnWhatsApp
         }
-        if (preferred.visibility == View.VISIBLE && preferred.isEnabled && preferred.isFocusable) return preferred
+        if (preferred.isShown && preferred.isEnabled && preferred.isFocusable) return preferred
         return collectVisibleFocusableViews(getCurrentPanelView()).firstOrNull { it.isEnabled }
     }
 
@@ -1880,27 +1884,7 @@ class SettingsActivity : BaseTvActivity() {
         }
 
         walk(root)
-        return result.sortedWith(compareBy<View> { getAbsoluteTop(it) }.thenBy { getAbsoluteLeft(it) })
-    }
-
-    private fun getAbsoluteTop(view: View): Int {
-        var top = view.top
-        var parent = view.parent
-        while (parent is View) {
-            top += parent.top
-            parent = parent.parent
-        }
-        return top
-    }
-
-    private fun getAbsoluteLeft(view: View): Int {
-        var left = view.left
-        var parent = view.parent
-        while (parent is View) {
-            left += parent.left
-            parent = parent.parent
-        }
-        return left
+        return result
     }
 
     private fun observeViewModel() {
@@ -2071,12 +2055,17 @@ class SettingsActivity : BaseTvActivity() {
                     restorePanelFocus(currentPanel, getCurrentPanelView())
                     return true
                 }
+                val focused = currentFocus
+                if (!binding.pinDialogOverlay.isShown && !binding.rvCategories.hasFocus() &&
+                    focused !is android.widget.EditText && focused !is SeekBar && focused !is Spinner) {
+                    val targetId = if (keyCode == KeyEvent.KEYCODE_DPAD_UP) focused?.nextFocusUpId else focused?.nextFocusDownId
+                    val target = targetId?.takeIf { it != View.NO_ID }?.let { getCurrentPanelView().findViewById<View>(it) }
+                    if (target != null && target.isShown && target.isEnabled && target.isFocusable) return target.requestFocus()
+                }
             }
-            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                return handleLeftKey()
-            }
+            KeyEvent.KEYCODE_DPAD_LEFT,
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                return handleRightKey()
+                return handleHorizontalKey(keyCode)
             }
             KeyEvent.KEYCODE_MENU -> {
                 // Toggle between categories and content
@@ -2114,44 +2103,23 @@ class SettingsActivity : BaseTvActivity() {
         finish()
     }
     
-    private fun handleLeftKey(): Boolean {
-        // Check if we're in a panel (not in categories list)
-        val currentFocusView = currentFocus
-        
-        // If we're in the PIN dialog, let default handling work
-        if (binding.pinDialogOverlay.visibility == View.VISIBLE) {
-            return false
-        }
-        
-        // Check if focus is within any panel
-        val inPanel = currentFocusView != null && 
-            (isViewInPanel(currentFocusView, binding.panelServer) ||
-             isViewInPanel(currentFocusView, binding.panelPlayer) ||
-             isViewInPanel(currentFocusView, binding.panelParental) ||
-             isViewInPanel(currentFocusView, binding.panelInterface) ||
-             isViewInPanel(currentFocusView, binding.panelUpdate) ||
-             isViewInPanel(currentFocusView, binding.panelAbout))
-        
-        if (inPanel) {
-            // Move to categories list
-            focusCurrentCategory()
+    private fun handleHorizontalKey(keyCode: Int): Boolean {
+        if (binding.pinDialogOverlay.isShown) return false
+        val rtl = binding.root.layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val towardPanel = keyCode == if (rtl) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+        if (binding.rvCategories.hasFocus()) {
+            if (towardPanel) restorePanelFocus(currentPanel, getCurrentPanelView())
             return true
         }
-        
-        // Otherwise, let default navigation handle it
-        return false
-    }
-    
-    private fun handleRightKey(): Boolean {
-        // Check if we're in the categories list
-        if (binding.rvCategories.hasFocus() || isViewInPanel(currentFocus, binding.rvCategories)) {
-            // Move to the current panel
-            restorePanelFocus(currentPanel, getCurrentPanelView())
-            return true
-        }
-        
-        // Otherwise, let default navigation handle it
-        return false
+        val focused = currentFocus ?: return false
+        val panel = getCurrentPanelView()
+        // Let editable text and neighboring controls handle their own physical arrow keys.
+        if (!isViewInPanel(focused, panel) || focused is android.widget.EditText) return false
+        val direction = if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) View.FOCUS_LEFT else View.FOCUS_RIGHT
+        val next = focused.focusSearch(direction)
+        if (next != null && next !== focused && next.isShown && isViewInPanel(next, panel)) return false
+        if (!towardPanel) focusCurrentCategory()
+        return true
     }
     
     private fun isViewInPanel(view: View?, panel: View): Boolean {

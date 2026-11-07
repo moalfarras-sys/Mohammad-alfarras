@@ -50,7 +50,7 @@
                     android:textColor="@color/cinematic_text_primary"
                     android:textSize="@dimen/settings_title_size"
                     android:textStyle="bold"
-                    android:fontFamily="@font/dmsans_medium"
+                    android:fontFamily="@font/ui_body_medium"
                     android:letterSpacing="0" />
 
             </LinearLayout>
@@ -885,7 +885,7 @@
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
                         android:nextFocusUp="@id/btnOpenWeatherLabTop"
-                        android:nextFocusDown="@id/optionBackgroundBehavior">
+                        android:nextFocusDown="@id/optionPosterSize">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -919,6 +919,7 @@
 
                     <LinearLayout
                         android:id="@+id/optionBackgroundBehavior"
+                        android:visibility="gone"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_md"
@@ -972,8 +973,8 @@
                         android:padding="@dimen/settings_card_padding"
                         android:focusable="true"
                         android:nextFocusLeft="@id/rvCategories"
-                        android:nextFocusUp="@id/optionBackgroundBehavior"
-                        android:nextFocusDown="@id/optionLayoutStyle">
+                        android:nextFocusUp="@id/optionAnimationToggle"
+                        android:nextFocusDown="@id/colorChipGreen">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -1079,7 +1080,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/rvCategories"
                             android:nextFocusRight="@id/colorChipCyan"
-                            android:nextFocusUp="@id/optionLayoutStyle"
+                            android:nextFocusUp="@id/optionPosterSize"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -1091,7 +1092,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipGreen"
                             android:nextFocusRight="@id/colorChipPurple"
-                            android:nextFocusUp="@id/optionLayoutStyle"
+                            android:nextFocusUp="@id/optionPosterSize"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -1103,7 +1104,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipCyan"
                             android:nextFocusRight="@id/colorChipOrange"
-                            android:nextFocusUp="@id/optionLayoutStyle"
+                            android:nextFocusUp="@id/optionPosterSize"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -1115,7 +1116,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipPurple"
                             android:nextFocusRight="@id/colorChipGold"
-                            android:nextFocusUp="@id/optionLayoutStyle"
+                            android:nextFocusUp="@id/optionPosterSize"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -1127,7 +1128,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipOrange"
                             android:nextFocusRight="@id/colorChipPink"
-                            android:nextFocusUp="@id/optionLayoutStyle"
+                            android:nextFocusUp="@id/optionPosterSize"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -1139,7 +1140,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipGold"
                             android:nextFocusRight="@id/colorChipBlue"
-                            android:nextFocusUp="@id/optionLayoutStyle"
+                            android:nextFocusUp="@id/optionPosterSize"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -1151,7 +1152,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipPink"
                             android:nextFocusRight="@id/colorChipWhite"
-                            android:nextFocusUp="@id/optionLayoutStyle"
+                            android:nextFocusUp="@id/optionPosterSize"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                         <View
@@ -1162,7 +1163,7 @@
                             android:focusable="true"
                             android:nextFocusLeft="@id/colorChipBlue"
                             android:nextFocusRight="@id/colorChipWhite"
-                            android:nextFocusUp="@id/optionLayoutStyle"
+                            android:nextFocusUp="@id/optionPosterSize"
                             android:nextFocusDown="@id/etCustomImageUrl" />
 
                     </LinearLayout>

@@ -31,6 +31,7 @@ import com.mo.moplayer.ui.widgets.AnimatedBackground
 import com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -139,7 +140,9 @@ abstract class BaseThemedActivity : AppCompatActivity() {
                 val userEnabled = backgroundManager.animationEnabled.first()
                 val tier = DevicePerformance.tier(this@BaseThemedActivity)
                 val lowTier = tier == DevicePerformance.Tier.LOW
-                val animationEnabled = userEnabled && !lowTier
+                val animationEnabled = com.mo.moplayer.ui.common.background.BackgroundMotionPolicy.shouldAnimate(
+                    userEnabled, lowTier, Build.VERSION.SDK_INT < 26 || android.animation.ValueAnimator.areAnimatorsEnabled(),
+                    getBackgroundVisualMode() == BackgroundVisualMode.REDUCED_MOTION)
 
                 animBg.setTvOptimizationMode(true)
                 animBg.setCinematicMode(tier == DevicePerformance.Tier.HIGH)
@@ -203,7 +206,6 @@ abstract class BaseThemedActivity : AppCompatActivity() {
             
             val currentTheme = backgroundManager.currentTheme.first()
             val particleColor = backgroundManager.particleColor.first()
-            val animationEnabled = backgroundManager.animationEnabled.first()
             val (customImagePath, cityImagePath) = withContext(Dispatchers.IO) {
                 val custom = backgroundManager.getCustomImageFile().takeIf { it.exists() }?.absolutePath
                 val city = backgroundManager.getCityWallpaperFile().takeIf { it.exists() }?.absolutePath
@@ -217,7 +219,6 @@ abstract class BaseThemedActivity : AppCompatActivity() {
                 particleColor = particleColor
             )
             
-            animatedBackground.setAnimationEnabled(animationEnabled)
             CinematicBackgroundController.applyBackgroundProfile(
                 mode = getBackgroundVisualMode(),
                 background = animatedBackground,
@@ -231,15 +232,19 @@ abstract class BaseThemedActivity : AppCompatActivity() {
                 accentColor = particleColor
             )
             
-            // Optimize animation for TV devices
-            if (isTvDevice()) {
-                // Reduce animation complexity for better performance on TV
-                CinematicBackgroundController.applyCinematicDefaults(animatedBackground)
-            }
-            
-            // Monitor theme changes
-            backgroundManager.currentTheme.collect { theme ->
+            // One observer owns motion; TV defaults must not re-enable disabled animation.
+            combine(backgroundManager.currentTheme, backgroundManager.animationEnabled) { theme, enabled -> theme to enabled }
+                .collect { (theme, userEnabled) ->
                 animatedBackground.setCurrentTheme(theme)
+                val tier = DevicePerformance.tier(this@BaseThemedActivity)
+                val systemMotion = Build.VERSION.SDK_INT < 26 || android.animation.ValueAnimator.areAnimatorsEnabled()
+                val enabled = com.mo.moplayer.ui.common.background.BackgroundMotionPolicy.shouldAnimate(
+                    userEnabled, tier == DevicePerformance.Tier.LOW, systemMotion,
+                    getBackgroundVisualMode() == BackgroundVisualMode.REDUCED_MOTION)
+                animatedBackground.setTvOptimizationMode(isTvDevice())
+                animatedBackground.setCinematicMode(tier == DevicePerformance.Tier.HIGH)
+                animatedBackground.setAnimationEnabled(enabled)
+                if (enabled) animatedBackground.resumeAnimation() else animatedBackground.pauseAnimation()
             }
         }
     }
@@ -379,11 +384,15 @@ abstract class BaseThemedActivity : AppCompatActivity() {
 
             if ((child is Button || child is AppCompatButton) && child.tag == "dynamic_button") {
                 child.background = buttonStyleHelper.createThemedButtonBackground(this)
+                child.backgroundTintList = null
+                val foreground = buttonStyleHelper.createThemedButtonTextColors()
+                child.setTextColor(foreground)
+                child.compoundDrawableTintList = foreground
             }
 
             when (child.id) {
-                focusBorderId -> if (focusBorderId != 0) child.background = FocusStyleHelper.createFocusBorder(color)
-                focusGlowId -> if (focusGlowId != 0) child.background = FocusStyleHelper.createFocusGlow(color)
+                focusBorderId -> if (focusBorderId != 0) child.background = FocusStyleHelper.createFocusBorder(color, child.resources.displayMetrics.density)
+                focusGlowId -> if (focusGlowId != 0) child.background = FocusStyleHelper.createFocusGlow(color, child.resources.displayMetrics.density)
                 glowIndicatorId -> if (glowIndicatorId != 0) child.background = FocusStyleHelper.createDockGlowIndicator(color)
             }
 
@@ -392,7 +401,15 @@ abstract class BaseThemedActivity : AppCompatActivity() {
                 "accent_icon" -> if (child is ImageView) child.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
                 "accent_background" -> child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(58))
                 "accent_surface" -> child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(34))
-                "accent_button" -> child.background = buttonStyleHelper.createThemedButtonBackground(this)
+                "accent_button" -> {
+                    child.background = buttonStyleHelper.createThemedButtonBackground(this)
+                    child.backgroundTintList = null
+                    if (child is TextView) {
+                        val foreground = buttonStyleHelper.createThemedButtonTextColors()
+                        child.setTextColor(foreground)
+                        child.compoundDrawableTintList = foreground
+                    }
+                }
             }
 
             if (child is ViewGroup) {

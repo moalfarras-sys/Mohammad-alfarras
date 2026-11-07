@@ -119,6 +119,7 @@ class FullScreenWeatherOverlay @JvmOverloads constructor(
         targetFrameTime = FRAME_TIME_BY_QUALITY[effectsQuality] ?: 33L
         particleSystem.setEffectSettings(effectsQuality, reduceMotion, disableLightning)
         effectsRenderer.setEffectSettings(effectsQuality, reduceMotion, disableLightning)
+        if (canAnimate()) startAnimation() else pauseAnimation()
         invalidate()
     }
 
@@ -132,7 +133,7 @@ class FullScreenWeatherOverlay @JvmOverloads constructor(
      * Start animation loop
      */
     fun startAnimation() {
-        if (!animationRunning) {
+        if (canAnimate() && !animationRunning) {
             animationRunning = true
             scheduleNextFrame()
         }
@@ -143,18 +144,20 @@ class FullScreenWeatherOverlay @JvmOverloads constructor(
      */
     fun pauseAnimation() {
         animationRunning = false
+        Choreographer.getInstance().removeFrameCallback(frameCallback)
     }
     
     /**
      * Stop and cleanup
      */
     fun stopAnimation() {
-        animationRunning = false
+        pauseAnimation()
         particleSystem.cleanup()
     }
     
     private val frameCallback = object : Choreographer.FrameCallback {
         override fun doFrame(frameTimeNanos: Long) {
+            if (!animationRunning || !canAnimate()) { pauseAnimation(); return }
             val currentTime = System.currentTimeMillis()
             
             // Throttle to 30 FPS for performance
@@ -178,6 +181,16 @@ class FullScreenWeatherOverlay @JvmOverloads constructor(
     
     private fun scheduleNextFrame() {
         Choreographer.getInstance().postFrameCallback(frameCallback)
+    }
+
+    private fun canAnimate(): Boolean = isAttachedToWindow && isShown && windowVisibility == VISIBLE &&
+        effectsQuality != WeatherService.EFFECT_QUALITY_OFF && !reduceMotion &&
+        !com.mo.moplayer.util.DevicePerformance.isLow(context) &&
+        (android.os.Build.VERSION.SDK_INT < 26 || android.animation.ValueAnimator.areAnimatorsEnabled())
+
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        if (visibility == VISIBLE) startAnimation() else pauseAnimation()
     }
     
     override fun onDraw(canvas: Canvas) {

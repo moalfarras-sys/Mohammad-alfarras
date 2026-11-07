@@ -27,6 +27,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import com.mo.moplayer.R
+import com.mo.moplayer.BuildConfig
 import com.mo.moplayer.data.local.entity.ChannelEntity
 import com.mo.moplayer.databinding.ActivityPlayerBinding
 import com.mo.moplayer.data.repository.IptvRepository
@@ -214,12 +215,25 @@ class PlayerActivity : BaseTvActivity() {
     private var engineManager: PlayerEngineManager? = null
     private var broadcastBridge: PlayerBroadcastBridge? = null
     private var useExoPlayerPrimary = false
+    private var resumeVodOnForeground = false
+    private var controlGeneration = SystemClock.elapsedRealtimeNanos()
+    private var playbackRequested = true
+    private var pausedForLifecycle = false
+    private var liveSupportGeneration = 0L
     private lateinit var performanceTier: DevicePerformance.Tier
 
     // Keep TV awake while a stream is on screen. FLAG_KEEP_SCREEN_ON alone is not enough
     // on some TV boxes that aggressively idle the SoC; pair it with a PARTIAL_WAKE_LOCK
     // for the playback lifecycle.
     private var playbackWakeLock: PowerManager.WakeLock? = null
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // singleTask delivers channel/Watch Next requests to this existing activity.
+        // Recreate the session with the new request, using the normal release/restore path.
+        setIntent(intent)
+        recreate()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -318,6 +332,27 @@ class PlayerActivity : BaseTvActivity() {
 
                 // Register broadcast bridge for PlaybackService to Activity remote control.
                 val bridge = PlayerBroadcastBridge(this@PlayerActivity, object : PlayerBroadcastBridge.PlayerControlListener {
+                    override fun onPlayRequested() {
+                        if (pausedForLifecycle && !isLiveStream) {
+                            playbackRequested = true
+                            resumeVodOnForeground = true
+                            syncPlaybackServiceState()
+                        } else requestPlayback(true)
+                    }
+                    override fun onPauseRequested() {
+                        requestPlayback(false)
+                    }
+                    override fun onSystemPauseRequested() {
+                        // Android TV can pause the media session between onPause and onStop.
+                        // Preserve the viewer's intention across that automatic transition;
+                        // explicit remote/notification commands still use onPauseRequested.
+                        if (!isLiveStream && !lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)) {
+                            resumeVodOnForeground = playbackRequested
+                            pausedForLifecycle = true
+                            engineManager?.pause() ?: mediaPlayer?.pause()
+                            syncPlaybackServiceState()
+                        } else requestPlayback(false)
+                    }
                     override fun onPlayPauseRequested() { togglePlayPause() }
                     override fun onStopRequested() {
                         engineManager?.stop() ?: mediaPlayer?.stop()
@@ -331,12 +366,12 @@ class PlayerActivity : BaseTvActivity() {
                     override fun onNextChannelRequested() { playAdjacentChannel(1) }
                     override fun onPreviousChannelRequested() { playAdjacentChannel(-1) }
                     override fun onShowControlsRequested() { showControls() }
-                })
+                }, isCurrentCommand = { it == controlGeneration })
                 bridge.register()
                 broadcastBridge = bridge
 
                 // Keep playback alive via the foreground service.
-                PlaybackService.start(this@PlayerActivity, title, isLiveStream)
+                PlaybackService.start(this@PlayerActivity, title, isLiveStream, controlGeneration)
             }
         }
     }
@@ -481,9 +516,10 @@ class PlayerActivity : BaseTvActivity() {
             context = this,
             title = title,
             isLive = isLiveStream,
-            isPlaying = isPlaybackActive(),
+            isPlaying = playbackRequested && !pausedForLifecycle,
             positionMs = positionMs,
-            durationMs = durationMs
+            durationMs = durationMs,
+            controlGeneration = controlGeneration,
         )
     }
 
@@ -493,6 +529,8 @@ class PlayerActivity : BaseTvActivity() {
      */
     private fun initPlaybackEngine() {
         if (streamUrl.isEmpty()) return
+        playbackRequested = true
+        pausedForLifecycle = false
 
         engineManager = PlayerEngineManager(this, isLiveStream).also { manager ->
             manager.setPrimaryEngine(useExoPlayerPrimary)
@@ -511,6 +549,7 @@ class PlayerActivity : BaseTvActivity() {
 
         // Fallback callback: if ExoPlayer fails and VLC takes over, switch surface
         engineManager?.addCallback(object : PlayerEngine.Callback {
+            override fun onEngineChanged() { attachPlaybackEngineView() }
             override fun onPlaybackStateChanged(state: Int) {
                 if (state == androidx.media3.common.Player.STATE_READY) {
                     hasStartedPlayback = true
@@ -560,7 +599,7 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun attachPlaybackEngineView() {
         val manager = engineManager ?: return
-        if (manager.isFallbackActive || !useExoPlayerPrimary) {
+        if (manager.isUsingVlc) {
             binding.exoPlayerView.visibility = View.GONE
             binding.vlcVideoLayout.visibility = View.VISIBLE
         } else {
@@ -682,6 +721,7 @@ class PlayerActivity : BaseTvActivity() {
                         if (isDestroying || isFinishing || isDestroyed) return@runOnUiThread
                         when (event.type) {
                             MediaPlayer.Event.Playing -> {
+                                if (BuildConfig.DEBUG) android.util.Log.d("ClassicPlayback", "VLC playing requested=$playbackRequested lifecycle=$pausedForLifecycle")
                                 hasStartedPlayback = true
                                 cancelPlaybackOpenTimeout()
                                 handler.removeCallbacks(rebufferShowRunnable)
@@ -694,6 +734,7 @@ class PlayerActivity : BaseTvActivity() {
                                 LivePlaybackRetryPolicy.onSuccess()
                             }
                             MediaPlayer.Event.Paused -> {
+                                if (BuildConfig.DEBUG) android.util.Log.d("ClassicPlayback", "VLC paused requested=$playbackRequested lifecycle=$pausedForLifecycle")
                                 binding.btnPlayPause.setImageResource(R.drawable.ic_play)
                             }
                             MediaPlayer.Event.Buffering -> {
@@ -833,6 +874,8 @@ class PlayerActivity : BaseTvActivity() {
     private fun playStream() {
         try {
             val requestToken = ++activePlaybackToken
+            playbackRequested = true
+            pausedForLifecycle = false
             liveRetryScheduled = false
             setLoadingOverlayVisible(true)
             hasStartedPlayback = false
@@ -1127,14 +1170,17 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun isPlaybackActive(): Boolean = engineManager?.isPlaying ?: (mediaPlayer?.isPlaying == true)
 
-    private fun togglePlayPause() {
-        val manager = engineManager
-        if (manager != null) {
-            manager.togglePlayPause()
-        } else if (mediaPlayer?.isPlaying == true) {
-            mediaPlayer?.pause()
-        } else {
-            mediaPlayer?.play()
+    private fun togglePlayPause() = requestPlayback(!playbackRequested)
+
+    private fun requestPlayback(playing: Boolean) {
+        val change = playbackRequested != playing || pausedForLifecycle
+        playbackRequested = playing
+        pausedForLifecycle = false
+        if (!playing) resumeVodOnForeground = false
+        if (BuildConfig.DEBUG) android.util.Log.d("ClassicPlayback", "request playing=$playing change=$change")
+        if (change) {
+            if (playing) engineManager?.resume() ?: mediaPlayer?.play()
+            else engineManager?.pause() ?: mediaPlayer?.pause()
         }
         syncPlaybackServiceState()
         resetControlsTimeout()
@@ -1487,7 +1533,8 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun updatePlaybackChrome() {
         binding.liveBadge.isVisible = isLiveStream
-        binding.tvPlaybackMeta.isVisible = isLiveStream
+        binding.tvSubtitle.isVisible = !isLiveStream
+        binding.tvPlaybackMeta.isVisible = false
         binding.btnGuide.isVisible = isLiveStream
         binding.btnPreviousChannel.isVisible = isLiveStream
         binding.btnNextChannel.isVisible = isLiveStream
@@ -1496,33 +1543,38 @@ class PlayerActivity : BaseTvActivity() {
         binding.seekBar.isVisible = !isLiveStream
         binding.tvPosition.isVisible = !isLiveStream
         binding.tvDuration.isVisible = !isLiveStream
-        if (isLiveStream) {
-            binding.tvPlaybackMeta.text = getString(R.string.nav_live)
-        }
     }
 
     private fun loadLiveSupportData() {
+        val request = ++liveSupportGeneration
+        val requestedContentId = contentId
+        binding.tvPlaybackMeta.text = ""
+        binding.tvPlaybackMeta.isVisible = false
         activityScope.launch {
             val activeServer = repository.getActiveServerSync() ?: return@launch
-            currentServerId = activeServer.id
-            val current = repository.getChannelById(contentId)
-            channelList = if (!current?.categoryId.isNullOrBlank()) {
+            val current = repository.getChannelById(requestedContentId)
+            val loadedChannels = if (!current?.categoryId.isNullOrBlank()) {
                 repository.getChannelsByCategory(activeServer.id, current!!.categoryId).first()
             } else {
                 repository.getAllChannelsLimited(activeServer.id, 300).first()
             }
-            currentChannelIndex = channelList.indexOfFirst { it.channelId == contentId }
-            val currentChannel = if (currentChannelIndex in channelList.indices) channelList[currentChannelIndex] else null
+            val loadedIndex = loadedChannels.indexOfFirst { it.channelId == requestedContentId }
+            val currentChannel = loadedChannels.getOrNull(loadedIndex)
             val streamId = currentChannel?.streamId
+            val currentProgram = streamId?.let { repository.getCurrentProgram(it, activeServer.id) }
+            val nextProgram = streamId?.let { repository.getNextProgram(it, activeServer.id) }
+            if (request != liveSupportGeneration || contentId != requestedContentId || isDestroying) return@launch
+            currentServerId = activeServer.id
+            channelList = loadedChannels
+            currentChannelIndex = loadedIndex
             if (streamId != null) {
-                val currentProgram = repository.getCurrentProgram(streamId, activeServer.id)
-                val nextProgram = repository.getNextProgram(streamId, activeServer.id)
                 binding.tvCurrentProgram.text =
                     getString(R.string.player_epg_now_format, currentProgram?.title ?: title)
                 binding.tvNextProgram.text =
                     getString(R.string.player_epg_next_format, nextProgram?.title ?: getString(R.string.player_epg_no_upcoming))
-                binding.tvPlaybackMeta.text =
-                    currentProgram?.title?.takeIf { it.isNotBlank() } ?: getString(R.string.nav_live)
+                val programTitle = currentProgram?.title?.takeIf { it.isNotBlank() }
+                binding.tvPlaybackMeta.text = programTitle.orEmpty()
+                binding.tvPlaybackMeta.isVisible = programTitle != null
             }
             populateChannelDrawer()
         }
@@ -1862,7 +1914,9 @@ class PlayerActivity : BaseTvActivity() {
             binding.topControlsBar.visibility = View.GONE
             binding.bottomControlsBar.visibility = View.GONE
         } else {
-            // Restore controls when exiting PIP
+            // Child bars were hidden explicitly on entry; restore them before showing controls.
+            binding.topControlsBar.visibility = View.VISIBLE
+            binding.bottomControlsBar.visibility = View.VISIBLE
             if (!isPlaybackActive()) {
                 showControls()
             }
@@ -1872,7 +1926,7 @@ class PlayerActivity : BaseTvActivity() {
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
         // Enter PIP mode when user presses home button while playing (only if PIP is enabled in settings)
-        if (pipModeEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && mediaPlayer?.isPlaying == true) {
+        if (pipModeEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && isPlaybackActive()) {
             enterPipMode()
         }
     }
@@ -1954,11 +2008,12 @@ class PlayerActivity : BaseTvActivity() {
                 return true
             }
             KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                engineManager?.resume() ?: mediaPlayer?.play()
+                requestPlayback(true)
                 return true
             }
             KeyEvent.KEYCODE_MEDIA_PAUSE -> {
-                engineManager?.pause() ?: mediaPlayer?.pause()
+                if (BuildConfig.DEBUG) android.util.Log.d("ClassicPlayback", "media pause key flags=${event?.flags} device=${event?.deviceId}")
+                requestPlayback(false)
                 return true
             }
             KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
@@ -2033,11 +2088,19 @@ class PlayerActivity : BaseTvActivity() {
 
     override fun onResume() {
         super.onResume()
+        controlGeneration = SystemClock.elapsedRealtimeNanos()
         // Re-assert screen-on guarantees in case the system or another component
         // cleared the flag while we were in the background.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         acquirePlaybackWakeLock()
         attachPlaybackEngineView()
+        pausedForLifecycle = false
+        if (resumeVodOnForeground && playbackRequested) {
+            resumeVodOnForeground = false
+            engineManager?.resume() ?: mediaPlayer?.play()
+        }
+        if (BuildConfig.DEBUG) android.util.Log.d("ClassicPlayback", "resume requested=$playbackRequested native=${isPlaybackActive()}")
+        if (engineManager != null || mediaPlayer != null) syncPlaybackServiceState()
         if (engineManager == null && mediaPlayer != null && binding.vlcVideoLayout.visibility == View.VISIBLE) {
             runCatching { mediaPlayer?.attachViews(binding.vlcVideoLayout, null, false, false) }
         }
@@ -2067,25 +2130,23 @@ class PlayerActivity : BaseTvActivity() {
         // even when the user navigates away (Home, Guide, etc.).
         // Only pause if explicitly finishing or if user navigated Back.
         val allowBackgroundAudio = isLiveStream && !isFinishing
-        if (!allowBackgroundAudio) {
-            if (engineManager != null) {
-                engineManager?.pause()
-            } else {
-                mediaPlayer?.pause()
-            }
-        } else {
-            // Keep audio alive — PlaybackService already started
-            if (engineManager != null) {
-                engineManager?.detachView()
-            } else {
-                // Detach video to save decoder resources while audio continues
-                mediaPlayer?.detachViews()
-            }
+        if (allowBackgroundAudio) {
+            if (engineManager != null) engineManager?.detachView() else mediaPlayer?.detachViews()
         }
+        // A paused activity can still be visible (PiP/multi-window). VOD pauses in onStop.
     }
 
     override fun onStop() {
         super.onStop()
+        controlGeneration = SystemClock.elapsedRealtimeNanos()
+        if (!isLiveStream) {
+            resumeVodOnForeground = !isFinishing && playbackRequested
+            pausedForLifecycle = true
+            if (BuildConfig.DEBUG) android.util.Log.d("ClassicPlayback", "stop requested=$playbackRequested native=${isPlaybackActive()}")
+            engineManager?.pause() ?: mediaPlayer?.pause()
+            syncPlaybackServiceState()
+            releasePlaybackWakeLock()
+        }
         cancelPlaybackOpenTimeout()
         handler.removeCallbacks(saveProgressRunnable)
         if (isFinishing) {
@@ -2143,7 +2204,7 @@ class PlayerActivity : BaseTvActivity() {
 
     /** Localised label for the header ("Movies", "Series", "Live") instead of the raw type code. */
     private fun contentTypeLabel(): String = when (contentType.uppercase(java.util.Locale.ROOT)) {
-        "LIVE" -> getString(R.string.nav_live)
+        "LIVE", "CHANNEL" -> getString(R.string.nav_live)
         "SERIES", "EPISODE" -> getString(R.string.nav_series)
         else -> getString(R.string.nav_movies)
     }

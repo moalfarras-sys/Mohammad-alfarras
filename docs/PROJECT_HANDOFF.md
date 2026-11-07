@@ -1,5 +1,9 @@
 # Project Handoff
 
+## 2026-11-07 Classic playback audit
+
+The blue Classic candidate is **2.5.3/code 28** on `codex/classic-deep-audit-20261106` (draft PR #78). It adds compact Home, premium library cards/Rows, platform-loadable Arabic/English fonts, pinned movie actions and isolated media-session/notification ownership. The final actual TV API 36 suite passed 39/39, including 30 surface language/layout cases, native playback and the independent stale-controller/notification/state check. Required Android verification passed 80 Classic + 405 Pro unit tests and zero Classic Lint errors (1,270 warnings remain). Final full-suite, signed asset and CI status must be read in the [audit](_audit/CLASSIC_PLAYER_AUDIT_2026-11-07.md), not inferred from older 2.5.2 results. The phone full run was incomplete and included a VLC lifecycle failure before the ownership repair. The physical TV remains unreachable, with source data and the internal 2.5.2 installation preserved. Public Classic remains 2.5.1/code 26; no stable metadata/deployment was changed in this phase.
+
 ## 2026-11-06 Pro 2.7.5 Home, search and catalog freshness
 
 Stable signed 2.7.5/code 75 assets are published on GitHub. Home removes live recent-watch/new-channel shelves, keeps VOD resume and favorites, and adds larger posters with reduced-motion-aware entrances. Arabic/English network aliases and channel numbers rank locally. Series resume/access and recurring catalog age probes are repaired. Full local production verification, 405 Pro unit tests and 17 connected tests on both real Android 11 ARMv7 TV and API 36 TV emulator pass. See [qualified results and publication status](_audit/PRO_SMART_SYNC_TV_2026-11-06.md); older entries are historical.

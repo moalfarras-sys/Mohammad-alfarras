@@ -1,6 +1,5 @@
 package com.mo.moplayer.ui.favorites.adapters
 
-import android.graphics.drawable.Drawable
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -8,14 +7,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import com.mo.moplayer.R
 import com.mo.moplayer.data.local.entity.FavoriteEntity
 import com.mo.moplayer.databinding.ItemContentCardBinding
+import com.mo.moplayer.ui.common.PosterImageBinder
 import com.mo.moplayer.ui.common.RemoteShortcutManager
 import com.mo.moplayer.ui.common.design.TvCinematicTokens
 import com.mo.moplayer.util.FocusStyleHelper
@@ -69,6 +64,7 @@ class FavoriteAdapter(
             parent,
             false
         )
+        com.mo.moplayer.ui.common.PosterCardSizing.fitGridCell(binding.root, parent)
         return FavoriteViewHolder(binding)
     }
     
@@ -76,11 +72,17 @@ class FavoriteAdapter(
         holder.bind(getItem(position), position)
     }
     
+    override fun onViewRecycled(holder: FavoriteViewHolder) {
+        holder.recycle()
+        super.onViewRecycled(holder)
+    }
+
     inner class FavoriteViewHolder(
         private val binding: ItemContentCardBinding
     ) : RecyclerView.ViewHolder(binding.root) {
         
         private var remoteShortcutManager: RemoteShortcutManager? = null
+        private val poster = PosterImageBinder(binding.ivPoster)
         
         init {
             binding.root.setOnClickListener {
@@ -105,6 +107,7 @@ class FavoriteAdapter(
         }
         
         fun setupLongPress(favorite: FavoriteEntity) {
+            remoteShortcutManager?.reset()
             remoteShortcutManager = RemoteShortcutManager(
                 onShortOk = { onItemClick(favorite) },
                 onTripleOk = { onFavoriteShortcut?.invoke(favorite) },
@@ -140,14 +143,20 @@ class FavoriteAdapter(
             }
         }
         
+        fun recycle() {
+            remoteShortcutManager?.reset()
+            remoteShortcutManager = null
+            poster.clear()
+        }
+
         private fun animateFocus(view: View, hasFocus: Boolean) {
             val scale = if (hasFocus) TvCinematicTokens.FOCUS_SCALE else 1.0f
             
             // Apply dynamic colors from ThemeManager
             if (hasFocus) {
                 val accentColor = themeManager.currentAccentColor.value
-                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(accentColor)
-                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(accentColor)
+                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(accentColor, binding.root.resources.displayMetrics.density)
+                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(accentColor, binding.root.resources.displayMetrics.density)
                 
                 // Animate glow and border
                 binding.focusGlow?.animate()?.alpha(1f)?.setDuration(TvCinematicTokens.FOCUS_IN_DURATION_MS)?.start()
@@ -171,52 +180,17 @@ class FavoriteAdapter(
          */
         fun updateFocusColors(color: Int) {
             if (binding.root.hasFocus()) {
-                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(color)
-                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(color)
+                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(color, binding.root.resources.displayMetrics.density)
+                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(color, binding.root.resources.displayMetrics.density)
             }
         }
         
-        fun bind(favorite: FavoriteEntity, position: Int) {
+        fun bind(favorite: FavoriteEntity, @Suppress("UNUSED_PARAMETER") position: Int) {
             // Reset all visible state so recycled views never show previous item data
             binding.tvTitle.text = favorite.name.ifBlank { binding.root.context.getString(R.string.unknown_title) }
             binding.ratingBadge.visibility = View.GONE
 
-            // Clear previous Glide request and image so we never show wrong poster on reuse
-            if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.ivPoster.context)) {
-                Glide.with(binding.ivPoster.context).clear(binding.ivPoster)
-            }
-            binding.ivPoster.setImageDrawable(null)
-
-            if (!favorite.iconUrl.isNullOrEmpty() && com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.ivPoster.context)) {
-                Glide.with(binding.ivPoster.context)
-                    .load(favorite.iconUrl)
-                    .placeholder(R.drawable.ic_content_placeholder)
-                    .error(R.drawable.ic_content_placeholder)
-                    .centerCrop()
-                    .addListener(object : RequestListener<Drawable> {
-                        override fun onResourceReady(
-                            resource: Drawable,
-                            model: Any,
-                            target: Target<Drawable>?,
-                            dataSource: DataSource,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            return bindingAdapterPosition != position
-                        }
-                        override fun onLoadFailed(
-                            e: GlideException?,
-                            model: Any?,
-                            target: Target<Drawable>,
-                            isFirstResource: Boolean
-                        ): Boolean {
-                            android.util.Log.d("FavoriteThumb", "poster_load_failed id=${favorite.contentId}")
-                            return false
-                        }
-                    })
-                    .into(binding.ivPoster)
-            } else {
-                binding.ivPoster.setImageResource(R.drawable.ic_content_placeholder)
-            }
+            poster.bind(favorite.contentType + ":" + favorite.contentId, favorite.iconUrl)
 
             // Setup long press for this item
             setupLongPress(favorite)

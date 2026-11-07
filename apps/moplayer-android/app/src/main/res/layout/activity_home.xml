@@ -30,9 +30,10 @@
         android:background="@drawable/bg_login_wallpaper_scrim"
         android:visibility="gone" />
 
-    <!-- Poster preview ambience appears above the base wallpaper only while browsing content. -->
+    <!-- Retained binding for saved preferences; compact Home keeps the background stable. -->
     <FrameLayout
         android:id="@+id/previewContainer"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -56,6 +57,7 @@
     <!-- Full-Screen Weather Overlay (particles and effects) -->
     <com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
         android:id="@+id/weatherOverlay"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="false"
@@ -63,6 +65,7 @@
 
     <LinearLayout
         android:id="@+id/mainContentContainer"
+        android:paddingTop="20dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
@@ -72,6 +75,7 @@
              ═══════════════════════════════════════════ -->
         <LinearLayout
             android:id="@+id/topSignalBar"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="@dimen/home_top_signal_height"
             android:gravity="center_vertical"
@@ -112,7 +116,7 @@
                 android:clickable="true"
                 android:ellipsize="end"
                 android:focusable="true"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:gravity="center"
                 android:maxLines="2"
                 android:nextFocusLeft="@id/footballWidget"
@@ -178,15 +182,6 @@
                     android:fontFamily="@font/outfit_bold"
                     android:letterSpacing="0" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:alpha="0.55"
-                    android:text="@string/home_brand_tagline"
-                    android:textColor="@color/moplayer_orange_light"
-                    android:textSize="@dimen/home_brand_tagline_size"
-                    android:fontFamily="@font/dmsans_medium"
-                    android:letterSpacing="0" />
             </LinearLayout>
 
             <ImageButton
@@ -206,6 +201,7 @@
 
             <ImageButton
                 android:id="@+id/btnSurprise"
+                android:visibility="gone"
                 android:layout_width="@dimen/home_top_action_size"
                 android:layout_height="@dimen/home_top_action_size"
                 android:layout_marginStart="8dp"
@@ -224,7 +220,28 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
+            <TextView
+                android:id="@+id/tvHomeTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/jetbrainsmono_medium"
+                android:textDirection="ltr"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="16sp"
+                android:includeFontPadding="false" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvHomeNotice"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_marginHorizontal="@dimen/screen_margin_horizontal"
+            android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/cinematic_text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
         <!-- Notifications under brand/actions. -->
         <TextView
@@ -236,12 +253,12 @@
             android:background="@android:color/transparent"
             android:drawablePadding="@dimen/spacing_4"
             android:gravity="center_vertical"
-            android:paddingHorizontal="0dp"
+            android:paddingHorizontal="6dp"
             android:paddingVertical="0dp"
             android:textColor="@color/moplayer_orange_light"
             android:textSize="11sp"
             android:textStyle="bold"
-            android:fontFamily="@font/dmsans_medium"
+            android:fontFamily="@font/ui_body_medium"
             android:visibility="gone"
             android:focusable="true"
             android:nextFocusUp="@id/btnSearch"
@@ -279,7 +296,7 @@
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="17sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:letterSpacing="0"
                 android:lineSpacingMultiplier="1.05"
                 android:shadowColor="#CC000000"
@@ -319,7 +336,7 @@
                         android:textColor="@color/cinematic_text_primary"
                         android:textSize="14sp"
                         android:textStyle="bold"
-                        android:fontFamily="@font/dmsans_medium"
+                        android:fontFamily="@font/ui_body_medium"
                         tools:text="8.5" />
 
                     <View
@@ -338,7 +355,7 @@
                     android:textColor="@color/moplayer_orange"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/dmsans_medium"
+                    android:fontFamily="@font/ui_body_medium"
                     android:visibility="gone"
                     tools:text="2008" />
 
@@ -349,12 +366,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/spacing_12"
                     android:background="@android:color/transparent"
-                    android:paddingHorizontal="0dp"
+                    android:paddingHorizontal="6dp"
                     android:paddingVertical="0dp"
                     android:textColor="@color/moplayer_orange"
                     android:textSize="9sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/dmsans_medium"
+                    android:fontFamily="@font/ui_body_medium"
                     tools:text="MOVIE" />
 
             </LinearLayout>
@@ -383,14 +400,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginStart="@dimen/screen_margin_horizontal"
-            android:layout_marginTop="52dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="@dimen/screen_margin_horizontal"
             android:layout_marginBottom="28dp"
             android:background="@drawable/bg_premium_clean_panel"
             android:gravity="center"
             android:orientation="vertical"
             android:paddingHorizontal="36dp"
-            android:paddingVertical="26dp"
+            android:paddingVertical="16dp"
             android:visibility="gone"
             tools:visibility="visible">
 
@@ -398,7 +415,7 @@
                 android:id="@+id/tvHomeEmptyEyebrow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:letterSpacing="0"
                 android:text="@string/home_empty_eyebrow"
                 android:textColor="@color/moplayer_orange"
@@ -410,12 +427,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:gravity="center"
                 android:includeFontPadding="false"
                 android:text="@string/home_empty_title"
                 android:textColor="@color/cinematic_text_primary"
-                android:textSize="30sp"
+                android:textSize="22sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -436,7 +453,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginBottom="@dimen/home_content_bottom_padding"
+            android:layout_marginBottom="104dp"
             android:clipToPadding="false"
             android:clipChildren="false"
             android:paddingTop="4dp"
@@ -458,11 +475,11 @@
         android:layout_gravity="bottom"
         android:layout_marginHorizontal="@dimen/dock_horizontal_margin"
         android:layout_marginBottom="@dimen/dock_bottom_margin"
-        android:background="@android:color/transparent"
-        android:elevation="0dp"
+        android:background="@drawable/bg_cinematic_dock"
+        android:elevation="2dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:paddingHorizontal="0dp"
+        android:paddingHorizontal="6dp"
         android:clipChildren="false"
         android:clipToPadding="false">
 
@@ -497,7 +514,7 @@
                 android:text="@string/nav_home"
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -532,7 +549,7 @@
                 android:text="@string/nav_live"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -567,7 +584,7 @@
                 android:text="@string/nav_movies"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -602,7 +619,7 @@
                 android:text="@string/nav_series"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -637,7 +654,7 @@
                 android:text="@string/nav_favorites"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -672,7 +689,7 @@
                 android:text="@string/nav_search"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -707,7 +724,7 @@
                 android:text="@string/nav_settings"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="@dimen/dock_label_size"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:letterSpacing="0" />
         </LinearLayout>
 
@@ -748,7 +765,7 @@
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="22sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/dmsans_medium" />
+                android:fontFamily="@font/ui_body_medium" />
 
             <TextView
                 android:layout_width="wrap_content"

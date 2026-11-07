@@ -769,7 +769,7 @@
     <string name="settings_ui_intro">Choose the background, city wallpaper, your own image, accent color, language and interface size.</string>
     <string name="settings_background_animation_desc">Turn the moving background on or off</string>
     <string name="settings_poster_size">Poster size</string>
-    <string name="settings_layout_style">Layout style</string>
+    <string name="settings_layout_style">Library layout</string>
     <string name="settings_accent_color">Accent color</string>
     <string name="settings_accent_color_desc">Changes buttons, focus rings, cards, badges and dock icons</string>
     <string name="settings_custom_background">Custom background image</string>

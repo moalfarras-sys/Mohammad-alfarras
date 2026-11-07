@@ -39,6 +39,11 @@ class VlcPlayerEngine(
     private var libVLC: LibVLC? = null
     private var mediaPlayer: MediaPlayer? = null
     private var attachedView: View? = null
+    private var playbackGeneration = 0L
+    private val eventHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var released = false
+    private var wantsPlayback = false
+    override val playWhenReady: Boolean get() = wantsPlayback
 
     private var currentUrl: String = ""
     private var currentTitle: String = ""
@@ -55,12 +60,8 @@ class VlcPlayerEngine(
         initVlc()
     }
 
-    override val playbackState: Int
-        get() = when {
-            mediaPlayer == null -> androidx.media3.common.Player.STATE_IDLE
-            mediaPlayer?.isPlaying == true -> androidx.media3.common.Player.STATE_READY
-            else -> androidx.media3.common.Player.STATE_BUFFERING
-        }
+    private var engineState = androidx.media3.common.Player.STATE_IDLE
+    override val playbackState: Int get() = engineState
 
     override val isPlaying: Boolean
         get() = mediaPlayer?.isPlaying == true
@@ -78,14 +79,17 @@ class VlcPlayerEngine(
             lower.startsWith("rtmp://") ||
             lower.startsWith("udp://") ||
             lower.startsWith("rtp://") ||
-            lower.startsWith("file://") ||
+            lower.startsWith("file:") ||
             lower.startsWith("mmsh://") ||
             lower.startsWith("mms://")
     }
 
     override fun attachView(view: View) {
-        attachedView = view
+        if (released) return
         val player = mediaPlayer ?: return
+        if (attachedView === view && player.vlcVout.areViewsAttached()) return
+        if (player.vlcVout.areViewsAttached()) player.detachViews()
+        attachedView = view
         when (view) {
             is org.videolan.libvlc.util.VLCVideoLayout ->
                 player.attachViews(view, null, false, false)
@@ -103,6 +107,10 @@ class VlcPlayerEngine(
     }
 
     override fun play(url: String, title: String, startPositionMs: Long) {
+        if (released) return
+        wantsPlayback = true
+        engineState = androidx.media3.common.Player.STATE_BUFFERING
+        callbacks.toList().forEach { it.onPlaybackStateChanged(engineState) }
         currentUrl = url
         currentTitle = title
         startPosition = startPositionMs
@@ -110,6 +118,7 @@ class VlcPlayerEngine(
 
         val vlc = libVLC ?: run { initVlc(); libVLC } ?: return
         val player = mediaPlayer ?: MediaPlayer(vlc).also { mediaPlayer = it }
+        bindEvents(player, ++playbackGeneration)
 
         attachedView?.let { attachView(it) }
 
@@ -134,16 +143,19 @@ class VlcPlayerEngine(
     }
 
     override fun pause() {
+        wantsPlayback = false
         mediaPlayer?.pause()
     }
 
     override fun resume() {
+        if (released) return
+        wantsPlayback = true
         mediaPlayer?.play()
     }
 
     override fun togglePlayPause() {
-        val player = mediaPlayer ?: return
-        if (player.isPlaying) player.pause() else player.play()
+        if (mediaPlayer == null) return
+        if (wantsPlayback) pause() else resume()
     }
 
     override fun seekTo(positionMs: Long) {
@@ -156,17 +168,35 @@ class VlcPlayerEngine(
     }
 
     override fun stop() {
+        engineState = androidx.media3.common.Player.STATE_IDLE
+        playbackGeneration++
+        wantsPlayback = false
+        mediaPlayer?.setEventListener(null)
         mediaPlayer?.stop()
         mediaPlayer?.media = null
     }
 
     override fun release() {
+        if (released) return
+        released = true
+        engineState = androidx.media3.common.Player.STATE_IDLE
+        playbackGeneration++
+        eventHandler.removeCallbacksAndMessages(null)
+        wantsPlayback = false
         scope.cancel()
         callbacks.clear()
-        mediaPlayer?.release()
-        libVLC?.release()
+        val player = mediaPlayer
+        val vlc = libVLC
+        player?.setEventListener(null)
+        detachView()
         mediaPlayer = null
         libVLC = null
+        // Native thread joins can block; views are detached above on the UI thread.
+        Thread({
+            runCatching { player?.stop() }
+            runCatching { player?.release() }
+            runCatching { vlc?.release() }
+        }, "ClassicVlcRelease").start()
     }
 
     override fun setSpeed(speed: Float) {
@@ -277,13 +307,7 @@ class VlcPlayerEngine(
             try {
                 val vlc = LibVLC(appContext, options)
                 libVLC = vlc
-                mediaPlayer = MediaPlayer(vlc).apply {
-                    setEventListener { event ->
-                        android.os.Handler(android.os.Looper.getMainLooper()).post {
-                            handleEvent(event)
-                        }
-                    }
-                }
+                mediaPlayer = MediaPlayer(vlc)
                 return
             } catch (e: Throwable) {
                 lastEx = e
@@ -291,8 +315,16 @@ class VlcPlayerEngine(
                 libVLC = null
             }
         }
-        callbacks.forEach {
+        callbacks.toList().forEach {
             it.onPlaybackError(PlayerEngine.PlaybackError.Generic(lastEx))
+        }
+    }
+
+    private fun bindEvents(player: MediaPlayer, token: Long) {
+        player.setEventListener { event ->
+            eventHandler.post {
+                if (!released && token == playbackGeneration) handleEvent(event)
+            }
         }
     }
 
@@ -300,31 +332,39 @@ class VlcPlayerEngine(
         when (event.type) {
             MediaPlayer.Event.Playing -> {
                 hasStartedPlayback = true
-                callbacks.forEach { it.onVideoSizeChanged(16, 9) }
-                callbacks.forEach { it.onIsPlayingChanged(true) }
+                engineState = androidx.media3.common.Player.STATE_READY
+                callbacks.toList().forEach { it.onPlaybackStateChanged(engineState) }
+                callbacks.toList().forEach { it.onBuffering(false) }
+                callbacks.toList().forEach { it.onVideoSizeChanged(16, 9) }
+                callbacks.toList().forEach { it.onIsPlayingChanged(true) }
                 refreshTracks()
             }
             MediaPlayer.Event.Paused -> {
-                callbacks.forEach { it.onIsPlayingChanged(false) }
+                engineState = androidx.media3.common.Player.STATE_READY
+                callbacks.toList().forEach { it.onIsPlayingChanged(false) }
             }
             MediaPlayer.Event.Buffering -> {
-                callbacks.forEach { it.onBuffering(event.buffering < 100f && !hasStartedPlayback) }
+                callbacks.toList().forEach { it.onBuffering(event.buffering < 100f && !hasStartedPlayback) }
             }
             MediaPlayer.Event.EndReached -> {
-                callbacks.forEach { it.onPlaybackStateChanged(androidx.media3.common.Player.STATE_ENDED) }
+                engineState = androidx.media3.common.Player.STATE_ENDED
+                wantsPlayback = false
+                callbacks.toList().forEach { it.onPlaybackStateChanged(androidx.media3.common.Player.STATE_ENDED) }
             }
             MediaPlayer.Event.EncounteredError -> {
-                callbacks.forEach {
+                engineState = androidx.media3.common.Player.STATE_IDLE
+                wantsPlayback = false
+                callbacks.toList().forEach {
                     it.onPlaybackError(PlayerEngine.PlaybackError.Generic())
                 }
             }
             MediaPlayer.Event.TimeChanged -> {
-                callbacks.forEach {
+                callbacks.toList().forEach {
                     it.onPositionChanged(currentPositionMs, durationMs)
                 }
             }
             MediaPlayer.Event.LengthChanged -> {
-                callbacks.forEach {
+                callbacks.toList().forEach {
                     it.onPositionChanged(currentPositionMs, durationMs)
                 }
             }
@@ -340,7 +380,7 @@ class VlcPlayerEngine(
         _subtitleTracks = player.spuTracks
             ?.mapIndexed { idx, td -> PlayerEngine.TrackInfo(idx, td.name ?: strings.getString(R.string.player_subtitle_number, idx + 1), null) }
             ?: emptyList()
-        callbacks.forEach { it.onTracksChanged(_audioTracks, _subtitleTracks) }
+        callbacks.toList().forEach { it.onTracksChanged(_audioTracks, _subtitleTracks) }
     }
 
     private fun getAdaptiveBufferMs(): Int {

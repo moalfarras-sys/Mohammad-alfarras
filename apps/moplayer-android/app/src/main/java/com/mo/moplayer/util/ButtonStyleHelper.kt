@@ -1,10 +1,12 @@
 package com.mo.moplayer.util
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.graphics.drawable.StateListDrawable
+import androidx.core.graphics.ColorUtils
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,6 +18,7 @@ import javax.inject.Singleton
 class ButtonStyleHelper @Inject constructor(
     private val themeManager: ThemeManager
 ) {
+    fun createThemedButtonTextColors(): ColorStateList = readableButtonTextColors(themeManager.currentAccentColor.value)
     
     /**
      * Creates a themed button background that uses the current accent color
@@ -45,19 +48,19 @@ class ButtonStyleHelper @Inject constructor(
      */
     private fun createFocusedBackground(context: Context): LayerDrawable {
         val accentColor = themeManager.currentAccentColor.value
-        val cornerRadius = dpToPx(context, 14f)
+        val cornerRadius = dpToPx(context, 12f)
         
         // Outer glow
         val glow = GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
             setCornerRadius(cornerRadius + dpToPx(context, 2f))
-            setColor(Color.argb(100, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor)))
+            setColor(Color.argb(40, Color.red(accentColor), Color.green(accentColor), Color.blue(accentColor)))
         }
         
         // Main gradient
         val mainGradient = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(accentColor, darkenColor(accentColor, 0.8f))
+            intArrayOf(accentColor, darkenColor(accentColor, 0.9f))
         ).apply {
             shape = GradientDrawable.RECTANGLE
             setCornerRadius(cornerRadius)
@@ -67,7 +70,7 @@ class ButtonStyleHelper @Inject constructor(
         val shine = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             intArrayOf(
-                Color.argb(128, 255, 255, 255),
+                Color.argb(20, 255, 255, 255),
                 Color.TRANSPARENT
             )
         ).apply {
@@ -88,7 +91,7 @@ class ButtonStyleHelper @Inject constructor(
      */
     private fun createPressedBackground(context: Context): GradientDrawable {
         val accentColor = themeManager.currentAccentColor.value
-        val cornerRadius = dpToPx(context, 14f)
+        val cornerRadius = dpToPx(context, 12f)
         
         return GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
@@ -104,12 +107,12 @@ class ButtonStyleHelper @Inject constructor(
      */
     private fun createDefaultBackground(context: Context): LayerDrawable {
         val accentColor = themeManager.currentAccentColor.value
-        val cornerRadius = dpToPx(context, 14f)
+        val cornerRadius = dpToPx(context, 12f)
         
         // Main gradient
         val mainGradient = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
-            intArrayOf(accentColor, darkenColor(accentColor, 0.85f))
+            intArrayOf(accentColor, darkenColor(accentColor, 0.93f))
         ).apply {
             shape = GradientDrawable.RECTANGLE
             setCornerRadius(cornerRadius)
@@ -119,7 +122,7 @@ class ButtonStyleHelper @Inject constructor(
         val shine = GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             intArrayOf(
-                Color.argb(96, 255, 255, 255),
+                Color.argb(12, 255, 255, 255),
                 Color.TRANSPARENT
             )
         ).apply {
@@ -135,7 +138,7 @@ class ButtonStyleHelper @Inject constructor(
      */
     fun createSecondaryButtonBackground(context: Context): StateListDrawable {
         val accentColor = themeManager.currentAccentColor.value
-        val cornerRadius = dpToPx(context, 14f)
+        val cornerRadius = dpToPx(context, 12f)
         
         return StateListDrawable().apply {
             // Focused state
@@ -187,4 +190,18 @@ class ButtonStyleHelper @Inject constructor(
     private fun dpToPx(context: Context, dp: Float): Float {
         return dp * context.resources.displayMetrics.density
     }
+}
+
+/** Choose readable text separately for resting, focused and pressed theme surfaces. */
+internal fun readableButtonTextColors(accent: Int): ColorStateList {
+    fun shade(factor: Float) = Color.rgb((Color.red(accent) * factor).toInt(),
+        (Color.green(accent) * factor).toInt(), (Color.blue(accent) * factor).toInt())
+    fun foreground(vararg backgrounds: Int): Int = listOf(Color.WHITE, Color.BLACK)
+        .maxBy { color -> backgrounds.minOf { ColorUtils.calculateContrast(color, it) } }
+    val resting = foreground(ColorUtils.compositeColors(Color.argb(12, 255, 255, 255), accent), shade(.93f))
+    val focused = foreground(ColorUtils.compositeColors(Color.argb(20, 255, 255, 255), accent), shade(.9f))
+    val pressed = foreground(shade(.7f), shade(.6f))
+    return ColorStateList(arrayOf(intArrayOf(-android.R.attr.state_enabled),
+        intArrayOf(android.R.attr.state_pressed), intArrayOf(android.R.attr.state_focused), intArrayOf()),
+        intArrayOf(Color.rgb(124, 139, 164), pressed, focused, resting))
 }

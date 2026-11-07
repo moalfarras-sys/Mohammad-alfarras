@@ -86,7 +86,7 @@
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="11sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:alpha="0.9"
                 tools:text="Berlin" />
 
@@ -99,7 +99,7 @@
                 android:maxLines="1"
                 android:textColor="@color/cinematic_text_secondary"
                 android:textSize="9sp"
-                android:fontFamily="@font/dmsans_regular"
+                android:fontFamily="@font/ui_body_regular"
                 tools:text="Sunny" />
 
             <TextView

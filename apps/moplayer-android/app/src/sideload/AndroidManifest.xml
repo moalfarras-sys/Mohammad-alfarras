@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<!-- Fragment: launcher and optional TV/touch features are inherited from main. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="MissingLeanbackLauncher,MissingLeanbackSupport,ImpliedTouchscreenHardware">
 
     <!-- Sideload distribution only: allows the in-app updater to install a newer
          APK downloaded from the website. Google Play prohibits this, so it must

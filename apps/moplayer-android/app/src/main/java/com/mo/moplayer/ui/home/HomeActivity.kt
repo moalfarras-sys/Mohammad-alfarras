@@ -4,7 +4,6 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -258,12 +257,12 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun prepareDeferredStartupState() {
-        binding.topSignalBar.alpha = 0f
+        binding.topSignalBar.visibility = View.GONE
         binding.weatherWidget.visibility = View.INVISIBLE
         binding.footballWidget.visibility = View.INVISIBLE
         binding.serverExpiryWidget.visibility = View.VISIBLE
         binding.flipClockContainer.visibility = View.INVISIBLE
-        binding.weatherOverlay.visibility = View.INVISIBLE
+        binding.weatherOverlay.visibility = View.GONE
         binding.animatedBackground.setAnimationEnabled(false)
         binding.weatherOverlay.pauseAnimation()
     }
@@ -355,43 +354,10 @@ class HomeActivity : BaseTvActivity() {
     private fun initializeHomeChromeIfNeeded() {
         if (chromeInitialized) return
         chromeInitialized = true
-
         setupClock()
-        setupWeather()
-        setupFootballWidget()
-        applyHomeWidgetPerformanceMode()
-
-        val visibleChrome = listOfNotNull(
-            binding.weatherWidget.takeIf { appRemoteConfig.weatherEnabled },
-            binding.footballWidget.takeIf { appRemoteConfig.footballEnabled },
-            binding.flipClockContainer
-        )
-        val lightweightWidgets = DevicePerformance.useLightweightHomeWidgets(this)
-        visibleChrome.forEach { view ->
-            view.visibility = View.VISIBLE
-            if (lightweightWidgets) {
-                view.alpha = 1f
-                view.translationY = 0f
-            } else {
-                view.alpha = 0f
-                view.translationY = -8f
-                view.animate()
-                    .alpha(1f)
-                    .translationY(0f)
-                    .setDuration(260L)
-                    .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
-                    .start()
-            }
-        }
-
-        binding.topSignalBar.animate()
-            .alpha(1f)
-            .setDuration(260L)
-            .start()
-
-        if (appRemoteConfig.footballEnabled) {
-            binding.footballWidget.onActivityResumed()
-        }
+        binding.topSignalBar.isVisible = false
+        binding.weatherOverlay.isVisible = false
+        binding.weatherOverlay.pauseAnimation()
     }
 
     private fun applyRemoteConfig() {
@@ -406,8 +372,8 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun applyRemoteConfigState() {
-        binding.weatherWidget.visibility = if (appRemoteConfig.weatherEnabled) View.VISIBLE else View.GONE
-        binding.footballWidget.visibility = if (appRemoteConfig.footballEnabled) View.VISIBLE else View.GONE
+        binding.weatherWidget.visibility = View.GONE
+        binding.footballWidget.visibility = View.GONE
 
         val message = when {
             !appRemoteConfig.enabled -> appRemoteConfig.message.ifBlank { getString(R.string.remote_config_unavailable) }
@@ -416,6 +382,8 @@ class HomeActivity : BaseTvActivity() {
             else -> null
         }
 
+        binding.tvHomeNotice.text = message.orEmpty()
+        binding.tvHomeNotice.isVisible = !message.isNullOrBlank()
         if (!message.isNullOrBlank()) {
             binding.tvPreviewTitle.text = message
             binding.tvPreviewDescription.text = getString(R.string.remote_config_managed_by_control_center)
@@ -441,36 +409,13 @@ class HomeActivity : BaseTvActivity() {
     }
 
     private fun startVisualEffectsIfNeeded() {
-        if (visualFxStarted) return
         visualFxStarted = true
-
-        if (shouldUseReducedStartupVisuals()) {
-            deferHeavyVisuals = true
-            binding.weatherOverlay.visibility = View.GONE
-            binding.weatherOverlay.pauseAnimation()
-            binding.animatedBackground.setAnimationEnabled(false)
-            binding.animatedBackground.pauseAnimation()
-            applyThemeToViews(themeManager.currentAccentColor.value)
-            CrashGuard.markStable(this)
-            return
-        }
-
-        deferHeavyVisuals = false
-
-        if (homeCityWallpaperSelected) {
-            binding.animatedBackground.setAnimationEnabled(false)
-            binding.animatedBackground.pauseAnimation()
-        } else {
-            binding.animatedBackground.setAnimationEnabled(true)
-            binding.animatedBackground.resumeAnimation()
-        }
-        binding.weatherOverlay.visibility = if (homeCityWallpaperSelected) View.GONE else View.VISIBLE
-        if (homeCityWallpaperSelected) {
-            binding.weatherOverlay.pauseAnimation()
-        } else {
-            binding.weatherOverlay.startAnimation()
-        }
-        applyThemeToViews(themeManager.currentAccentColor.value)
+        binding.weatherOverlay.isVisible = false
+        binding.weatherOverlay.pauseAnimation()
+        binding.previewContainer.isVisible = false
+        binding.previewInfoPanel.isVisible = false
+        binding.animatedBackground.alpha = 1f
+        CrashGuard.markStable(this)
     }
 
     private fun shouldUseReducedStartupVisuals(): Boolean {
@@ -789,7 +734,8 @@ class HomeActivity : BaseTvActivity() {
             layoutManager = LinearLayoutManager(this@HomeActivity)
             adapter = contentAdapter
             // Use smooth animator for non-intrusive updates
-            itemAnimator = SmoothItemAnimator()
+            itemAnimator = null
+            preserveFocusAfterLayout = true
             recyclerViewOptimizer.optimizeContentRowList(this)
             onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
@@ -799,13 +745,7 @@ class HomeActivity : BaseTvActivity() {
                 }
             }
             
-            // Parallax effect for weather overlay
-            addOnScrollListener(object : androidx.recyclerview.widget.RecyclerView.OnScrollListener() {
-                override fun onScrolled(recyclerView: androidx.recyclerview.widget.RecyclerView, dx: Int, dy: Int) {
-                    val offsetY = recyclerView.computeVerticalScrollOffset()
-                    binding.weatherOverlay.setScrollOffset(offsetY)
-                }
-            })
+
         }
 
         lifecycleScope.launch {
@@ -868,7 +808,7 @@ class HomeActivity : BaseTvActivity() {
 
     private fun focusableHomeWidgets(): List<View> =
         listOf(binding.weatherWidget, binding.footballWidget, binding.serverExpiryWidget, binding.flipClockContainer)
-            .filter { it.visibility == View.VISIBLE && it.isFocusable && it.id != View.NO_ID }
+            .filter { it.isShown && it.isFocusable && it.id != View.NO_ID }
 
     private fun firstFocusableHomeWidget(): View? = focusableHomeWidgets().firstOrNull()
 
@@ -893,7 +833,7 @@ class HomeActivity : BaseTvActivity() {
             downTarget = binding.newContentBadge,
             upTarget = widgetStripViews.firstOrNull()
         )
-        binding.btnSearch.nextFocusUpId = binding.weatherWidget.id
+        binding.btnSearch.nextFocusUpId = binding.btnSearch.id
         binding.btnSurprise.nextFocusUpId = binding.footballWidget.id
 
         FocusMapRegistry.mapHorizontalStrip(
@@ -950,6 +890,11 @@ class HomeActivity : BaseTvActivity() {
             }
 
             val focused = currentFocus
+            if (userHasNavigated || isViewInParent(focused, binding.rvContent)) {
+                // A deferred first-frame task must never take focus back from the viewer.
+                initialContentFocusApplied = true
+                return@postDelayed
+            }
             // Until the viewer presses a key, the first card owns focus (the window otherwise
             // gives it to the first header widget, e.g. the weather card).
             val shouldShiftToContent = focused == null ||
@@ -1108,15 +1053,7 @@ class HomeActivity : BaseTvActivity() {
     }
     
     private fun animateDockItem(view: View, hasFocus: Boolean) {
-        val scale = if (hasFocus) TvCinematicTokens.DOCK_SCALE else 1.0f
-        val translationY = if (hasFocus) -4f else 0f
-        view.animate()
-            .scaleX(scale)
-            .scaleY(scale)
-            .translationY(translationY)
-            .setDuration(TvCinematicTokens.FOCUS_IN_DURATION_MS)
-            .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
-            .start()
+        com.mo.moplayer.ui.common.focus.LiquidFocusDelegate.animateDockFocus(view, hasFocus)
     }
     
     private fun updateDockSelection(selectedIndex: Int) {
@@ -1157,15 +1094,17 @@ class HomeActivity : BaseTvActivity() {
             icon.setColorFilter(color)
         }
         
+        val selectedTypeface = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.ui_body_bold)
+        val normalTypeface = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.ui_body_medium)
         labels.forEachIndexed { index, label ->
             val color = if (index == selectedIndex) textPrimaryColor else textSecondaryColor
             label.setTextColor(color)
             
             // Bold font for selected
             if (index == selectedIndex) {
-                 label.typeface = Typeface.DEFAULT_BOLD
+                 label.typeface = selectedTypeface
             } else {
-                 label.typeface = Typeface.DEFAULT
+                 label.typeface = normalTypeface
             }
         }
     }
@@ -1225,7 +1164,7 @@ class HomeActivity : BaseTvActivity() {
     private val clockRunnable = object : Runnable {
         override fun run() {
             updateClock()
-            clockHandler.postDelayed(this, 1000)
+            clockHandler.postDelayed(this, 60_000L - (System.currentTimeMillis() % 60_000L))
         }
     }
 
@@ -1235,21 +1174,9 @@ class HomeActivity : BaseTvActivity() {
     }
     
     private fun updateClock() {
-        val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute = calendar.get(Calendar.MINUTE)
-        
-        val hourStr = String.format("%02d", hour)
-        val minuteStr = String.format("%02d", minute)
-        
-        binding.flipClock.tvHour1.text = hourStr[0].toString()
-        binding.flipClock.tvHour2.text = hourStr[1].toString()
-        binding.flipClock.tvMinute1.text = minuteStr[0].toString()
-        binding.flipClock.tvMinute2.text = minuteStr[1].toString()
-        
-        // Blink colon
-        colonVisible = !colonVisible
-        binding.flipClock.tvColon.alpha = if (colonVisible) 1f else 0.3f
+        val now = Calendar.getInstance()
+        binding.tvHomeTime.text = String.format(java.util.Locale.ROOT, "%02d:%02d",
+            now.get(Calendar.HOUR_OF_DAY), now.get(Calendar.MINUTE))
     }
     
     private fun observeViewModel() {
@@ -1489,30 +1416,7 @@ class HomeActivity : BaseTvActivity() {
      */
     private fun showNewContentBadge(newCount: Int) {
         if (newCount <= 0) return
-        
-        binding.newContentBadge.apply {
-            text = getString(R.string.new_content_badge_format, newCount)
-            visibility = View.VISIBLE
-            
-            // Animate in from right with fade
-            translationX = 50f
-            alpha = 0f
-            
-            animate()
-                .translationX(0f)
-                .alpha(1f)
-                .setDuration(TvCinematicTokens.ENTER_EXIT_DURATION_MS)
-                .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
-                .withEndAction {
-                    // Auto-hide after 10 seconds
-                    postDelayed({
-                        hideNewContentBadge()
-                    }, 10000)
-                }
-                .start()
-        }
-        
-        // Clear the notification
+        binding.newContentBadge.isVisible = false
         smartRefreshManager.clearNewContentNotification()
     }
     
@@ -1520,14 +1424,7 @@ class HomeActivity : BaseTvActivity() {
      * Hide the new content badge with animation.
      */
     private fun hideNewContentBadge() {
-        binding.newContentBadge.animate()
-            .translationX(50f)
-            .alpha(0f)
-            .setDuration(TvCinematicTokens.ENTER_EXIT_DURATION_MS)
-            .withEndAction {
-                binding.newContentBadge.visibility = View.GONE
-            }
-            .start()
+        binding.newContentBadge.isVisible = false
     }
     
     private fun handleItemClick(item: ContentItem) {
@@ -1708,7 +1605,6 @@ class HomeActivity : BaseTvActivity() {
     
     private fun handleItemFocused(item: ContentItem) {
         updateLastContentFocus(currentFocus)
-        schedulePreviewBackdrop(item)
     }
 
     private fun schedulePreviewBackdrop(item: ContentItem) {
@@ -1885,108 +1781,18 @@ class HomeActivity : BaseTvActivity() {
     private var currentBackdropUrl: String? = null
     
     private fun showPreviewBackdrop(item: ContentItem) {
-        if (backgroundBehavior == com.mo.moplayer.util.TvUiPreferences.BackgroundBehavior.STATIC) {
-            return
-        }
-        val backdropUrl = item.posterUrl
-        if (backdropUrl.isNullOrEmpty() || backdropUrl == currentBackdropUrl) return
-        
-        currentBackdropUrl = backdropUrl
-        
-        if (!homeCityWallpaperSelected) {
-            binding.animatedBackground.animate()
-                .alpha(0.15f)
-                .setDuration(400)
-                .start()
-        }
-
-        // Fade weather overlay to avoid obscuring poster preview
-        binding.weatherOverlay.animate()
-            .alpha(0.15f)
-            .setDuration(400)
-            .start()
-        
-        // Load and fade in backdrop
-        if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(this)) {
-            com.bumptech.glide.Glide.with(this)
-                .load(backdropUrl)
-                // Decode at backdrop display size, not full poster resolution — big memory win
-                // on weak TV boxes for an image shown at 0.54 alpha as ambient background.
-                .override(960, 540)
-                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
-                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(500))
-                .into(binding.ivPreviewBackdrop)
-        }
-        
-        binding.ivPreviewBackdrop.animate()
-            .alpha(0.54f)
-            .setDuration(500)
-            .start()
-        
-        binding.previewGradient.animate()
-            .alpha(1f)
-            .setDuration(500)
-            .start()
-        
-        // Show preview info panel
-        binding.previewInfoPanel.visibility = View.VISIBLE
-        binding.previewInfoPanel.animate()
-            .alpha(1f)
-            .translationY(0f)
-            .setDuration(300)
-            .start()
-        
-        // Update preview info
-        binding.tvPreviewTitle.text = item.title
-        val hasRating = (item.rating ?: 0.0) > 0.0
-        binding.previewRatingContainer.isVisible = hasRating
-        if (hasRating) {
-            binding.tvPreviewRating.text = String.format("%.1f", item.rating ?: 0.0)
-        }
-        binding.tvPreviewDescription.isVisible = false
-        binding.tvPreviewType.text = when (item.type) {
-            ContentType.MOVIE -> getString(R.string.nav_movies)
-            ContentType.SERIES -> getString(R.string.nav_series)
-            ContentType.CHANNEL -> getString(R.string.nav_live)
-            ContentType.EPISODE -> getString(R.string.series_episodes)
-        }
+        // Compact Home has a stable background; changing card focus must not flash the screen.
+        currentBackdropUrl = item.posterUrl
+        binding.previewContainer.isVisible = false
+        binding.previewInfoPanel.isVisible = false
     }
     
     private fun hidePreviewBackdrop() {
-        previewHandler.removeCallbacksAndMessages(null)
-        pendingPreviewItem = null
         currentBackdropUrl = null
-        
-        if (!homeCityWallpaperSelected) {
-            binding.animatedBackground.animate()
-                .alpha(1f)
-                .setDuration(400)
-                .start()
-        } else {
-            binding.animatedBackground.alpha = 0f
-        }
-
-        binding.weatherOverlay.animate()
-            .alpha(1f)
-            .setDuration(400)
-            .start()
-        
-        binding.ivPreviewBackdrop.animate()
-            .alpha(0f)
-            .setDuration(400)
-            .start()
-        
-        binding.previewGradient.animate()
-            .alpha(0f)
-            .setDuration(400)
-            .start()
-        
-        binding.previewInfoPanel.animate()
-            .alpha(0f)
-            .translationY(20f)
-            .setDuration(200)
-            .withEndAction { binding.previewInfoPanel.visibility = View.GONE }
-            .start()
+        binding.previewContainer.isVisible = false
+        binding.previewInfoPanel.isVisible = false
+        binding.ivPreviewBackdrop.setImageDrawable(null)
+        binding.animatedBackground.alpha = 1f
     }
     
     override fun handleTvKeyEvent(keyCode: Int, event: KeyEvent?): Boolean {
@@ -2008,6 +1814,17 @@ class HomeActivity : BaseTvActivity() {
             KeyEvent.KEYCODE_DPAD_DOWN -> {
                 return handleDownKey()
             }
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                val index = dockItems.indexOf(currentFocus)
+                if (index >= 0) {
+                    val rtl = binding.root.layoutDirection == View.LAYOUT_DIRECTION_RTL
+                    val forward = keyCode == if (rtl) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+                    val next = (index + if (forward) 1 else dockItems.size - 1) % dockItems.size
+                    if (com.mo.moplayer.BuildConfig.DEBUG) Log.d("HomeFocusPerf", "dockRoute=$index->$next repeat=${event?.repeatCount}")
+                    return dockItems[next].requestFocus()
+                }
+            }
         }
         return false
     }
@@ -2015,6 +1832,7 @@ class HomeActivity : BaseTvActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             userHasNavigated = true
+            initialContentFocusApplied = true
             lastKeyAtMs = android.os.SystemClock.uptimeMillis()
         }
         if (event.action == KeyEvent.ACTION_DOWN &&
@@ -2141,14 +1959,13 @@ class HomeActivity : BaseTvActivity() {
         setupFocusMap()
         if (chromeInitialized) {
             startClockLoop()
-            startWeatherRefreshLoop()
-            binding.footballWidget.onActivityResumed()
+
         } else {
             scheduleDeferredStartup()
         }
         if (visualFxStarted) {
             binding.animatedBackground.resumeAnimation()
-            binding.weatherOverlay.startAnimation()
+            binding.weatherOverlay.pauseAnimation()
         }
         updateDockSelection(0)
         // A dock item that had focus when another screen opened keeps its lifted look otherwise.
@@ -2156,6 +1973,7 @@ class HomeActivity : BaseTvActivity() {
         observeNewContent()
 
         binding.root.post {
+            if (userHasNavigated) return@post
             val focused = currentFocus
             if (focused == null || dockItems.any { it == focused } || !isViewInParent(focused, binding.rvContent)) {
                 if (!requestPrimaryContentFocus()) ensureHomeFocus()

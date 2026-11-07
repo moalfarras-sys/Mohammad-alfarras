@@ -81,9 +81,12 @@ class ExoPlayerEngine(
     private val callbacks = mutableListOf<PlayerEngine.Callback>()
 
     private var attachedView: View? = null
+    private var released = false
 
     override val playbackState: Int
         get() = exoPlayer.playbackState
+
+    override val playWhenReady: Boolean get() = exoPlayer.playWhenReady
 
     override val isPlaying: Boolean
         get() = exoPlayer.isPlaying
@@ -99,7 +102,7 @@ class ExoPlayerEngine(
         return lower.startsWith("http://") ||
             lower.startsWith("https://") ||
             lower.startsWith("rtsp://") ||
-            lower.startsWith("file://")
+            lower.startsWith("file:")
     }
 
     override fun attachView(view: View) {
@@ -172,8 +175,11 @@ class ExoPlayerEngine(
     }
 
     override fun release() {
+        if (released) return
+        released = true
         scope.cancel()
         callbacks.clear()
+        detachView()
         exoPlayer.release()
     }
 
@@ -182,37 +188,25 @@ class ExoPlayerEngine(
     }
 
     override fun setAudioTrack(index: Int) {
-        val groups = exoPlayer.currentTracks.groups.filter { it.type == C.TRACK_TYPE_AUDIO }
-        val target = groups.getOrNull(index) ?: return
-        val trackGroup = target.mediaTrackGroup
+        val override = trackOverrideAt(exoPlayer.currentTracks, C.TRACK_TYPE_AUDIO, index) ?: return
         trackSelector.setParameters(
             trackSelector.buildUponParameters()
+                .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, false)
                 .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
-                .addOverride(
-                    androidx.media3.common.TrackSelectionOverride(trackGroup, listOf(0))
-                )
+                .addOverride(override)
         )
     }
 
     override fun setSubtitleTrack(index: Int) {
+        val parameters = trackSelector.buildUponParameters()
         if (index < 0) {
-            trackSelector.setParameters(
-                trackSelector.buildUponParameters()
-                    .setIgnoredTextSelectionFlags(C.SELECTION_FLAG_FORCED)
-            )
+            trackSelector.setParameters(parameters.clearOverridesOfType(C.TRACK_TYPE_TEXT)
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true))
             return
         }
-        val groups = exoPlayer.currentTracks.groups.filter { it.type == C.TRACK_TYPE_TEXT }
-        val target = groups.getOrNull(index) ?: return
-        val trackGroup = target.mediaTrackGroup
-        trackSelector.setParameters(
-            trackSelector.buildUponParameters()
-                .clearOverridesOfType(C.TRACK_TYPE_TEXT)
-                .setIgnoredTextSelectionFlags(0)
-                .addOverride(
-                    androidx.media3.common.TrackSelectionOverride(trackGroup, listOf(0))
-                )
-        )
+        val override = trackOverrideAt(exoPlayer.currentTracks, C.TRACK_TYPE_TEXT, index) ?: return
+        trackSelector.setParameters(parameters.clearOverridesOfType(C.TRACK_TYPE_TEXT)
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false).addOverride(override))
     }
 
     override fun setScaleMode(mode: PlayerEngine.ScaleMode) {
@@ -294,13 +288,13 @@ class ExoPlayerEngine(
 
     private inner class PlayerListener : Player.Listener {
         override fun onPlaybackStateChanged(state: Int) {
-            callbacks.forEach { it.onPlaybackStateChanged(state) }
+            callbacks.toList().forEach { it.onPlaybackStateChanged(state) }
             // STATE_BUFFERING is the canonical stall signal — far less noisy than isLoading.
-            callbacks.forEach { it.onBuffering(state == Player.STATE_BUFFERING) }
+            callbacks.toList().forEach { it.onBuffering(state == Player.STATE_BUFFERING) }
         }
 
         override fun onIsPlayingChanged(playing: Boolean) {
-            callbacks.forEach { it.onIsPlayingChanged(playing) }
+            callbacks.toList().forEach { it.onIsPlayingChanged(playing) }
         }
 
         override fun onPlayerError(error: PlaybackException) {
@@ -316,7 +310,7 @@ class ExoPlayerEngine(
 
                 else -> PlayerEngine.PlaybackError.Generic(error)
             }
-            callbacks.forEach { it.onPlaybackError(engineError) }
+            callbacks.toList().forEach { it.onPlaybackError(engineError) }
         }
 
         override fun onPositionDiscontinuity(
@@ -324,19 +318,19 @@ class ExoPlayerEngine(
             newPosition: Player.PositionInfo,
             reason: Int
         ) {
-            callbacks.forEach {
+            callbacks.toList().forEach {
                 it.onPositionChanged(exoPlayer.currentPosition, exoPlayer.duration.coerceAtLeast(0))
             }
         }
 
         override fun onTracksChanged(tracks: Tracks) {
-            callbacks.forEach {
+            callbacks.toList().forEach {
                 it.onTracksChanged(audioTracks, subtitleTracks)
             }
         }
 
         override fun onVideoSizeChanged(videoSize: VideoSize) {
-            callbacks.forEach {
+            callbacks.toList().forEach {
                 it.onVideoSizeChanged(videoSize.width, videoSize.height)
             }
         }

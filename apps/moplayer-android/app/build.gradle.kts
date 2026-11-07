@@ -56,8 +56,8 @@ android {
         applicationId = "com.mo.moplayer"
         minSdk = 24
         targetSdk = 35
-        versionCode = 26
-        versionName = "2.5.1"
+        versionCode = 28
+        versionName = "2.5.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -140,7 +140,7 @@ android {
 
     // Lint options for release
     lint {
-        abortOnError = false
+        abortOnError = true
         checkReleaseBuilds = true
     }
     

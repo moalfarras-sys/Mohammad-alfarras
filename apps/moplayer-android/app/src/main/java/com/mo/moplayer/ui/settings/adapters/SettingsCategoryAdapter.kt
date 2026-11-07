@@ -66,14 +66,14 @@ class SettingsCategoryAdapter(
             }
         }
 
-        private fun animateFocus(view: View, hasFocus: Boolean) {
-            val translationX = if (hasFocus) 8f else 0f
-            val scale = if (hasFocus) 1.04f else 1f
-            view.elevation = if (hasFocus) 12f else 0f
+        private fun animateFocus(view: View, @Suppress("UNUSED_PARAMETER") hasFocus: Boolean) {
+            // The rail fills its viewport: keep the complete focus stroke inside it.
+            view.animate().cancel()
+            view.elevation = 0f
             view.animate()
-                .translationX(translationX)
-                .scaleX(scale)
-                .scaleY(scale)
+                .translationX(0f)
+                .scaleX(1f)
+                .scaleY(1f)
                 .setDuration(120)
                 .start()
         }

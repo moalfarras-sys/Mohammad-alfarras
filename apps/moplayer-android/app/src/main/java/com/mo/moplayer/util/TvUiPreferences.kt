@@ -121,9 +121,9 @@ class TvUiPreferences @Inject constructor(@ApplicationContext private val contex
         // Bumped ~30% across the board for a bolder, more cinematic grid. Title text grew too so
         // it stays legible at 10ft. MEDIUM is the new default (see posterSize flow above).
         return when (size) {
-            PosterSize.SMALL -> PosterMetrics(widthDp = 92, heightDp = 138, contentHeightDp = 182, titleTextSp = 11f)
-            PosterSize.MEDIUM -> PosterMetrics(widthDp = 104, heightDp = 156, contentHeightDp = 202, titleTextSp = 11.5f)
-            PosterSize.LARGE -> PosterMetrics(widthDp = 122, heightDp = 183, contentHeightDp = 232, titleTextSp = 12.5f)
+            PosterSize.SMALL -> PosterMetrics(widthDp = 92, heightDp = 138, contentHeightDp = 194, titleTextSp = 12.5f)
+            PosterSize.MEDIUM -> PosterMetrics(widthDp = 104, heightDp = 156, contentHeightDp = 214, titleTextSp = 13.5f)
+            PosterSize.LARGE -> PosterMetrics(widthDp = 122, heightDp = 183, contentHeightDp = 246, titleTextSp = 14.5f)
         }
     }
 }

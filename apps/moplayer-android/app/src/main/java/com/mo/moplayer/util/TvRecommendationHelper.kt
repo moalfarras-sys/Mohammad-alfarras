@@ -35,6 +35,9 @@ class TvRecommendationHelper(private val context: Context) {
     /**
      * Publish a "Continue Watching" item.
      */
+    // tvprovider 1.1.0 inherited builder setters are incorrectly marked library-restricted.
+    // Public API example: developer.android.com/training/tv/discovery/watch-next-add-programs
+    @android.annotation.SuppressLint("RestrictedApi")
     suspend fun publishWatchNext(
         contentId: String,
         title: String,

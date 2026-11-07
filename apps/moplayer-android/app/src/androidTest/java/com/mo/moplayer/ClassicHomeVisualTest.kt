@@ -69,7 +69,14 @@ class ClassicHomeVisualTest {
                     val deadline = SystemClock.elapsedRealtime() + 15_000
                     var ready = false
                     while (!ready && SystemClock.elapsedRealtime() < deadline) {
-                        scenario.onActivity { ready = (it.findViewById<RecyclerView>(R.id.rvContent).adapter?.itemCount ?: 0) > 0 }
+                        scenario.onActivity { activity ->
+                            val rowsReady = (activity.findViewById<RecyclerView>(R.id.rvContent).adapter?.itemCount ?: 0) > 0
+                            // Home deliberately defers its clock/widgets until after first content.
+                            // A cold launch can have rows while the clock's digit cells are still empty.
+                            val clockReady = listOf(R.id.tvHour1, R.id.tvHour2, R.id.tvMinute1, R.id.tvMinute2)
+                                .all { activity.findViewById<android.widget.TextView>(it).text.isNotBlank() }
+                            ready = rowsReady && clockReady
+                        }
                         if (!ready) SystemClock.sleep(100)
                     }
                     assertTrue("Imported home library did not load: $language/$size", ready)

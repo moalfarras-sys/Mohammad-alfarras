@@ -26,6 +26,7 @@ or deleted. The original worktree/stash were retained.
 | P1 | System Play and Pause both toggle playback | Add distinct private commands and explicit play intention; qualification in progress |
 | P1 | Lint succeeds with errors; Android-device CI covers Pro only | Fail on Lint errors, include Classic Lint in verification, add Classic API 29/36 device jobs |
 | P1 | TV initialization re-enables backgrounds after the viewer disabled motion | Honor viewer/system/reduced-motion settings and low-device policy on every initialization |
+| P1 | Player repeats Live and can publish previous-channel guide metadata after a zap | One Live badge, real program titles only, generation-scoped guide results |
 | P1 | Horizontal focus links stay LTR in Arabic | Map physical left/right to the actual RTL arrangement, including dock wrap |
 | P1 | TV dock labels fall to 8sp; Arabic uses system fallback; focus corners use raw pixels | Larger shared type, licensed Cairo locale aliases, density-aware focus geometry |
 
@@ -183,3 +184,24 @@ available. Candidate publication and the remaining final checks are recorded nex
   until signed assets, update metadata, CI and post-deploy readback are recorded.
 
 Final qualification/release evidence is appended below after completion.
+
+The complete suite subsequently passed **28/28 on each device**, including the
+single-badge/no-guide case. CHANNEL and LIVE receive the correct label; the
+redundant subtitle and empty guide metadata stay hidden. Guide results are
+captured for one content id and committed only if the request still owns it.
+Cold visual tests now wait for the deliberately deferred clock to populate before
+asserting digit shape; they retain the ASCII/visibility/focus assertions.
+
+Final UI rendering passed six language/size combinations at each of 1280x720,
+1920x1080 and virtual 3840x2160, plus the same six combinations on the physical
+1080p TV. The emulator's original resolution was restored. Software graphics
+startup was unstable on this host; the existing host-GPU/Vulkan-disabled profile
+booted and ran the actual tests. No crashed emulator run is represented as passing.
+
+On a warm physical Home with the generated catalog and no player running, a
+10.08-second idle sample rendered 10 frames and consumed 32 CPU ticks (about
+3.17% of one core at the device's 100 Hz accounting rate). This documents removal
+of the continuous overlay loop; it is not a universal frame-rate guarantee.
+The signed player also rendered the generated H.264/AAC video and continuous HLS
+on the physical TV. Duplicate Pause froze identical frames; duplicate Play advanced
+the test pattern. Empty QA content ids prevent test Watch Next/history entries.

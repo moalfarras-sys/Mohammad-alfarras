@@ -208,6 +208,17 @@ class ClassicPlayerRegressionTest {
         assertEquals(BuildConfig.SIDELOAD_UPDATES, info.requestedPermissions.orEmpty().contains("android.permission.REQUEST_INSTALL_PACKAGES"))
     }
 
+    @Test fun liveChromeShowsOneBadgeAndHidesUnavailableGuideMetadata() = withPlayer(contentType = "CHANNEL") { scenario, player ->
+        awaitPlaying(player)
+        scenario.onActivity { activity ->
+            assertEquals(android.view.View.VISIBLE, activity.findViewById<android.view.View>(R.id.liveBadge).visibility)
+            val subtitle = activity.findViewById<android.widget.TextView>(R.id.tvSubtitle)
+            assertEquals(activity.getString(R.string.nav_live), subtitle.text.toString())
+            assertEquals(android.view.View.GONE, subtitle.visibility)
+            assertEquals(android.view.View.GONE, activity.findViewById<android.view.View>(R.id.tvPlaybackMeta).visibility)
+        }
+    }
+
     @Test fun anotherPlayerIntentReplacesTheCurrentContent() = withPlayer { scenario, player ->
         awaitPlaying(player)
         scenario.onActivity { activity ->
@@ -264,6 +275,7 @@ class ClassicPlayerRegressionTest {
 
     private fun withPlayer(
         playerType: Int = PlayerPreferences.PLAYER_INTERNAL_EXOPLAYER,
+        contentType: String = "MOVIE",
         block: (ActivityScenario<PlayerActivity>, RunningPlayer) -> Unit,
     ) {
         val preferences = PlayerPreferences(context)
@@ -279,7 +291,7 @@ class ClassicPlayerRegressionTest {
         val intent = Intent(context, PlayerActivity::class.java)
             .putExtra(PlayerActivity.EXTRA_STREAM_URL, android.net.Uri.fromFile(audio).toString())
             .putExtra(PlayerActivity.EXTRA_TITLE, "Local player regression fixture")
-            .putExtra(PlayerActivity.EXTRA_TYPE, "MOVIE")
+            .putExtra(PlayerActivity.EXTRA_TYPE, contentType)
             .putExtra(PlayerActivity.EXTRA_CONTENT_ID, "classic-qa-local-audio")
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         try {

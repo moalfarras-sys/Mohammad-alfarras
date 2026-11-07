@@ -219,6 +219,7 @@ class PlayerActivity : BaseTvActivity() {
     private var controlGeneration = SystemClock.elapsedRealtimeNanos()
     private var playbackRequested = true
     private var pausedForLifecycle = false
+    private var liveSupportGeneration = 0L
     private lateinit var performanceTier: DevicePerformance.Tier
 
     // Keep TV awake while a stream is on screen. FLAG_KEEP_SCREEN_ON alone is not enough
@@ -1532,7 +1533,8 @@ class PlayerActivity : BaseTvActivity() {
 
     private fun updatePlaybackChrome() {
         binding.liveBadge.isVisible = isLiveStream
-        binding.tvPlaybackMeta.isVisible = isLiveStream
+        binding.tvSubtitle.isVisible = !isLiveStream
+        binding.tvPlaybackMeta.isVisible = false
         binding.btnGuide.isVisible = isLiveStream
         binding.btnPreviousChannel.isVisible = isLiveStream
         binding.btnNextChannel.isVisible = isLiveStream
@@ -1541,33 +1543,38 @@ class PlayerActivity : BaseTvActivity() {
         binding.seekBar.isVisible = !isLiveStream
         binding.tvPosition.isVisible = !isLiveStream
         binding.tvDuration.isVisible = !isLiveStream
-        if (isLiveStream) {
-            binding.tvPlaybackMeta.text = getString(R.string.nav_live)
-        }
     }
 
     private fun loadLiveSupportData() {
+        val request = ++liveSupportGeneration
+        val requestedContentId = contentId
+        binding.tvPlaybackMeta.text = ""
+        binding.tvPlaybackMeta.isVisible = false
         activityScope.launch {
             val activeServer = repository.getActiveServerSync() ?: return@launch
-            currentServerId = activeServer.id
-            val current = repository.getChannelById(contentId)
-            channelList = if (!current?.categoryId.isNullOrBlank()) {
+            val current = repository.getChannelById(requestedContentId)
+            val loadedChannels = if (!current?.categoryId.isNullOrBlank()) {
                 repository.getChannelsByCategory(activeServer.id, current!!.categoryId).first()
             } else {
                 repository.getAllChannelsLimited(activeServer.id, 300).first()
             }
-            currentChannelIndex = channelList.indexOfFirst { it.channelId == contentId }
-            val currentChannel = if (currentChannelIndex in channelList.indices) channelList[currentChannelIndex] else null
+            val loadedIndex = loadedChannels.indexOfFirst { it.channelId == requestedContentId }
+            val currentChannel = loadedChannels.getOrNull(loadedIndex)
             val streamId = currentChannel?.streamId
+            val currentProgram = streamId?.let { repository.getCurrentProgram(it, activeServer.id) }
+            val nextProgram = streamId?.let { repository.getNextProgram(it, activeServer.id) }
+            if (request != liveSupportGeneration || contentId != requestedContentId || isDestroying) return@launch
+            currentServerId = activeServer.id
+            channelList = loadedChannels
+            currentChannelIndex = loadedIndex
             if (streamId != null) {
-                val currentProgram = repository.getCurrentProgram(streamId, activeServer.id)
-                val nextProgram = repository.getNextProgram(streamId, activeServer.id)
                 binding.tvCurrentProgram.text =
                     getString(R.string.player_epg_now_format, currentProgram?.title ?: title)
                 binding.tvNextProgram.text =
                     getString(R.string.player_epg_next_format, nextProgram?.title ?: getString(R.string.player_epg_no_upcoming))
-                binding.tvPlaybackMeta.text =
-                    currentProgram?.title?.takeIf { it.isNotBlank() } ?: getString(R.string.nav_live)
+                val programTitle = currentProgram?.title?.takeIf { it.isNotBlank() }
+                binding.tvPlaybackMeta.text = programTitle.orEmpty()
+                binding.tvPlaybackMeta.isVisible = programTitle != null
             }
             populateChannelDrawer()
         }
@@ -2197,7 +2204,7 @@ class PlayerActivity : BaseTvActivity() {
 
     /** Localised label for the header ("Movies", "Series", "Live") instead of the raw type code. */
     private fun contentTypeLabel(): String = when (contentType.uppercase(java.util.Locale.ROOT)) {
-        "LIVE" -> getString(R.string.nav_live)
+        "LIVE", "CHANNEL" -> getString(R.string.nav_live)
         "SERIES", "EPISODE" -> getString(R.string.nav_series)
         else -> getString(R.string.nav_movies)
     }

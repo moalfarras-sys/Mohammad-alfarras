@@ -79,3 +79,11 @@ preserve explicit pause, and test both default VLC and the Media3 path.
 report timestamps and the new command result. Never claim zero issues merely
 because abortOnError=false returned success. Primary evidence and narrow Lint
 exceptions: `../../docs/_audit/CLASSIC_PLAYER_AUDIT_2026-11-07.md`.
+
+Keep TV and Liquid motion constants aligned. Semantic font families have Arabic
+alternatives; do not overwrite localized faces with Typeface.DEFAULT. Fixed digital
+clock cells use Locale.ROOT digits. OFF/reduced/hidden/detached weather must not
+restart a frame callback, and constrained TVs keep the lightweight path. Live
+metadata is a real program title, not a duplicate Live badge; fence delayed guide
+results by content/load owner. Visual tests wait for deferred Home chrome before
+checking bounds and D-pad reachability.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Night theme aligned to day semantic token system -->
-    <style name="Theme.MoPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Base.Theme.MoPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/color_accent_primary</item>
         <item name="colorPrimaryDark">@color/color_bg_primary</item>
         <item name="colorAccent">@color/color_accent_primary</item>
@@ -13,9 +13,7 @@
         <item name="android:textColorPrimary">@color/color_text_primary</item>
         <item name="android:textColorSecondary">@color/color_text_secondary</item>
         <item name="android:textColorTertiary">@color/color_text_tertiary</item>
-        <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         <item name="editTextStyle">@style/Widget.MoPlayer.EditText</item>

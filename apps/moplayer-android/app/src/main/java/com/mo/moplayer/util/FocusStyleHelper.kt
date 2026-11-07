@@ -13,12 +13,12 @@ import android.graphics.drawable.LayerDrawable
  */
 object FocusStyleHelper {
     
-    private const val CARD_CORNER_RADIUS = 20f
+    private const val CARD_CORNER_RADIUS = 16f
     private const val FOCUS_BORDER_WIDTH = 3f
-    private const val OUTER_GLOW_WIDTH = 11f
+    private const val OUTER_GLOW_WIDTH = 6f
     private const val INNER_HIGHLIGHT_WIDTH = 1.5f
     private const val INNER_HIGHLIGHT_INSET = 4
-    private const val INNER_CORNER_RADIUS = 16f
+    private const val INNER_CORNER_RADIUS = 13f
     
     /**
      * Creates a 3-layer focus border drawable:
@@ -28,11 +28,11 @@ object FocusStyleHelper {
      * 
      * Replicates: res/drawable/focus_border.xml
      */
-    fun createFocusBorder(accentColor: Int): LayerDrawable {
+    fun createFocusBorder(accentColor: Int, density: Float = 1f): LayerDrawable {
         val layers = arrayOf(
-            createOuterGlowLayer(accentColor),
-            createMainBorderLayer(accentColor),
-            createInnerHighlightLayer()
+            createOuterGlowLayer(accentColor, density),
+            createMainBorderLayer(accentColor, density),
+            createInnerHighlightLayer(density)
         )
         
         val layerDrawable = LayerDrawable(layers)
@@ -40,10 +40,10 @@ object FocusStyleHelper {
         // Apply insets to inner highlight layer (index 2)
         layerDrawable.setLayerInset(
             2,
-            INNER_HIGHLIGHT_INSET,
-            INNER_HIGHLIGHT_INSET,
-            INNER_HIGHLIGHT_INSET,
-            INNER_HIGHLIGHT_INSET
+            (INNER_HIGHLIGHT_INSET * density).toInt(),
+            (INNER_HIGHLIGHT_INSET * density).toInt(),
+            (INNER_HIGHLIGHT_INSET * density).toInt(),
+            (INNER_HIGHLIGHT_INSET * density).toInt()
         )
         
         return layerDrawable
@@ -52,14 +52,14 @@ object FocusStyleHelper {
     /**
      * Creates the outer glow layer with 30% alpha accent color
      */
-    private fun createOuterGlowLayer(accentColor: Int): GradientDrawable {
+    private fun createOuterGlowLayer(accentColor: Int, density: Float): GradientDrawable {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = CARD_CORNER_RADIUS
+            cornerRadius = CARD_CORNER_RADIUS * density
             setStroke(
-                OUTER_GLOW_WIDTH.toInt(),
+                (OUTER_GLOW_WIDTH * density).toInt(),
                 Color.argb(
-                    130,
+                    60,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)
@@ -72,11 +72,11 @@ object FocusStyleHelper {
     /**
      * Creates the main border layer with full accent color
      */
-    private fun createMainBorderLayer(accentColor: Int): GradientDrawable {
+    private fun createMainBorderLayer(accentColor: Int, density: Float): GradientDrawable {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = CARD_CORNER_RADIUS
-            setStroke(FOCUS_BORDER_WIDTH.toInt(), accentColor)
+            cornerRadius = CARD_CORNER_RADIUS * density
+            setStroke((FOCUS_BORDER_WIDTH * density).toInt(), accentColor)
             setColor(Color.TRANSPARENT)
         }
     }
@@ -84,12 +84,12 @@ object FocusStyleHelper {
     /**
      * Creates the inner cyan highlight layer (glass effect)
      */
-    private fun createInnerHighlightLayer(): GradientDrawable {
+    private fun createInnerHighlightLayer(density: Float): GradientDrawable {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = INNER_CORNER_RADIUS
+            cornerRadius = INNER_CORNER_RADIUS * density
             setStroke(
-                INNER_HIGHLIGHT_WIDTH.toInt(),
+                (INNER_HIGHLIGHT_WIDTH * density).toInt(),
                 Color.parseColor("#405DEBFF")
             )
             setColor(Color.TRANSPARENT)
@@ -101,23 +101,23 @@ object FocusStyleHelper {
      * 
      * Replicates: res/drawable/bg_poster_glow.xml
      */
-    fun createFocusGlow(accentColor: Int): GradientDrawable {
+    fun createFocusGlow(accentColor: Int, density: Float = 1f): GradientDrawable {
         return GradientDrawable().apply {
             shape = GradientDrawable.RECTANGLE
-            cornerRadius = 20f
+            cornerRadius = CARD_CORNER_RADIUS * density
 
             gradientType = GradientDrawable.RADIAL_GRADIENT
-            gradientRadius = 240f
+            gradientRadius = 120f * density
 
             colors = intArrayOf(
                 Color.argb(
-                    150,
+                    70,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)
                 ),
                 Color.argb(
-                    56,
+                    28,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)

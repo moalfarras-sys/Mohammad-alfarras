@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <style name="Theme.MoPlayer" parent="Base.Theme.MoPlayer" />
+    <style name="Theme.MoPlayer.Neon" parent="Base.Theme.MoPlayer.Neon" />
     <!-- Luxury Dark & White Accent Theme (Shadcn Zinc Style) -->
-    <style name="Theme.MoPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Base.Theme.MoPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color - Shadcn White/Zinc -->
         <item name="colorPrimary">@color/color_accent_primary</item>
         <item name="colorPrimaryDark">@color/color_bg_primary</item>
         <item name="colorAccent">@color/color_accent_primary</item>
         <item name="colorError">@color/theme_critical</item>
-        <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
         
@@ -73,14 +73,12 @@
     <!-- ═══════════════════════════════════════════════════════════
          NEO 2026 THEME — Modern Neon Cyan x Deep Void
          ═══════════════════════════════════════════════════════════ -->
-    <style name="Theme.MoPlayer.Neon" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Base.Theme.MoPlayer.Neon" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/neo_neon_cyan</item>
         <item name="colorPrimaryDark">@color/neo_deep_void</item>
         <item name="colorAccent">@color/neo_neon_cyan</item>
         <item name="colorError">@color/neo_error</item>
-        <item name="android:forceDarkAllowed">false</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="windowActionBar">false</item>
 

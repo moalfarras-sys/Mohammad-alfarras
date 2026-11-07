@@ -92,7 +92,7 @@
                     android:textColor="@color/cinematic_text_primary"
                     android:textSize="10sp"
                     android:textStyle="bold"
-                    android:fontFamily="@font/dmsans_medium"
+                    android:fontFamily="@font/ui_body_medium"
                     tools:text="8.5" />
             </FrameLayout>
 
@@ -107,7 +107,7 @@
                 android:paddingVertical="3dp"
                 android:textColor="@color/cinematic_text_primary"
                 android:textSize="9sp"
-                android:fontFamily="@font/dmsans_medium"
+                android:fontFamily="@font/ui_body_medium"
                 android:visibility="gone"
                 tools:text="2024"
                 tools:visibility="visible" />
@@ -124,7 +124,7 @@
                 android:textColor="@color/cinematic_bg_base"
                 android:textSize="8sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/outfit_extrabold"
+                android:fontFamily="@font/ui_display_extrabold"
                 android:visibility="gone"
                 tools:text="4K"
                 tools:visibility="visible" />
@@ -149,18 +149,18 @@
         android:textAlignment="viewStart"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
             android:ellipsize="end"
             android:gravity="start"
             android:maxLines="2"
             android:lines="2"
-            android:includeFontPadding="false"
+            android:includeFontPadding="true"
             android:textColor="@color/cinematic_text_primary"
             android:textSize="@dimen/card_title_size"
-            android:fontFamily="@font/dmsans_medium"
-            android:lineSpacingMultiplier="1.06"
+            android:fontFamily="@font/ui_body_medium"
+            android:lineSpacingMultiplier="1.12"
             android:alpha="0.96"
             tools:text="Movie Title Here" />
     </LinearLayout>

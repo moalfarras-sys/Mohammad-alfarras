@@ -1,5 +1,9 @@
 # Project Handoff
 
+## 2026-11-07 Classic playback audit
+
+The blue Classic app has a scoped playback, lifecycle and verification repair on `codex/classic-deep-audit-20261106`. See [proven findings, qualification and release status](_audit/CLASSIC_PLAYER_AUDIT_2026-11-07.md). Production release status must be read from that audit; an old APK or stale build-output report is not proof of current qualification.
+
 ## 2026-11-06 Pro 2.7.5 Home, search and catalog freshness
 
 Stable signed 2.7.5/code 75 assets are published on GitHub. Home removes live recent-watch/new-channel shelves, keeps VOD resume and favorites, and adds larger posters with reduced-motion-aware entrances. Arabic/English network aliases and channel numbers rank locally. Series resume/access and recurring catalog age probes are repaired. Full local production verification, 405 Pro unit tests and 17 connected tests on both real Android 11 ARMv7 TV and API 36 TV emulator pass. See [qualified results and publication status](_audit/PRO_SMART_SYNC_TV_2026-11-06.md); older entries are historical.

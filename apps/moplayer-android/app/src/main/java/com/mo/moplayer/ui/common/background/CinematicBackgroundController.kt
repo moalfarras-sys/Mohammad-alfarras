@@ -28,8 +28,7 @@ object CinematicBackgroundController {
         if (background == null) return
         background.setTvOptimizationMode(true)
         background.setCinematicMode(true)
-        background.setAnimationEnabled(true)
-        background.resumeAnimation()
+        // Animation permission belongs to the user's setting and device/motion policy.
     }
 
     fun resolveProfile(mode: BackgroundVisualMode): BackgroundProfile {

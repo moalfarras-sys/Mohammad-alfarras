@@ -61,10 +61,10 @@
 
     <!-- Dock (TV-optimized for 720p) -->
     <dimen name="dock_horizontal_margin">150dp</dimen>
-    <dimen name="dock_bottom_margin">14dp</dimen>
+    <dimen name="dock_bottom_margin">24dp</dimen>
     <dimen name="dock_corner_radius">26dp</dimen>
     <dimen name="dock_height">66dp</dimen>
-    <dimen name="dock_icon_size">28dp</dimen>
+    <dimen name="dock_icon_size">24dp</dimen>
     <dimen name="dock_label_size">11sp</dimen>
     <dimen name="preview_panel_width">400dp</dimen>
     <dimen name="top_bar_height">44dp</dimen>
@@ -80,7 +80,7 @@
     <dimen name="home_notification_height">25dp</dimen>
     <dimen name="home_widget_gap">7dp</dimen>
     <dimen name="home_empty_width">640dp</dimen>
-    <dimen name="home_content_bottom_padding">76dp</dimen>
+    <dimen name="home_content_bottom_padding">112dp</dimen>
 
     <dimen name="settings_rail_width">184dp</dimen>
     <dimen name="settings_shell_margin">8dp</dimen>

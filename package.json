@@ -17,7 +17,7 @@
     "test:android": "npm run verify:android",
     "verify:web": "npm --prefix apps/web run typecheck && npm --prefix apps/web run lint && npm --prefix apps/web run build && npm --prefix apps/web test",
     "verify:admin": "npm --prefix apps/admin run typecheck && npm --prefix apps/admin run lint && npm --prefix apps/admin run build && npm --prefix apps/admin test",
-    "verify:android:classic": "node scripts/run-gradle.mjs classic testSideloadDebugUnitTest",
+    "verify:android:classic": "node scripts/run-gradle.mjs classic testSideloadDebugUnitTest lintSideloadDebug",
     "verify:android:pro": "node scripts/run-gradle.mjs pro testDebugUnitTest lintDebug",
     "verify:android": "npm run verify:android:classic && npm run verify:android:pro",
     "verify:moplayer-dashboard": "npm --prefix apps/moplayer-dashboard run build",

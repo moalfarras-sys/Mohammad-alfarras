@@ -121,7 +121,7 @@ Classic:
 
 ```powershell
 cd apps/moplayer-android
-.\gradlew.bat assembleSideloadRelease
+.\gradlew.bat assembleSideloadRelease -PincludeX86Abis=false
 ```
 
 Copy the production download into `apps/web/public/downloads/moplayer`:

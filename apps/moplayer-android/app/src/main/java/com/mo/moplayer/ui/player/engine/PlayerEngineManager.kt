@@ -1,187 +1,186 @@
+@file:androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
+
 package com.mo.moplayer.ui.player.engine
 
 import android.content.Context
 import android.view.View
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 
-/**
- * MoPlayer dual-engine playback manager.
- *
- * Strategy:
- * 1. **ExoPlayer first** (fast start, hardware-accelerated, MediaSession-friendly).
- * 2. On any playback error from ExoPlayer, seamlessly **fallback to VLC** which
- *    handles exotic codecs / HTTP auth quirks better.
- *
- * This class is designed to be dropped into [PlayerActivity] as a drop-in
- * replacement for direct LibVLC usage. The caller only sees [PlayerEngine].
- *
- * To activate, set `PlayerPreferences.useExoplayerPrimary()` to true.
- * While false, the app continues using legacy VLC-only code.
- */
-class PlayerEngineManager(context: Context, isLive: Boolean) {
+/** Owns both engines for one playback session, with load-scoped event delivery. */
+class PlayerEngineManager internal constructor(
+    exoFactory: () -> PlayerEngine,
+    vlcFactory: () -> PlayerEngine,
+    private val isLive: Boolean = false,
+) {
+    constructor(context: Context, isLive: Boolean) : this(
+        { ExoPlayerEngine(context.applicationContext, isLive) },
+        { VlcPlayerEngine(context.applicationContext, isLive) },
+        isLive,
+    )
 
-    private val appContext = context.applicationContext
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-
-    private val exoEngine: ExoPlayerEngine by lazy {
-        ExoPlayerEngine(appContext, isLive)
-    }
-    private val vlcEngine: VlcPlayerEngine by lazy {
-        VlcPlayerEngine(appContext, isLive)
-    }
-
-    /** Which engine is currently primary. */
+    private val exoDelegate = lazy(exoFactory)
+    private val vlcDelegate = lazy(vlcFactory)
     private var primaryEngine: PlayerEngine? = null
     private var preferExoPrimary = true
     private var fallbackActive = false
     private var exoView: View? = null
     private var vlcView: View? = null
     private var callbackEngine: PlayerEngine? = null
-
+    private var compositeCallback: PlayerEngine.Callback? = null
+    private var generation = 0L
+    private var released = false
+    private var lastUrl = ""
+    private var lastTitle = ""
+    private var lastPosition = 0L
     private val callbacks = mutableListOf<PlayerEngine.Callback>()
-    private val compositeCallback = object : PlayerEngine.Callback {
-        override fun onPlaybackStateChanged(state: Int) {
-            callbacks.forEach { it.onPlaybackStateChanged(state) }
-        }
-        override fun onIsPlayingChanged(isPlaying: Boolean) {
-            callbacks.forEach { it.onIsPlayingChanged(isPlaying) }
-        }
-        override fun onPlaybackError(error: PlayerEngine.PlaybackError) {
-            if (primaryEngine === exoEngine && !fallbackActive) {
-                // ExoPlayer failed — try VLC fallback
-                fallbackActive = true
-                val url = _lastUrl
-                val title = _lastTitle
-                val pos = _lastPosition
-                if (url.isNotEmpty()) {
-                    exoEngine.stop()
-                    exoEngine.detachView()
-                    primaryEngine = vlcEngine
-                    // Re-bind the composite callback to VLC so its buffering/state/error events
-                    // reach the UI after the fallback (otherwise the UI would go silent).
-                    ensureCompositeCallback(vlcEngine)
-                    vlcView?.let { vlcEngine.attachView(it) }
-                    vlcEngine.play(url, title, pos)
-                }
-            } else {
-                callbacks.forEach { it.onPlaybackError(error) }
-            }
-        }
-        override fun onPositionChanged(positionMs: Long, durationMs: Long) {
-            callbacks.forEach { it.onPositionChanged(positionMs, durationMs) }
-        }
-        override fun onTracksChanged(audio: List<PlayerEngine.TrackInfo>, subtitles: List<PlayerEngine.TrackInfo>) {
-            callbacks.forEach { it.onTracksChanged(audio, subtitles) }
-        }
-        override fun onVideoSizeChanged(width: Int, height: Int) {
-            callbacks.forEach { it.onVideoSizeChanged(width, height) }
-        }
-        override fun onBuffering(buffering: Boolean) {
-            callbacks.forEach { it.onBuffering(buffering) }
-        }
-    }
-
-    private var _lastUrl = ""
-    private var _lastTitle = ""
-    private var _lastPosition = 0L
 
     val engine: PlayerEngine
-        get() = primaryEngine ?: activeEngine()
+        get() {
+            check(!released) { "Playback session already released" }
+            return primaryEngine ?: preferredEngine().also { primaryEngine = it }
+        }
+
+    val isFallbackActive: Boolean get() = fallbackActive
+    val isUsingVlc: Boolean
+        get() = vlcDelegate.isInitialized() && primaryEngine === vlcDelegate.value
+
+    private fun preferredEngine(): PlayerEngine =
+        if (preferExoPrimary) exoDelegate.value else vlcDelegate.value
 
     fun setPrimaryEngine(useExo: Boolean) {
+        check(!released) { "Playback session already released" }
+        generation++
+        unbindCallback()
         preferExoPrimary = useExo
-        primaryEngine = if (useExo) exoEngine else vlcEngine
-        ensureCompositeCallback(activeEngine())
         fallbackActive = false
+        selectEngine(preferredEngine())
+        bindCallback(engine)
         attachCurrentView()
     }
 
     fun play(url: String, title: String, startPositionMs: Long) {
-        _lastUrl = url
-        _lastTitle = title
-        _lastPosition = startPositionMs
+        check(!released) { "Playback session already released" }
+        generation++
+        unbindCallback()
+        lastUrl = url
+        lastTitle = title
+        lastPosition = startPositionMs.coerceAtLeast(0)
         fallbackActive = false
-        primaryEngine = if (preferExoPrimary && exoEngine.supports(url)) exoEngine else vlcEngine
-        ensureCompositeCallback(activeEngine())
+        val target = if (preferExoPrimary && exoDelegate.value.supports(url)) exoDelegate.value else vlcDelegate.value
+        selectEngine(target)
+        target.stop()
+        bindCallback(target)
         attachCurrentView()
-        activeEngine().stop()
-        activeEngine().play(url, title, startPositionMs)
+        target.play(url, title, lastPosition)
     }
 
-    fun attachView(view: View) {
-        // Both engines can attach to the same view container if it is generic.
-        // In practice ExoPlayer needs SurfaceView/TextureView and VLC needs VLCVideoLayout.
-        // The caller is expected to have the right view type based on active engine.
-        activeEngine().attachView(view)
+    private fun selectEngine(target: PlayerEngine) {
+        val old = primaryEngine
+        if (old === target) return
+        old?.stop()
+        old?.detachView()
+        primaryEngine = target
+        // Surface visibility must change before the new native player starts preparing.
+        callbacks.toList().forEach { it.onEngineChanged() }
     }
 
+    private fun bindCallback(source: PlayerEngine) {
+        val token = generation
+        val relay = object : PlayerEngine.Callback {
+            private fun current() = !released && token == generation && primaryEngine === source
+            private fun deliver(block: (PlayerEngine.Callback) -> Unit) {
+                if (current()) callbacks.toList().forEach { if (current()) block(it) }
+            }
+            override fun onPlaybackStateChanged(state: Int) = deliver { it.onPlaybackStateChanged(state) }
+            override fun onIsPlayingChanged(isPlaying: Boolean) = deliver { it.onIsPlayingChanged(isPlaying) }
+            override fun onPositionChanged(positionMs: Long, durationMs: Long) = deliver { it.onPositionChanged(positionMs, durationMs) }
+            override fun onTracksChanged(audio: List<PlayerEngine.TrackInfo>, subtitles: List<PlayerEngine.TrackInfo>) =
+                deliver { it.onTracksChanged(audio, subtitles) }
+            override fun onVideoSizeChanged(width: Int, height: Int) = deliver { it.onVideoSizeChanged(width, height) }
+            override fun onBuffering(buffering: Boolean) = deliver { it.onBuffering(buffering) }
+            override fun onPlaybackError(error: PlayerEngine.PlaybackError) {
+                if (!current()) return
+                if (exoDelegate.isInitialized() && source === exoDelegate.value && !fallbackActive && lastUrl.isNotEmpty()) {
+                    val position = if (isLive) 0L else source.currentPositionMs.takeIf { it > 0 } ?: lastPosition
+                    generation++
+                    unbindCallback()
+                    fallbackActive = true
+                    val fallback = vlcDelegate.value
+                    selectEngine(fallback)
+                    bindCallback(fallback)
+                    attachCurrentView()
+                    fallback.play(lastUrl, lastTitle, position)
+                } else {
+                    deliver { it.onPlaybackError(error) }
+                }
+            }
+        }
+        compositeCallback = relay
+        callbackEngine = source
+        source.addCallback(relay)
+    }
+
+    private fun unbindCallback() {
+        compositeCallback?.let { callbackEngine?.removeCallback(it) }
+        compositeCallback = null
+        callbackEngine = null
+    }
+
+    fun attachView(view: View) { if (!released) engine.attachView(view) }
     fun attachViews(exoView: View, vlcView: View) {
+        if (released) return
         this.exoView = exoView
         this.vlcView = vlcView
         attachCurrentView()
     }
-
     private fun attachCurrentView() {
-        when (activeEngine()) {
-            exoEngine -> exoView?.let { exoEngine.attachView(it) }
-            vlcEngine -> vlcView?.let { vlcEngine.attachView(it) }
-        }
+        val current = primaryEngine ?: return
+        if (isUsingVlc) vlcView?.let(current::attachView)
+        else exoView?.let(current::attachView)
     }
+    fun detachView() { primaryEngine?.detachView() }
 
-    fun detachView() {
-        primaryEngine?.detachView()
+    fun stop() {
+        generation++
+        unbindCallback()
+        lastUrl = ""
+        primaryEngine?.stop()
     }
 
     fun release() {
-        scope.cancel()
+        if (released) return
+        released = true
+        generation++
+        unbindCallback()
         callbacks.clear()
-        runCatching { if (primaryEngine === exoEngine) exoEngine.release() }
-        runCatching { if (primaryEngine === vlcEngine || fallbackActive) vlcEngine.release() }
-    }
-
-    fun addCallback(callback: PlayerEngine.Callback) {
-        callbacks.add(callback)
-    }
-
-    fun removeCallback(callback: PlayerEngine.Callback) {
-        callbacks.remove(callback)
-    }
-
-    /** True if VLC fallback is currently running (ExoPlayer failed). */
-    val isFallbackActive: Boolean
-        get() = fallbackActive
-
-    // Delegation helpers so PlayerActivity can query/operate indiscriminately
-    val currentPositionMs: Long get() = primaryEngine?.currentPositionMs ?: 0L
-    val durationMs: Long get() = primaryEngine?.durationMs ?: 0L
-    val isPlaying: Boolean get() = primaryEngine?.isPlaying == true
-
-    fun pause() = primaryEngine?.pause() ?: Unit
-    fun resume() = primaryEngine?.resume() ?: Unit
-    fun togglePlayPause() = primaryEngine?.togglePlayPause() ?: Unit
-    fun seekBy(offsetMs: Long) = primaryEngine?.seekBy(offsetMs) ?: Unit
-    fun seekTo(positionMs: Long) = primaryEngine?.seekTo(positionMs) ?: Unit
-    fun stop() = primaryEngine?.stop() ?: Unit
-    fun setSpeed(speed: Float) = primaryEngine?.setSpeed(speed) ?: Unit
-
-    val audioTracks: List<PlayerEngine.TrackInfo> get() = primaryEngine?.audioTracks ?: emptyList()
-    val subtitleTracks: List<PlayerEngine.TrackInfo> get() = primaryEngine?.subtitleTracks ?: emptyList()
-    fun setAudioTrack(index: Int) = primaryEngine?.setAudioTrack(index) ?: Unit
-    fun setSubtitleTrack(index: Int) = primaryEngine?.setSubtitleTrack(index) ?: Unit
-
-    private fun activeEngine(): PlayerEngine {
-        return primaryEngine ?: (if (preferExoPrimary) exoEngine else vlcEngine).also {
-            primaryEngine = it
+        // Inspect delegates without constructing an unused native engine just to release it.
+        val created = listOfNotNull(
+            if (exoDelegate.isInitialized()) exoDelegate.value else null,
+            if (vlcDelegate.isInitialized()) vlcDelegate.value else null,
+        ).distinct()
+        primaryEngine = null
+        exoView = null
+        vlcView = null
+        lastUrl = ""
+        created.forEach { player ->
+            runCatching { player.detachView() }
+            runCatching { player.release() }
         }
     }
 
-    private fun ensureCompositeCallback(engine: PlayerEngine) {
-        if (callbackEngine === engine) return
-        callbackEngine?.removeCallback(compositeCallback)
-        engine.addCallback(compositeCallback)
-        callbackEngine = engine
-    }
+    fun addCallback(callback: PlayerEngine.Callback) { if (!released) callbacks.add(callback) }
+    fun removeCallback(callback: PlayerEngine.Callback) { callbacks.remove(callback) }
+    val currentPositionMs: Long get() = primaryEngine?.currentPositionMs ?: 0L
+    val durationMs: Long get() = primaryEngine?.durationMs ?: 0L
+    val playWhenReady: Boolean get() = primaryEngine?.playWhenReady == true
+    val isPlaying: Boolean get() = primaryEngine?.isPlaying == true
+    fun pause() { primaryEngine?.pause() }
+    fun resume() { primaryEngine?.resume() }
+    fun togglePlayPause() { primaryEngine?.togglePlayPause() }
+    fun seekBy(offsetMs: Long) { primaryEngine?.seekBy(offsetMs) }
+    fun seekTo(positionMs: Long) { primaryEngine?.seekTo(positionMs) }
+    fun setSpeed(speed: Float) { primaryEngine?.setSpeed(speed) }
+    val audioTracks: List<PlayerEngine.TrackInfo> get() = primaryEngine?.audioTracks ?: emptyList()
+    val subtitleTracks: List<PlayerEngine.TrackInfo> get() = primaryEngine?.subtitleTracks ?: emptyList()
+    fun setAudioTrack(index: Int) { primaryEngine?.setAudioTrack(index) }
+    fun setSubtitleTrack(index: Int) { primaryEngine?.setSubtitleTrack(index) }
 }

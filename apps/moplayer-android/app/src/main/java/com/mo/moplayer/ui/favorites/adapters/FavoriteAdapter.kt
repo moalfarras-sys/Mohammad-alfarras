@@ -146,8 +146,8 @@ class FavoriteAdapter(
             // Apply dynamic colors from ThemeManager
             if (hasFocus) {
                 val accentColor = themeManager.currentAccentColor.value
-                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(accentColor)
-                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(accentColor)
+                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(accentColor, binding.root.resources.displayMetrics.density)
+                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(accentColor, binding.root.resources.displayMetrics.density)
                 
                 // Animate glow and border
                 binding.focusGlow?.animate()?.alpha(1f)?.setDuration(TvCinematicTokens.FOCUS_IN_DURATION_MS)?.start()
@@ -171,8 +171,8 @@ class FavoriteAdapter(
          */
         fun updateFocusColors(color: Int) {
             if (binding.root.hasFocus()) {
-                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(color)
-                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(color)
+                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(color, binding.root.resources.displayMetrics.density)
+                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(color, binding.root.resources.displayMetrics.density)
             }
         }
         

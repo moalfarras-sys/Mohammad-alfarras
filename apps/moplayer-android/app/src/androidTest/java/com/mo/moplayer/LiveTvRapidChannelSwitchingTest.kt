@@ -9,7 +9,6 @@ import com.mo.moplayer.data.local.entity.ChannelEntity
 import com.mo.moplayer.databinding.ItemChannelTivimateBinding
 import com.mo.moplayer.ui.livetv.adapters.ChannelTiviMateAdapter
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -32,7 +31,7 @@ class LiveTvRapidChannelSwitchingTest {
 
     private lateinit var adapter: ChannelTiviMateAdapter
     private lateinit var recyclerView: RecyclerView
-    private val context = InstrumentationRegistry.getInstrumentation().targetContext
+    private val context = android.view.ContextThemeWrapper(InstrumentationRegistry.getInstrumentation().targetContext, R.style.Theme_MoPlayer)
     
     // Test channels
     private val testChannels = (1..50).map { index ->
@@ -71,8 +70,8 @@ class LiveTvRapidChannelSwitchingTest {
                 adapter = this@LiveTvRapidChannelSwitchingTest.adapter
                 // Layout the RecyclerView
                 measure(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                    android.view.View.MeasureSpec.makeMeasureSpec(1280, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(720, android.view.View.MeasureSpec.EXACTLY)
                 )
                 layout(0, 0, measuredWidth, measuredHeight)
             }
@@ -123,61 +122,39 @@ class LiveTvRapidChannelSwitchingTest {
     }
 
     @Test
-    fun testConcurrentChannelSwitching_noCrash() = runTest {
-        val latch = CountDownLatch(1)
-        var testPassed = true
-        var errorMessage: String? = null
-
-        InstrumentationRegistry.getInstrumentation().runOnMainSync {
-            try {
-                // Initial submit
+    fun testConcurrentChannelSwitching_noCrash() = runBlocking {
+        // The test thread waits; never block the main thread while joining jobs dispatched to it.
+        withTimeout(30_000) {
+            withContext(Dispatchers.Main) {
                 adapter.submitListWithCurrentChannel(testChannels, testChannels[0].channelId)
-                
-                // Simulate the original race condition:
-                // - filteredChannels observer submits list
-                // - currentChannel observer rapidly fires and calls submitListWithCurrentChannel
-                
-                // Rapid channel switches from "currentChannel" observer
-                val job = CoroutineScope(Dispatchers.Main).launch {
+            }
+            coroutineScope {
+                launch(Dispatchers.Default) {
                     repeat(50) { iteration ->
-                        val channel = testChannels[iteration % testChannels.size]
-                        adapter.submitListWithCurrentChannel(testChannels, channel.channelId)
-                        delay(1) // Minimal delay to simulate async nature
+                        withContext(Dispatchers.Main) {
+                            adapter.submitListWithCurrentChannel(testChannels, testChannels[iteration % testChannels.size].channelId)
+                        }
+                        delay(1)
                     }
                 }
-                
-                // Concurrent list updates from "filteredChannels" observer
-                val job2 = CoroutineScope(Dispatchers.Main).launch {
+                launch(Dispatchers.Default) {
                     repeat(10) {
-                        adapter.submitListWithCurrentChannel(testChannels, testChannels[it % testChannels.size].channelId)
-                        delay(5) // Slightly slower updates
+                        withContext(Dispatchers.Main) {
+                            adapter.submitListWithCurrentChannel(testChannels, testChannels[it % testChannels.size].channelId)
+                        }
+                        delay(5)
                     }
                 }
-                
-                // Wait for both jobs
-                runBlocking {
-                    job.join()
-                    job2.join()
-                }
-                
-                // Force final layout
+            }
+            withContext(Dispatchers.Main) {
                 recyclerView.measure(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                    android.view.View.MeasureSpec.makeMeasureSpec(1280, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(720, android.view.View.MeasureSpec.EXACTLY),
                 )
                 recyclerView.layout(0, 0, recyclerView.measuredWidth, recyclerView.measuredHeight)
-                
-                testPassed = true
-            } catch (e: Exception) {
-                testPassed = false
-                errorMessage = "Crash occurred during concurrent updates: ${e.message}\n${e.stackTraceToString()}"
-            } finally {
-                latch.countDown()
+                assertEquals(testChannels.size, adapter.itemCount)
             }
         }
-
-        assertTrue("Test timed out", latch.await(30, TimeUnit.SECONDS))
-        assertTrue(errorMessage ?: "Test passed", testPassed)
     }
 
     @Test

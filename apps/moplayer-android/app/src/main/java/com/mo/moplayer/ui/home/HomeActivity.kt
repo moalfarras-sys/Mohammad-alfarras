@@ -461,7 +461,7 @@ class HomeActivity : BaseTvActivity() {
             binding.animatedBackground.setAnimationEnabled(false)
             binding.animatedBackground.pauseAnimation()
         } else {
-            binding.animatedBackground.setAnimationEnabled(true)
+            // BaseThemedActivity owns the persisted viewer/system motion policy.
             binding.animatedBackground.resumeAnimation()
         }
         binding.weatherOverlay.visibility = if (homeCityWallpaperSelected) View.GONE else View.VISIBLE
@@ -1108,15 +1108,7 @@ class HomeActivity : BaseTvActivity() {
     }
     
     private fun animateDockItem(view: View, hasFocus: Boolean) {
-        val scale = if (hasFocus) TvCinematicTokens.DOCK_SCALE else 1.0f
-        val translationY = if (hasFocus) -4f else 0f
-        view.animate()
-            .scaleX(scale)
-            .scaleY(scale)
-            .translationY(translationY)
-            .setDuration(TvCinematicTokens.FOCUS_IN_DURATION_MS)
-            .setInterpolator(TvCinematicTokens.FOCUS_INTERPOLATOR)
-            .start()
+        com.mo.moplayer.ui.common.focus.LiquidFocusDelegate.animateDockFocus(view, hasFocus)
     }
     
     private fun updateDockSelection(selectedIndex: Int) {
@@ -1157,15 +1149,17 @@ class HomeActivity : BaseTvActivity() {
             icon.setColorFilter(color)
         }
         
+        val selectedTypeface = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.ui_body_bold)
+        val normalTypeface = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.ui_body_medium)
         labels.forEachIndexed { index, label ->
             val color = if (index == selectedIndex) textPrimaryColor else textSecondaryColor
             label.setTextColor(color)
             
             // Bold font for selected
             if (index == selectedIndex) {
-                 label.typeface = Typeface.DEFAULT_BOLD
+                 label.typeface = selectedTypeface
             } else {
-                 label.typeface = Typeface.DEFAULT
+                 label.typeface = normalTypeface
             }
         }
     }
@@ -1239,8 +1233,8 @@ class HomeActivity : BaseTvActivity() {
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
         
-        val hourStr = String.format("%02d", hour)
-        val minuteStr = String.format("%02d", minute)
+        val hourStr = String.format(java.util.Locale.ROOT, "%02d", hour)
+        val minuteStr = String.format(java.util.Locale.ROOT, "%02d", minute)
         
         binding.flipClock.tvHour1.text = hourStr[0].toString()
         binding.flipClock.tvHour2.text = hourStr[1].toString()

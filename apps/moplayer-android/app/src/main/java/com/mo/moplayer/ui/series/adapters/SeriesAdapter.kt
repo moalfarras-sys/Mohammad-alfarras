@@ -199,8 +199,8 @@ class SeriesAdapter(
             // Apply dynamic colors from ThemeManager
             if (hasFocus) {
                 val accentColor = themeManager.currentAccentColor.value
-                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(accentColor)
-                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(accentColor)
+                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(accentColor, binding.root.resources.displayMetrics.density)
+                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(accentColor, binding.root.resources.displayMetrics.density)
             }
 
             binding.contentLayout.animate()
@@ -232,8 +232,8 @@ class SeriesAdapter(
          */
         fun updateFocusColors(color: Int) {
             if (binding.root.hasFocus()) {
-                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(color)
-                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(color)
+                binding.focusBorder?.background = FocusStyleHelper.createFocusBorder(color, binding.root.resources.displayMetrics.density)
+                binding.focusGlow?.background = FocusStyleHelper.createFocusGlow(color, binding.root.resources.displayMetrics.density)
             }
         }
     }

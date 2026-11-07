@@ -30,21 +30,27 @@ object DevicePerformance {
         val am = context.getSystemService(Context.ACTIVITY_SERVICE) as? ActivityManager
             ?: return Tier.MEDIUM
 
-        if (am.isLowRamDevice) return Tier.LOW
-
         val memInfo = ActivityManager.MemoryInfo()
         am.getMemoryInfo(memInfo)
         val totalGb = memInfo.totalMem / 1_073_741_824.0 // bytes -> GiB
         val cores = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
 
-        // Older Fire TV sticks (AFTM/AFTT/AFTSSS...) are reliably weak; bias them down.
-        val fireStickLowEnd = isAmazonFireDevice() && totalGb < 2.0
-        val legacyAndroidTv = Build.VERSION.SDK_INT <= Build.VERSION_CODES.N_MR1 &&
-            (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_MASK) ==
+        val isTv = (context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_TYPE_MASK) ==
             android.content.res.Configuration.UI_MODE_TYPE_TELEVISION
+        return resolveTier(totalGb, cores, am.isLowRamDevice, isTv, Build.VERSION.SDK_INT,
+            Build.SUPPORTED_64_BIT_ABIS.isNotEmpty(), isAmazonFireDevice())
+    }
+
+    internal fun resolveTier(totalGb: Double, cores: Int, lowRam: Boolean, isTv: Boolean,
+                            apiLevel: Int, has64BitAbi: Boolean, amazon: Boolean): Tier {
+        // Physical 2 GB ARMv7 TV profiling exposed sustained frame misses with rich weather.
+        // These TVs need the static/lightweight path even when isLowRamDevice is false.
+        val constrainedTv = isTv && !has64BitAbi && totalGb <= 2.25
+        val legacyAndroidTv = isTv && apiLevel <= 25
+        val fireStickLowEnd = amazon && totalGb < 2.0
 
         return when {
-            legacyAndroidTv || fireStickLowEnd || totalGb < 1.6 || cores <= 2 -> Tier.LOW
+            lowRam || constrainedTv || legacyAndroidTv || fireStickLowEnd || totalGb < 1.6 || cores <= 2 -> Tier.LOW
             totalGb < 3.0 || cores <= 4 -> Tier.MEDIUM
             else -> Tier.HIGH
         }

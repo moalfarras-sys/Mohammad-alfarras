@@ -63,3 +63,19 @@ If player behavior changed, test startup, live stream error, `EndReached`, fast 
 - Do not commit `build-output`, `.gradle`, `.kotlin`, generated APKs, keystores, or `local.properties`.
 - Do not remove lifecycle guards or retry-token checks without replacing them with safer behavior.
 - Do not add provider keys directly to the app when the public web API can proxy server-side data.
+
+## Playback regression gates
+
+Classic verification includes Lint and fails on errors. Run
+`ANDROID_SERIAL=<device> node scripts/run-gradle.mjs classic connectedSideloadDebugAndroidTest`
+for actual player/framework checks; the fixtures are local and contain no source
+credentials. Own and release every initialized engine, fence load callbacks, and
+announce a surface change before fallback preparation. Native VLC must signal
+READY when Playing and never attach an already attached video layout twice.
+Separate system Play/Pause from toggle actions. Pause visible video in onStop,
+preserve explicit pause, and test both default VLC and the Media3 path.
+
+`build-output` may contain stale reports copied from another workstation; verify
+report timestamps and the new command result. Never claim zero issues merely
+because abortOnError=false returned success. Primary evidence and narrow Lint
+exceptions: `../../docs/_audit/CLASSIC_PLAYER_AUDIT_2026-11-07.md`.

@@ -34,6 +34,9 @@ trap cleanup EXIT
 # SettingsProvider can still reject writes just after boot/input become ready.
 # Keep these writes inside the bounded readiness loop, rather than exiting 255.
 disable_animations() {
+  # Android's first immersive-mode tutorial otherwise takes the input window from
+  # the app on fresh phone emulators. This is QA setup, never a production permission.
+  "$sdk/platform-tools/adb" -s "$serial" shell settings put secure immersive_mode_confirmations confirmed >/dev/null 2>&1 || return 1
   for setting in window_animation_scale transition_animation_scale animator_duration_scale; do
     "$sdk/platform-tools/adb" -s "$serial" shell settings put global "$setting" 0 >/dev/null 2>&1 || return 1
   done

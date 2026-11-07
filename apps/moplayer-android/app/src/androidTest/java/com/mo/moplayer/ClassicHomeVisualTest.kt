@@ -98,11 +98,13 @@ class ClassicHomeVisualTest {
                         scenario.onActivity { activity ->
                             val rowsReady = (activity.findViewById<RecyclerView>(R.id.rvContent).adapter?.itemCount ?: 0) == 3
                             val clockReady = activity.findViewById<android.widget.TextView>(R.id.tvHomeTime).text.isNotBlank()
-                            ready = rowsReady && clockReady
+                            ready = rowsReady && clockReady && activity.hasWindowFocus() &&
+                                activity.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
                         }
                         if (!ready) SystemClock.sleep(100)
                     }
                     assertTrue("Imported home library did not load: $language/$size", ready)
+                    instrumentation.waitForIdleSync()
                     scenario.onActivity { activity ->
                         val root = activity.window.decorView
                         val dock = activity.findViewById<View>(R.id.dockHome)
@@ -152,13 +154,13 @@ class ClassicHomeVisualTest {
                         assertTrue(rail.findViewHolderForAdapterPosition(0)!!.itemView.requestFocus())
                     }
                     val backward = if (language == "ar") KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
-                    instrumentation.sendKeyDownUpSync(backward)
+                    ClassicRemoteInput.press(backward)
                     scenario.onActivity { activity ->
                         val rows = activity.findViewById<RecyclerView>(R.id.rvContent)
                         assertTrue("Rail edge lost focus: $language/$size", rows.getChildAt(0).hasFocus())
                     }
                     repeat(2) { index ->
-                        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+                        ClassicRemoteInput.press(KeyEvent.KEYCODE_DPAD_DOWN)
                         scenario.onActivity { activity ->
                             val rows = activity.findViewById<RecyclerView>(R.id.rvContent)
                             assertTrue("Next shelf unreachable: $language/$size", rows.getChildAt(index + 1).hasFocus())
@@ -166,7 +168,7 @@ class ClassicHomeVisualTest {
                             assertEquals(View.GONE, activity.findViewById<View>(R.id.previewInfoPanel).visibility)
                         }
                     }
-                    instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+                    ClassicRemoteInput.press(KeyEvent.KEYCODE_DPAD_DOWN)
                     scenario.onActivity { assertEquals(R.id.dockHome, it.currentFocus?.id) }
                     if (language == "en" && size == DisplayScale.InterfaceSize.STANDARD) {
                         val resume = runBlocking { fixtureDb.watchHistoryDao().getHomeContinueWatching().first().first() }
@@ -186,7 +188,7 @@ class ClassicHomeVisualTest {
                     }
                     val direction = if (language == "ar") KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
                     repeat(6) {
-                        instrumentation.sendKeyDownUpSync(direction)
+                        ClassicRemoteInput.press(direction)
                         scenario.onActivity { assertNotNull("Lost remote focus $language/$size", it.currentFocus) }
                     }
                     scenario.onActivity { assertEquals("Settings unreachable from dock $language/$size", R.id.dockSettings, it.currentFocus?.id) }

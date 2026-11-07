@@ -14,43 +14,17 @@ import android.graphics.drawable.LayerDrawable
 object FocusStyleHelper {
     
     private const val CARD_CORNER_RADIUS = 16f
-    private const val FOCUS_BORDER_WIDTH = 3f
-    private const val OUTER_GLOW_WIDTH = 6f
-    private const val INNER_HIGHLIGHT_WIDTH = 1.5f
-    private const val INNER_HIGHLIGHT_INSET = 4
-    private const val INNER_CORNER_RADIUS = 13f
+    private const val FOCUS_BORDER_WIDTH = 2f
+    private const val OUTER_GLOW_WIDTH = 4f
     
+    /** One theme-colored outline with a restrained halo; no second competing ring. */
+    fun createFocusBorder(accentColor: Int, density: Float = 1f): LayerDrawable = LayerDrawable(arrayOf(
+        createOuterGlowLayer(accentColor, density),
+        createMainBorderLayer(accentColor, density)
+    ))
+
     /**
-     * Creates a 3-layer focus border drawable:
-     * 1. Outer glow layer (6dp stroke with 30% alpha)
-     * 2. Main border (2dp stroke with accent color)
-     * 3. Inner highlight (1dp stroke with a restrained cyan glass effect)
-     * 
-     * Replicates: res/drawable/focus_border.xml
-     */
-    fun createFocusBorder(accentColor: Int, density: Float = 1f): LayerDrawable {
-        val layers = arrayOf(
-            createOuterGlowLayer(accentColor, density),
-            createMainBorderLayer(accentColor, density),
-            createInnerHighlightLayer(density)
-        )
-        
-        val layerDrawable = LayerDrawable(layers)
-        
-        // Apply insets to inner highlight layer (index 2)
-        layerDrawable.setLayerInset(
-            2,
-            (INNER_HIGHLIGHT_INSET * density).toInt(),
-            (INNER_HIGHLIGHT_INSET * density).toInt(),
-            (INNER_HIGHLIGHT_INSET * density).toInt(),
-            (INNER_HIGHLIGHT_INSET * density).toInt()
-        )
-        
-        return layerDrawable
-    }
-    
-    /**
-     * Creates the outer glow layer with 30% alpha accent color
+     * Creates a low-opacity halo around the main outline
      */
     private fun createOuterGlowLayer(accentColor: Int, density: Float): GradientDrawable {
         return GradientDrawable().apply {
@@ -59,7 +33,7 @@ object FocusStyleHelper {
             setStroke(
                 (OUTER_GLOW_WIDTH * density).toInt(),
                 Color.argb(
-                    60,
+                    38,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)
@@ -82,21 +56,6 @@ object FocusStyleHelper {
     }
     
     /**
-     * Creates the inner cyan highlight layer (glass effect)
-     */
-    private fun createInnerHighlightLayer(density: Float): GradientDrawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = INNER_CORNER_RADIUS * density
-            setStroke(
-                (INNER_HIGHLIGHT_WIDTH * density).toInt(),
-                Color.parseColor("#405DEBFF")
-            )
-            setColor(Color.TRANSPARENT)
-        }
-    }
-    
-    /**
      * Creates a radial gradient glow background for focused elements
      * 
      * Replicates: res/drawable/bg_poster_glow.xml
@@ -111,13 +70,13 @@ object FocusStyleHelper {
 
             colors = intArrayOf(
                 Color.argb(
-                    70,
+                    46,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)
                 ),
                 Color.argb(
-                    28,
+                    18,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)
@@ -193,7 +152,7 @@ object FocusStyleHelper {
             setStroke(3, accentColor)
             setColor(
                 Color.argb(
-                    28,
+                    18,
                     Color.red(accentColor),
                     Color.green(accentColor),
                     Color.blue(accentColor)

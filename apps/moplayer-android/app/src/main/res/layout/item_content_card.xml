@@ -27,6 +27,8 @@
         android:id="@+id/contentLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@drawable/bg_library_card"
+        android:paddingBottom="6dp"
         android:orientation="vertical">
 
         <com.mo.moplayer.ui.common.AspectRatioFrameLayout
@@ -151,8 +153,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:gravity="start"
             android:maxLines="2"

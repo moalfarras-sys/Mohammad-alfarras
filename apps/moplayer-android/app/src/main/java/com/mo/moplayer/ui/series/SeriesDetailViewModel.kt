@@ -49,6 +49,8 @@ class SeriesDetailViewModel @Inject constructor(
     private var originalSeriesId: Int = 0
     private var cachedEpisodes: List<EpisodeEntity> = emptyList()
 
+    fun episodeCountForSeason(season: Int): Int = cachedEpisodes.count { it.seasonNumber == season }
+
     fun loadSeriesDetails(seriesId: String) {
         this.seriesId = seriesId
 

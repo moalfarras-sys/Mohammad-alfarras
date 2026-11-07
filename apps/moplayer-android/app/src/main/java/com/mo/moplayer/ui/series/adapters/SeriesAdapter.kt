@@ -1,22 +1,15 @@
 package com.mo.moplayer.ui.series.adapters
 
-import android.graphics.drawable.Drawable
 import android.view.KeyEvent
-import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.DataSource
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.engine.GlideException
-import com.bumptech.glide.request.RequestListener
-import com.bumptech.glide.request.target.Target
 import com.mo.moplayer.R
 import com.mo.moplayer.data.local.entity.SeriesEntity
 import com.mo.moplayer.databinding.ItemContentCardBinding
+import com.mo.moplayer.ui.common.PosterImageBinder
 import com.mo.moplayer.ui.common.RemoteShortcutManager
 import com.mo.moplayer.ui.common.design.TvCinematicTokens
 import com.mo.moplayer.util.FocusStyleHelper
@@ -31,6 +24,15 @@ class SeriesAdapter(
 ) : PagingDataAdapter<SeriesEntity, SeriesAdapter.SeriesViewHolder>(SeriesDiffCallback()) {
 
     private var recyclerView: RecyclerView? = null
+    private var rowsMode = false
+
+    fun setLayoutStyle(style: com.mo.moplayer.util.TvUiPreferences.LayoutStyle) {
+        val rows = style == com.mo.moplayer.util.TvUiPreferences.LayoutStyle.ROWS
+        if (rowsMode == rows) return
+        rowsMode = rows
+        // Explicit layout changes require different holders; metadata refreshes still use DiffUtil.
+        notifyDataSetChanged()
+    }
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
@@ -58,15 +60,14 @@ class SeriesAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SeriesViewHolder {
-        val binding = ItemContentCardBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-        com.mo.moplayer.ui.common.PosterCardSizing.fitGridCell(binding.root, parent)
-        return SeriesViewHolder(binding)
+        val wide = viewType == com.mo.moplayer.util.RecyclerViewOptimizer.VIEW_TYPE_SERIES_WIDE
+        val binding = com.mo.moplayer.ui.common.PosterCardLayouts.inflate(parent, wide)
+        return SeriesViewHolder(binding, wide)
     }
 
     override fun getItemViewType(position: Int): Int {
-        return com.mo.moplayer.util.RecyclerViewOptimizer.VIEW_TYPE_SERIES
+        return if (rowsMode) com.mo.moplayer.util.RecyclerViewOptimizer.VIEW_TYPE_SERIES_WIDE
+            else com.mo.moplayer.util.RecyclerViewOptimizer.VIEW_TYPE_SERIES
     }
 
     override fun onBindViewHolder(holder: SeriesViewHolder, position: Int) {
@@ -74,64 +75,28 @@ class SeriesAdapter(
         holder.bind(series, position)
     }
 
+    override fun onViewRecycled(holder: SeriesViewHolder) {
+        holder.recycle()
+        super.onViewRecycled(holder)
+    }
+
     inner class SeriesViewHolder(
-        private val binding: ItemContentCardBinding
+        private val binding: ItemContentCardBinding,
+        private val wide: Boolean = false
     ) : RecyclerView.ViewHolder(binding.root) {
 
         private var remoteShortcutManager: RemoteShortcutManager? = null
+        private val poster = PosterImageBinder(binding.ivPoster)
 
-        fun bind(series: SeriesEntity?, position: Int) {
+        fun bind(series: SeriesEntity?, @Suppress("UNUSED_PARAMETER") position: Int) {
             // Reset all visible state so recycled views never show previous item data
             binding.tvTitle.text = series?.name?.takeIf { it.isNotBlank() } ?: binding.root.context.getString(R.string.unknown_title)
             binding.ratingBadge.visibility = View.GONE
 
-            // Clear previous Glide request and image so we never show wrong poster on reuse
-            if (com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.ivPoster.context)) {
-                Glide.with(binding.ivPoster.context).clear(binding.ivPoster)
-            }
-            binding.ivPoster.setImageDrawable(null)
-
-            if (series != null) {
-                if (series.rating != null && series.rating > 0) {
-                    binding.tvRating.text = String.format("%.1f", series.rating)
-                    binding.ratingBadge.visibility = View.VISIBLE
-                }
-
-                if (!series.cover.isNullOrEmpty() && com.mo.moplayer.util.GlideHelper.isValidContextForGlide(binding.root.context)) {
-                    Glide.with(binding.root.context)
-                        .load(series.cover)
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .override(240, 360)
-                        .thumbnail(0.1f)
-                        .placeholder(R.drawable.ic_content_placeholder)
-                        .error(R.drawable.ic_content_placeholder)
-                        .centerCrop()
-                        .addListener(object : RequestListener<Drawable> {
-                            override fun onResourceReady(
-                                resource: Drawable,
-                                model: Any,
-                                target: Target<Drawable>?,
-                                dataSource: DataSource,
-                                isFirstResource: Boolean
-                            ): Boolean {
-                                return bindingAdapterPosition != position
-                            }
-                            override fun onLoadFailed(
-                                e: GlideException?,
-                                model: Any?,
-                                target: Target<Drawable>,
-                                isFirstResource: Boolean
-                            ): Boolean {
-                                android.util.Log.d("SeriesThumb", "poster_load_failed id=${series.seriesId}")
-                                return false
-                            }
-                        })
-                        .into(binding.ivPoster)
-                } else {
-                    binding.ivPoster.setImageResource(R.drawable.ic_content_placeholder)
-                }
-            } else {
-                binding.ivPoster.setImageResource(R.drawable.ic_content_placeholder)
+            poster.bind(series?.seriesId, series?.cover)
+            if (series?.rating != null && series.rating > 0) {
+                binding.tvRating.text = String.format("%.1f", series.rating)
+                binding.ratingBadge.visibility = View.VISIBLE
             }
 
             binding.root.setOnClickListener {
@@ -144,6 +109,7 @@ class SeriesAdapter(
                 true
             }
 
+            remoteShortcutManager?.reset()
             remoteShortcutManager = series?.let { safeSeries ->
                 RemoteShortcutManager(
                     onShortOk = { onSeriesClick(safeSeries) },
@@ -189,10 +155,16 @@ class SeriesAdapter(
             }
         }
 
+        fun recycle() {
+            remoteShortcutManager?.reset()
+            remoteShortcutManager = null
+            poster.clear()
+        }
+
         private fun animateFocus(hasFocus: Boolean) {
-            val scale = if (hasFocus) TvCinematicTokens.FOCUS_SCALE else 1.0f
+            val scale = if (hasFocus && !wide) TvCinematicTokens.FOCUS_SCALE else 1.0f
             val elevation = if (hasFocus) TvCinematicTokens.CARD_ELEVATION_FOCUSED else TvCinematicTokens.CARD_ELEVATION_REST
-            val glowAlpha = if (hasFocus) 1f else 0f
+            val glowAlpha = if (hasFocus && !wide) 1f else 0f
             val borderAlpha = if (hasFocus) 1f else 0f
             val duration = TvCinematicTokens.FOCUS_IN_DURATION_MS
 

@@ -108,14 +108,7 @@ class SeriesDetailActivity : BaseTvActivity() {
         seasonAdapter =
                 SeasonAdapter(
                         onSeasonClick = { seasonNum -> viewModel.selectSeason(seasonNum) },
-                        getEpisodeCount = { seasonNum ->
-                            // Return episode count for the season
-                            if (viewModel.currentSeason.value == seasonNum) {
-                                viewModel.episodes.value?.size ?: 0
-                            } else {
-                                10 // Mock count for other seasons
-                            }
-                        }
+                        getEpisodeCount = viewModel::episodeCountForSeason
                 )
 
         if (isTvMode) {

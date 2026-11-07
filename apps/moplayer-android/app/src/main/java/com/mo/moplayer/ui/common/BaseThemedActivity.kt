@@ -384,6 +384,10 @@ abstract class BaseThemedActivity : AppCompatActivity() {
 
             if ((child is Button || child is AppCompatButton) && child.tag == "dynamic_button") {
                 child.background = buttonStyleHelper.createThemedButtonBackground(this)
+                child.backgroundTintList = null
+                val foreground = buttonStyleHelper.createThemedButtonTextColors()
+                child.setTextColor(foreground)
+                child.compoundDrawableTintList = foreground
             }
 
             when (child.id) {
@@ -397,7 +401,15 @@ abstract class BaseThemedActivity : AppCompatActivity() {
                 "accent_icon" -> if (child is ImageView) child.colorFilter = PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN)
                 "accent_background" -> child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(58))
                 "accent_surface" -> child.backgroundTintList = ColorStateList.valueOf(getButtonAccentColor(34))
-                "accent_button" -> child.background = buttonStyleHelper.createThemedButtonBackground(this)
+                "accent_button" -> {
+                    child.background = buttonStyleHelper.createThemedButtonBackground(this)
+                    child.backgroundTintList = null
+                    if (child is TextView) {
+                        val foreground = buttonStyleHelper.createThemedButtonTextColors()
+                        child.setTextColor(foreground)
+                        child.compoundDrawableTintList = foreground
+                    }
+                }
             }
 
             if (child is ViewGroup) {

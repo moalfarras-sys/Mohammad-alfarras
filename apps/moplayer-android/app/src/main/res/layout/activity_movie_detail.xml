@@ -26,8 +26,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
-        android:paddingHorizontal="56dp"
-        android:paddingVertical="36dp">
+        android:paddingHorizontal="48dp"
+        android:paddingVertical="28dp">
 
         <!-- Left Side - Poster and Quick Actions -->
         <LinearLayout
@@ -142,9 +142,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textColor="@color/cinematic_text_primary"
-                android:textSize="34sp"
+                android:textSize="28sp"
                 android:textStyle="bold"
-                android:fontFamily="@font/ui_body_medium"
+                android:fontFamily="@font/ui_display_bold"
                 android:maxLines="2"
                 android:ellipsize="end"
                 android:lineSpacingMultiplier="1.05"
@@ -153,7 +153,7 @@
 
             <!-- Meta Info Row -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:gravity="center_vertical"
@@ -193,7 +193,10 @@
                 <!-- Genre -->
                 <TextView
                     android:id="@+id/tvGenre"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:ellipsize="end"
                     android:layout_height="wrap_content"
                     android:textColor="@color/htc_text_secondary"
                     android:textSize="14sp"
@@ -201,70 +204,80 @@
 
             </LinearLayout>
 
-            <!-- Plot/Description -->
-            <TextView
-                android:id="@+id/tvPlot"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:lineSpacingMultiplier="1.4"
-                android:maxLines="6"
-                android:ellipsize="end"
-                android:textColor="@color/cinematic_text_secondary"
-                android:textSize="15sp"
-                android:fontFamily="@font/ui_body_regular"
-                android:alpha="0.88"
-                tools:text="When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice." />
-
-            <!-- Director/Cast -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/tvDirector"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="@color/htc_text_tertiary"
-                    android:textSize="13sp"
-                    android:visibility="gone"
-                    tools:text="Director: Christopher Nolan"
-                    tools:visibility="visible" />
-
-                <TextView
-                    android:id="@+id/tvCast"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:ellipsize="end"
-                    android:maxLines="2"
-                    android:textColor="@color/htc_text_tertiary"
-                    android:textSize="13sp"
-                    android:visibility="gone"
-                    tools:text="Cast: Christian Bale, Heath Ledger, Aaron Eckhart"
-                    tools:visibility="visible" />
-
-            </LinearLayout>
-
-            <!-- Spacer -->
-            <View
+            <ScrollView
+                android:id="@+id/movieInfoScroll"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:layout_weight="1" />
+                android:layout_weight="1"
+                android:layout_marginVertical="16dp"
+                android:background="@drawable/selector_cinematic_card"
+                android:padding="12dp"
+                android:focusable="true"
+                android:scrollbars="none"
+                android:nextFocusDown="@id/btnPlay">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <!-- Plot/Description -->
+                    <TextView
+                        android:id="@+id/tvPlot"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="0dp"
+                        android:lineSpacingMultiplier="1.25"
+                        android:textColor="@color/cinematic_text_secondary"
+                        android:textSize="15sp"
+                        android:fontFamily="@font/ui_body_regular"
+                        android:alpha="0.88"
+                        tools:text="When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice." />
+
+                    <!-- Director/Cast -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvDirector"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/htc_text_tertiary"
+                            android:textSize="13sp"
+                            android:visibility="gone"
+                            tools:text="Director: Christopher Nolan"
+                            tools:visibility="visible" />
+
+                        <TextView
+                            android:id="@+id/tvCast"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:ellipsize="end"
+                            android:maxLines="2"
+                            android:textColor="@color/htc_text_tertiary"
+                            android:textSize="13sp"
+                            android:visibility="gone"
+                            tools:text="Cast: Christian Bale, Heath Ledger, Aaron Eckhart"
+                            tools:visibility="visible" />
+
+                    </LinearLayout>
+                </LinearLayout>
+            </ScrollView>
 
             <!-- Action Buttons -->
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:gravity="start"
-                android:orientation="horizontal">
+                android:layout_marginBottom="8dp"
+                android:clipChildren="false">
 
                 <!-- Play Button -->
                 <Button
                     android:id="@+id/btnPlay"
+                    android:tag="dynamic_button"
+                    android:nextFocusUp="@id/movieInfoScroll"
                     android:layout_width="wrap_content"
                     android:layout_height="52dp"
                     android:background="@drawable/bg_button_play"
@@ -284,7 +297,6 @@
                     android:id="@+id/btnResume"
                     android:layout_width="wrap_content"
                     android:layout_height="52dp"
-                    android:layout_marginStart="16dp"
                     android:background="@drawable/bg_button_secondary"
                     android:drawableStart="@drawable/ic_play"
                     android:drawablePadding="12dp"
@@ -303,7 +315,6 @@
                     android:id="@+id/btnFavorite"
                     android:layout_width="52dp"
                     android:layout_height="52dp"
-                    android:layout_marginStart="16dp"
                     android:background="@drawable/bg_button_icon"
                     android:contentDescription="@string/movie_add_favorite"
                     android:focusable="true"
@@ -315,7 +326,6 @@
                     android:id="@+id/btnTrailer"
                     android:layout_width="wrap_content"
                     android:layout_height="52dp"
-                    android:layout_marginStart="16dp"
                     android:background="@drawable/bg_button_secondary"
                     android:drawableStart="@drawable/ic_play"
                     android:drawablePadding="8dp"
@@ -329,7 +339,23 @@
                     android:visibility="gone"
                     tools:visibility="visible" />
 
-            </LinearLayout>
+                <androidx.constraintlayout.helper.widget.Flow
+                    android:id="@+id/movieActionFlow"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:constraint_referenced_ids="btnPlay,btnResume,btnFavorite,btnTrailer"
+                    app:flow_wrapMode="chain"
+                    app:flow_horizontalStyle="packed"
+                    app:flow_horizontalBias="0"
+                    app:flow_verticalAlign="center"
+                    app:flow_horizontalGap="12dp"
+                    app:flow_verticalGap="10dp" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
 

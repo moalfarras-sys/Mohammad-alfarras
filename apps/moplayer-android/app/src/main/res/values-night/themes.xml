@@ -2,6 +2,8 @@
 <resources>
     <!-- Night theme aligned to day semantic token system -->
     <style name="Base.Theme.MoPlayer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="fontFamily">@font/ui_body_regular</item>
+        <item name="android:fontFamily">@font/ui_body_regular</item>
         <item name="colorPrimary">@color/color_accent_primary</item>
         <item name="colorPrimaryDark">@color/color_bg_primary</item>
         <item name="colorAccent">@color/color_accent_primary</item>
@@ -23,6 +25,8 @@
     </style>
 
     <style name="Theme.MoPlayer.Fullscreen" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="fontFamily">@font/ui_body_regular</item>
+        <item name="android:fontFamily">@font/ui_body_regular</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
         <item name="android:windowBackground">@color/color_bg_primary</item>

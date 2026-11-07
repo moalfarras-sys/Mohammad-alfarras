@@ -1759,10 +1759,11 @@ class SettingsActivity : BaseTvActivity() {
             SettingsPanel.ABOUT -> "about"
         }
         categoryAdapter.setSelectedCategory(categoryId)
+        // Explicit links depend on logical XML order, not the first layout frame.
+        applyPanelFocusMap(panel, panelView)
         
         // Restore or set focus on panel
         panelView.post {
-            applyPanelFocusMap(panel, panelView)
             if (focusPanel) restorePanelFocus(panel, panelView)
             val duration = System.currentTimeMillis() - switchStartMs
             Log.d("SettingsPanelPerf", "panel=${panel.name} switchDurationMs=$duration")
@@ -1817,9 +1818,10 @@ class SettingsActivity : BaseTvActivity() {
             view.nextFocusRightId = if (rtl) binding.rvCategories.id else view.id
         }
         if (panel == SettingsPanel.INTERFACE) {
-            // The vertical chain is sorted by screen position; Arabic must still enter
+            // The vertical chain follows logical layout order; Arabic must still enter
             // the first color at the logical start of the strip, rather than the left edge.
-            binding.optionPosterSize.nextFocusDownId = binding.colorChipGreen.id
+            binding.optionPosterSize.nextFocusDownId = binding.optionLayoutStyle.id
+            binding.optionLayoutStyle.nextFocusDownId = binding.colorChipGreen.id
             FocusMapRegistry.mapHorizontalStrip(
                 listOf(
                     binding.colorChipGreen,
@@ -1832,7 +1834,7 @@ class SettingsActivity : BaseTvActivity() {
                     binding.colorChipWhite
                 ),
                 wrap = false,
-                upTarget = binding.optionPosterSize,
+                upTarget = binding.optionLayoutStyle,
                 downTarget = binding.etCustomImageUrl
             )
         } else if (panel == SettingsPanel.UPDATE) {
@@ -1882,27 +1884,7 @@ class SettingsActivity : BaseTvActivity() {
         }
 
         walk(root)
-        return result.sortedWith(compareBy<View> { getAbsoluteTop(it) }.thenBy { getAbsoluteLeft(it) })
-    }
-
-    private fun getAbsoluteTop(view: View): Int {
-        var top = view.top
-        var parent = view.parent
-        while (parent is View) {
-            top += parent.top
-            parent = parent.parent
-        }
-        return top
-    }
-
-    private fun getAbsoluteLeft(view: View): Int {
-        var left = view.left
-        var parent = view.parent
-        while (parent is View) {
-            left += parent.left
-            parent = parent.parent
-        }
-        return left
+        return result
     }
 
     private fun observeViewModel() {
@@ -2072,6 +2054,13 @@ class SettingsActivity : BaseTvActivity() {
                 if (currentFocus == null) {
                     restorePanelFocus(currentPanel, getCurrentPanelView())
                     return true
+                }
+                val focused = currentFocus
+                if (!binding.pinDialogOverlay.isShown && !binding.rvCategories.hasFocus() &&
+                    focused !is android.widget.EditText && focused !is SeekBar && focused !is Spinner) {
+                    val targetId = if (keyCode == KeyEvent.KEYCODE_DPAD_UP) focused?.nextFocusUpId else focused?.nextFocusDownId
+                    val target = targetId?.takeIf { it != View.NO_ID }?.let { getCurrentPanelView().findViewById<View>(it) }
+                    if (target != null && target.isShown && target.isEnabled && target.isFocusable) return target.requestFocus()
                 }
             }
             KeyEvent.KEYCODE_DPAD_LEFT,

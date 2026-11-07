@@ -31,24 +31,29 @@ class ClassicSettingsNavigationTest {
                     while (!ready && SystemClock.elapsedRealtime() < deadline) {
                         scenario.onActivity {
                             ready = it.findViewById<RecyclerView>(R.id.rvCategories).childCount == 6 &&
-                                it.findViewById<View>(R.id.optionPosterSize).isShown
+                                it.findViewById<View>(R.id.optionPosterSize).isShown && it.hasWindowFocus()
                         }
                         if (!ready) SystemClock.sleep(50)
                     }
                     assertTrue("Settings did not load: $language", ready)
+                    instrumentation.waitForIdleSync()
                     scenario.onActivity { assertTrue(it.findViewById<View>(R.id.colorChipGreen).requestFocus()) }
-                    instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_UP)
-                    scenario.onActivity { assertEquals("Hidden layout setting receives focus: $language", R.id.optionPosterSize, it.currentFocus?.id) }
-                    instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
-                    scenario.onActivity { assertEquals("Poster size must lead to the first color: $language", R.id.colorChipGreen, it.currentFocus?.id) }
+                    ClassicRemoteInput.press(KeyEvent.KEYCODE_DPAD_UP)
+                    scenario.onActivity { assertEquals("Library layout must precede the color strip: $language", R.id.optionLayoutStyle, it.currentFocus?.id) }
+                    ClassicRemoteInput.press(KeyEvent.KEYCODE_DPAD_UP)
+                    scenario.onActivity { assertEquals(R.id.optionPosterSize, it.currentFocus?.id) }
+                    ClassicRemoteInput.press(KeyEvent.KEYCODE_DPAD_DOWN)
+                    scenario.onActivity { assertEquals(R.id.optionLayoutStyle, it.currentFocus?.id) }
+                    ClassicRemoteInput.press(KeyEvent.KEYCODE_DPAD_DOWN)
+                    scenario.onActivity { assertEquals("Library layout must lead to the first color: $language", R.id.colorChipGreen, it.currentFocus?.id) }
                     val intoStrip = if (language == "ar") KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
-                    instrumentation.sendKeyDownUpSync(intoStrip)
+                    ClassicRemoteInput.press(intoStrip)
                     scenario.onActivity { assertEquals("Color strip escaped to the sidebar: $language", R.id.colorChipCyan, it.currentFocus?.id) }
-                    instrumentation.sendKeyDownUpSync(if (language == "ar") KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT)
+                    ClassicRemoteInput.press(if (language == "ar") KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT)
                     scenario.onActivity { assertEquals(R.id.colorChipGreen, it.currentFocus?.id) }
-                    instrumentation.sendKeyDownUpSync(if (language == "ar") KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT)
+                    ClassicRemoteInput.press(if (language == "ar") KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT)
                     scenario.onActivity { assertTrue("Sidebar unreachable: $language", it.findViewById<RecyclerView>(R.id.rvCategories).hasFocus()) }
-                    instrumentation.sendKeyDownUpSync(intoStrip)
+                    ClassicRemoteInput.press(intoStrip)
                     scenario.onActivity {
                         assertFalse("Panel unreachable from sidebar: $language", it.findViewById<RecyclerView>(R.id.rvCategories).hasFocus())
                         assertNotNull(it.currentFocus)

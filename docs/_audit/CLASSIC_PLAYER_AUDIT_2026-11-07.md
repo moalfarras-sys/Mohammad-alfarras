@@ -233,9 +233,9 @@ package and Room schema 6. No user source, watch history or stored theme is dele
 | P1 | Raise the shared portrait-card focus outline above the elevated card; keep full-width category focus inside its rail and leave 8dp vertical space for the first grid row's focus scale | Actual category regression failed before repair with only 371/381 pixels visible, then passed in both languages at all three interface sizes; Movies and Series share this category holder/layout. The expanded library check also measures the scaled poster outline at the grid edge |
 
 Home retains the blue identity, saved backgrounds, Arabic/English font families,
-bottom dock and real remote-config maintenance messages. Home's old background
-preview/layout-style choices are hidden because they no longer control this screen;
-their saved values and underlying resources are retained. Favorites and Live TV
+bottom dock and real remote-config maintenance messages. Home's old background-preview choice remains hidden because it no longer controls
+this screen. The follow-up below restores Library layout because Movies and Series
+consume that preference; saved values and underlying resources are retained. Favorites and Live TV
 remain accessible from the dock, without adding those shelves back to Home.
 
 ### Current qualification and release gate
@@ -272,9 +272,9 @@ Additional primary references checked for this pass:
   no Cast command is claimed to have reached an unreachable TV:
   https://github.com/home-assistant-libs/pychromecast
 
-### Final candidate artifacts (unpublished)
+### Earlier compact-Home artifacts (superseded, unpublished)
 
-The final `assembleSideloadRelease -PincludeX86Abis=false --max-workers=2` passed.
+The earlier compact-Home `assembleSideloadRelease -PincludeX86Abis=false --max-workers=2` passed.
 `apksigner` verifies the existing certificate SHA-256
 `97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`.
 Every asset reports package `com.mo.moplayer`, version 2.5.3/code 28. Native library
@@ -288,6 +288,109 @@ covering the small added first-row focus clearance in both languages/all sizes.
 | app-sideload-arm64-v8a-release.apk | 34373717 | cc6f087e3eecd5be991db6ca698eae2e782ab180d74cef4809315e5845925f85 |
 | app-sideload-armeabi-v7a-release.apk | 34052107 | 742e504c9108ca94603410950b4bf2d6464d672a59cf4fa6c34df05fd9b92b13 |
 
-These files are staged locally outside Git. No stable release or production
+These hashes qualify commit `6f97ee62` only and are obsolete for the premium UI
+follow-up below. Rebuild, re-stage and re-hash before release. No stable release or production
 metadata was changed. The exact signed ARM artifacts still require the physical
 TV gate above; emulator debug-suite results are not signed-APK hardware evidence.
+
+
+## Premium layout and image stability follow-up
+
+This extends the same 2.5.3/code 28 candidate; no dependency, package, provider
+storage or database schema change. The blue identity, alternate accents and
+bottom dock remain. The existing XML/View architecture is retained.
+
+### Proven failures and implementation
+
+- Native `Resources.getFont()` failed on the bundled font-family XML, while
+  AppCompat could load it. Families now include both platform and compat font
+  attributes. Semantic Arabic/English families reach day/night, dialog, Neon and
+  fullscreen themes, including unstyled native text. Three actual typography
+  checks cover loading, theme resolution and primary-button contrast across all
+  six unique theme palettes and rest/focus/pressed states. A dark foreground that
+  measured only 4.287 contrast was replaced by state-specific black/white text.
+- Movie detail failed with a long title/description: only 73/104 pixels of Play
+  were visible on TV. Description/cast/director now scroll above pinned actions;
+  the existing ConstraintLayout Flow wraps Play/Resume/Favorite/Trailer and
+  resolves RTL. All four actions are seeded and measured by the surface test.
+- Movie, series and favorite holders cleared the same poster on every metadata
+  bind and rejected a valid image when the item moved to a new adapter position.
+  The real-holder regression failed before repair and passed afterward. One view
+  owner now keeps same-id/same-URL covers, reloads only for a different source or
+  measured size, sizes static decoded covers to the actual card, caps low-tier
+  allocations, and clears the request and pending remote action on recycle.
+- Library Rows previously reused a portrait card in a one-column grid. It now
+  uses a compact horizontal holder with a 72dp thumbnail, two-line title and no
+  whole-row scale. Movie and Series row holders have distinct pool types.
+  Library layout is available again in Settings; it does not change Home.
+- Series TV seasons showed a hardcoded ten episodes for unselected seasons.
+  Counts now use cached episode data; the fixture verifies a four-episode season.
+- Quieter navy panels, unified card bodies, smaller single focus halos and lower
+  button gloss reduce visual noise. Arabic search chips keep their text padding.
+  Deferred Home focus cannot take focus back after the viewer has navigated.
+  Settings links follow logical XML order, including RTL color-strip edges.
+- A phone full-suite run exposed a released native VLC probe, then the host
+  emulator crashed with gfxstream null-context errors (exit 139). This run was
+  not counted as passing. A separate real system-controller regression proved
+  that an old controller could pause a newer playback owner. The service now
+  renews/fences MediaSession callbacks by owner, gives notification intents their
+  original owner, and refuses delayed older state publications. The first repair
+  also blocked the current controller because of an implicit receiver reference;
+  the assertion caught it and the service reference was explicitly qualified.
+  The corrected independent controller/old-notification/stale-state regression
+  passed on TV API 36 in 2.358 seconds; the current controller remained usable.
+
+### UI evidence at this checkpoint
+
+The actual API 36 TV emulator passed eight visual/remote/font/cover tests in
+68.64 seconds: Home six language/size combinations; category and first-card
+focus bounds; Settings arrows; all six settings panels, Movies, Series,
+Favorites, Search, EPG, movie/series details and both horizontal library layouts
+at LARGE in Arabic/English (30 surface cases); three typography checks; and the
+same-cover regression. Screenshots are outside Git and contain generated local
+art/catalog only. These are UI results, not a signed ARM hardware qualification.
+Phone API 36 previously passed six selected tests before Rows was added, including
+26 surface cases, all Home sizes/languages, settings and typography. Its later
+full run was incomplete and has the VLC failure described above; it is not a pass.
+
+Primary references checked for this phase:
+
+- TV card variants and poster proportions:
+  https://developer.android.com/design/ui/tv/guides/components/cards
+- Legible brand typography on TV:
+  https://developer.android.com/design/ui/tv/guides/styles/typography
+- Platform and compat font resources:
+  https://developer.android.com/develop/ui/views/text-and-emoji/fonts-in-xml
+- Existing Flow behavior (no new layout dependency):
+  https://developer.android.com/reference/androidx/constraintlayout/helper/widget/Flow
+- Glide view target ownership, clearing and measured sizing:
+  https://bumptech.github.io/glide/doc/targets.html
+- MediaSession lifecycle:
+  https://developer.android.com/reference/android/support/v4/media/session/MediaSessionCompat
+
+### CI input setup
+
+The earlier Classic API 29 CI run failed two UI tests with INJECT_EVENTS while
+Android's first immersive-mode confirmation owned the input window. That window
+was independently observed on the local phone emulator. CI now acknowledges this
+OS tutorial through the secure QA setting before tests, matching the AOSP CTS
+DisableImmersiveModeConfirmationRule. It adds no application permission and
+retains the remote reachability assertions. This is emulator setup only.
+
+https://android.googlesource.com/platform/cts.git/+/0c55e5e18e604b0b890dc73e2d63a0cd6f2b1159%5E%21/
+
+
+### Final source verification for the premium pass
+
+- Required `npm run verify:android` passed on the corrected service source:
+  **80/80 Classic + 405/405 Pro unit checks**, no failures/skips, and Lint.
+  Classic has **0 errors and 1,270 warnings**. The warning count increased from
+  the earlier 1,223 checkpoint; this pass does not claim to clear that backlog.
+- The entire actual TV API 36 instrumentation suite passed **39/39**, zero
+  skipped, in **83.151 seconds**, including both native engines, framework
+  lifecycle/transport, 30 surface cases, fonts, cover stability and the new real
+  stale-controller/notification/state regression. The intermediate incomplete
+  phone/TV runs and failed first ownership repair above remain documented.
+- The physical source/TV gate remains pending. Emulator UI/playback success is
+  not proof of the owner's exact provider, physical HDR/4K decoding, an in-place
+  signed ARM installation, long-duration playback or a completed production OTA.

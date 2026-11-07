@@ -890,6 +890,11 @@ class HomeActivity : BaseTvActivity() {
             }
 
             val focused = currentFocus
+            if (userHasNavigated || isViewInParent(focused, binding.rvContent)) {
+                // A deferred first-frame task must never take focus back from the viewer.
+                initialContentFocusApplied = true
+                return@postDelayed
+            }
             // Until the viewer presses a key, the first card owns focus (the window otherwise
             // gives it to the first header widget, e.g. the weather card).
             val shouldShiftToContent = focused == null ||
@@ -1809,6 +1814,17 @@ class HomeActivity : BaseTvActivity() {
             KeyEvent.KEYCODE_DPAD_DOWN -> {
                 return handleDownKey()
             }
+            KeyEvent.KEYCODE_DPAD_LEFT,
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                val index = dockItems.indexOf(currentFocus)
+                if (index >= 0) {
+                    val rtl = binding.root.layoutDirection == View.LAYOUT_DIRECTION_RTL
+                    val forward = keyCode == if (rtl) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+                    val next = (index + if (forward) 1 else dockItems.size - 1) % dockItems.size
+                    if (com.mo.moplayer.BuildConfig.DEBUG) Log.d("HomeFocusPerf", "dockRoute=$index->$next repeat=${event?.repeatCount}")
+                    return dockItems[next].requestFocus()
+                }
+            }
         }
         return false
     }
@@ -1816,6 +1832,7 @@ class HomeActivity : BaseTvActivity() {
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (event.action == KeyEvent.ACTION_DOWN) {
             userHasNavigated = true
+            initialContentFocusApplied = true
             lastKeyAtMs = android.os.SystemClock.uptimeMillis()
         }
         if (event.action == KeyEvent.ACTION_DOWN &&
@@ -1956,6 +1973,7 @@ class HomeActivity : BaseTvActivity() {
         observeNewContent()
 
         binding.root.post {
+            if (userHasNavigated) return@post
             val focused = currentFocus
             if (focused == null || dockItems.any { it == focused } || !isViewInParent(focused, binding.rvContent)) {
                 if (!requestPrimaryContentFocus()) ensureHomeFocus()

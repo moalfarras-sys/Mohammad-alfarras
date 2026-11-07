@@ -32,6 +32,8 @@ class RecyclerViewOptimizer @Inject constructor(
         setMaxRecycledViews(VIEW_TYPE_EPISODE, tierValue(5, 8, 10))
         setMaxRecycledViews(VIEW_TYPE_MOVIE, tierValue(6, 12, 20))
         setMaxRecycledViews(VIEW_TYPE_SERIES, tierValue(6, 12, 20))
+        setMaxRecycledViews(VIEW_TYPE_MOVIE_WIDE, tierValue(4, 6, 8))
+        setMaxRecycledViews(VIEW_TYPE_SERIES_WIDE, tierValue(4, 6, 8))
         setMaxRecycledViews(VIEW_TYPE_EPISODE_TV, tierValue(5, 8, 10))
         setMaxRecycledViews(VIEW_TYPE_SEASON, tierValue(5, 8, 10))
         setMaxRecycledViews(VIEW_TYPE_SEASON_TV, tierValue(5, 8, 10))
@@ -191,5 +193,7 @@ class RecyclerViewOptimizer @Inject constructor(
         const val VIEW_TYPE_SEASON_TV = 9
         const val VIEW_TYPE_ROW = 10
         const val VIEW_TYPE_HOME_COMPACT_CARD = 11
+        const val VIEW_TYPE_MOVIE_WIDE = 12
+        const val VIEW_TYPE_SERIES_WIDE = 13
     }
 }

@@ -96,3 +96,15 @@ the real Room-to-UI path without reloading covers, fading rows or stealing focus
 Keep Home's preview and weather layers hidden during D-pad browsing. Settings
 horizontal controls must keep their neighbors in RTL and return to the category
 rail only at the physical edge; hidden options cannot be focus targets.
+
+
+Native font-family XML must include platform and compat attributes; verify both
+Resources.getFont and ResourcesCompat, including Arabic/night/fullscreen themes.
+Movie details must keep all visible actions fully on screen with long content;
+scroll text above pinned actions. Library Rows uses a horizontal holder, not a
+one-column portrait grid. Keep its pool types separate from Home/grid holders.
+Poster metadata/position changes must not clear or reload an unchanged cover.
+System MediaSession callbacks and notification PendingIntents retain the owner
+that created them; old state publications cannot adopt a newer generation.
+On owned fresh QA phone emulators, acknowledge immersive-mode confirmation before
+injecting keys. Never add INJECT_EVENTS to the app or remove focus assertions.

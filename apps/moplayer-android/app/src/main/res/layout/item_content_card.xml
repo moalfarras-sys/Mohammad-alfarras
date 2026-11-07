@@ -68,6 +68,7 @@
 
             <View
                 android:id="@+id/focusBorder"
+                android:translationZ="24dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@drawable/bg_liquid_focus_ring"

@@ -5,6 +5,11 @@ import android.graphics.*
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.View
+import com.mo.moplayer.data.local.MoPlayerDatabase
+import com.mo.moplayer.data.repository.IptvRepository
+import com.mo.moplayer.data.local.entity.SeriesEntity
+import com.mo.moplayer.data.local.entity.WatchHistoryEntity
+import com.mo.moplayer.ui.home.adapters.ContentRowAdapter
 import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
@@ -13,6 +18,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.mo.moplayer.ui.home.HomeActivity
 import com.mo.moplayer.util.DisplayScale
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.first
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -59,6 +65,26 @@ class ClassicHomeVisualTest {
             }
         }
         val sourceId = requireNotNull(runBlocking { repository.importM3uPlaylist(playlist, "Classic local visual QA") }.data)
+        // Use the injected application's Room owner so fixture writes exercise its real
+        // invalidation/Flow path. A second Room instance would bypass that notification.
+        val fixtureDb = IptvRepository::class.java.getDeclaredField("database").run {
+            isAccessible = true
+            get(repository) as MoPlayerDatabase
+        }
+        val historyIds = mutableListOf<String>()
+        runBlocking {
+            fixtureDb.seriesDao().insertSeries((0 until 8).map { index -> SeriesEntity(
+                seriesId = "${sourceId}_qa_series_$index", serverId = sourceId,
+                originalSeriesId = index, name = "Series • مسلسل ${index + 1}",
+                cover = android.net.Uri.fromFile(File(files, "poster-$index.jpg")).toString(),
+                lastModified = System.currentTimeMillis() + index) })
+            repository.getRecentlyAddedMovies(sourceId, 6).first().forEachIndexed { index, movie ->
+                val id = "${movie.movieId}_MOVIE"
+                historyIds += id
+                fixtureDb.watchHistoryDao().insertOrUpdate(WatchHistoryEntity(id, movie.movieId, "MOVIE", movie.name,
+                    movie.streamIcon, 30_000, 120_000, false, System.currentTimeMillis() + index))
+            }
+        }
         try {
             instrumentation.setInTouchMode(false)
             for (language in listOf("en", "ar")) for (size in DisplayScale.InterfaceSize.entries) {
@@ -70,11 +96,8 @@ class ClassicHomeVisualTest {
                     var ready = false
                     while (!ready && SystemClock.elapsedRealtime() < deadline) {
                         scenario.onActivity { activity ->
-                            val rowsReady = (activity.findViewById<RecyclerView>(R.id.rvContent).adapter?.itemCount ?: 0) > 0
-                            // Home deliberately defers its clock/widgets until after first content.
-                            // A cold launch can have rows while the clock's digit cells are still empty.
-                            val clockReady = listOf(R.id.tvHour1, R.id.tvHour2, R.id.tvMinute1, R.id.tvMinute2)
-                                .all { activity.findViewById<android.widget.TextView>(it).text.isNotBlank() }
+                            val rowsReady = (activity.findViewById<RecyclerView>(R.id.rvContent).adapter?.itemCount ?: 0) == 3
+                            val clockReady = activity.findViewById<android.widget.TextView>(R.id.tvHomeTime).text.isNotBlank()
                             ready = rowsReady && clockReady
                         }
                         if (!ready) SystemClock.sleep(100)
@@ -92,11 +115,74 @@ class ClassicHomeVisualTest {
                             assertTrue(bounds.left >= 0 && bounds.right <= root.width)
                         }
                         assertEquals(if (language == "ar") View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR, root.layoutDirection)
-                        for (id in listOf(R.id.tvHour1, R.id.tvHour2, R.id.tvMinute1, R.id.tvMinute2)) {
-                            val digit = activity.findViewById<android.widget.TextView>(id).text.toString()
-                            assertTrue("Digital clock used clipped fallback glyphs: $language/$size", digit.matches(Regex("[0-9]")))
+                        val clock = activity.findViewById<android.widget.TextView>(R.id.tvHomeTime)
+                        assertTrue(clock.text.toString().matches(Regex("[0-9]{2}:[0-9]{2}")))
+                        assertEquals(View.GONE, activity.findViewById<View>(R.id.topSignalBar).visibility)
+                        assertEquals(View.GONE, activity.findViewById<View>(R.id.previewInfoPanel).visibility)
+                        val rows = activity.findViewById<RecyclerView>(R.id.rvContent)
+                        val adapter = rows.adapter as ContentRowAdapter
+                        assertEquals(listOf("recent_movies", "recent_series", "continue_watching"), adapter.currentList.map { it.id })
+                        assertEquals("All three shelves must fit together: $language/$size", 3, rows.childCount)
+                        for (index in 0 until rows.childCount) {
+                            val row = rows.getChildAt(index)
+                            assertTrue("Shelf disappeared: $language/$size", row.getGlobalVisibleRect(bounds))
+                            assertEquals("Shelf clipped: $language/$size", row.height, bounds.height())
+                        }
+                        if (language == "en" && size == DisplayScale.InterfaceSize.STANDARD) {
+                            val holder = rows.getChildViewHolder(rows.getChildAt(0)) as ContentRowAdapter.RowViewHolder
+                            val rail = rows.getChildAt(0).findViewById<RecyclerView>(R.id.rvRowItems)
+                            val card = rail.findViewHolderForAdapterPosition(0) as com.mo.moplayer.ui.home.adapters.ContentItemAdapter.ItemViewHolder
+                            val poster = card.itemView.findViewById<android.widget.ImageView>(R.id.ivPoster)
+                            val original = poster.drawable
+                            val sentinel = android.graphics.drawable.ColorDrawable(Color.BLUE)
+                            poster.setImageDrawable(sentinel)
+                            val item = holder.itemAdapter.currentList.first()
+                            card.bind(item.copy(progress = 42), 0)
+                            assertSame("A progress update flashed/reloaded the same cover", sentinel, poster.drawable)
+                            assertEquals(42, card.itemView.findViewById<android.widget.ProgressBar>(R.id.progressWatch).progress)
+                            poster.setImageDrawable(original)
+                            card.bind(item, 0)
                         }
                         assertTrue(dock.requestFocus())
+                    }
+                    // Real remote browsing must keep the background stable and each rail reachable.
+                    scenario.onActivity { activity ->
+                        val rows = activity.findViewById<RecyclerView>(R.id.rvContent)
+                        val rail = rows.getChildAt(0).findViewById<RecyclerView>(R.id.rvRowItems)
+                        assertTrue(rail.findViewHolderForAdapterPosition(0)!!.itemView.requestFocus())
+                    }
+                    val backward = if (language == "ar") KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
+                    instrumentation.sendKeyDownUpSync(backward)
+                    scenario.onActivity { activity ->
+                        val rows = activity.findViewById<RecyclerView>(R.id.rvContent)
+                        assertTrue("Rail edge lost focus: $language/$size", rows.getChildAt(0).hasFocus())
+                    }
+                    repeat(2) { index ->
+                        instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+                        scenario.onActivity { activity ->
+                            val rows = activity.findViewById<RecyclerView>(R.id.rvContent)
+                            assertTrue("Next shelf unreachable: $language/$size", rows.getChildAt(index + 1).hasFocus())
+                            assertEquals(View.GONE, activity.findViewById<View>(R.id.previewContainer).visibility)
+                            assertEquals(View.GONE, activity.findViewById<View>(R.id.previewInfoPanel).visibility)
+                        }
+                    }
+                    instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
+                    scenario.onActivity { assertEquals(R.id.dockHome, it.currentFocus?.id) }
+                    if (language == "en" && size == DisplayScale.InterfaceSize.STANDARD) {
+                        val resume = runBlocking { fixtureDb.watchHistoryDao().getHomeContinueWatching().first().first() }
+                        runBlocking { fixtureDb.watchHistoryDao().insertOrUpdate(resume.copy(positionMs = 60_000)) }
+                        val progressDeadline = SystemClock.elapsedRealtime() + 5_000
+                        var updated = false
+                        while (!updated && SystemClock.elapsedRealtime() < progressDeadline) {
+                            scenario.onActivity { activity ->
+                                val rows = activity.findViewById<RecyclerView>(R.id.rvContent)
+                                val row = (rows.adapter as ContentRowAdapter).currentList.first { it.id == "continue_watching" }
+                                updated = row.items.first { it.id == resume.contentId }.progress == 50
+                                assertEquals("A progress update stole remote focus", R.id.dockHome, activity.currentFocus?.id)
+                            }
+                            if (!updated) SystemClock.sleep(50)
+                        }
+                        assertTrue("Existing resume progress was discarded because its content id did not change", updated)
                     }
                     val direction = if (language == "ar") KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
                     repeat(6) {
@@ -115,8 +201,10 @@ class ClassicHomeVisualTest {
         } finally {
             if (!keep) {
                 runBlocking { repository.deleteServer(sourceId); previousSource?.let { repository.setActiveServer(it.id) } }
+                runBlocking { historyIds.forEach { fixtureDb.watchHistoryDao().deleteById(it) } }
                 files.deleteRecursively()
             }
+            // The application owns fixtureDb; closing it would break subsequent player tests.
             DisplayScale.setInterfaceSize(context, previousSize)
             DisplayScale.setLanguage(context, previousLanguage)
         }

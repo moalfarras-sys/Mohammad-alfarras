@@ -30,9 +30,10 @@
         android:background="@drawable/bg_login_wallpaper_scrim"
         android:visibility="gone" />
 
-    <!-- Poster preview ambience appears above the base wallpaper only while browsing content. -->
+    <!-- Retained binding for saved preferences; compact Home keeps the background stable. -->
     <FrameLayout
         android:id="@+id/previewContainer"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -56,6 +57,7 @@
     <!-- Full-Screen Weather Overlay (particles and effects) -->
     <com.mo.moplayer.ui.widgets.weather.FullScreenWeatherOverlay
         android:id="@+id/weatherOverlay"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clickable="false"
@@ -73,6 +75,7 @@
              ═══════════════════════════════════════════ -->
         <LinearLayout
             android:id="@+id/topSignalBar"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="@dimen/home_top_signal_height"
             android:gravity="center_vertical"
@@ -198,6 +201,7 @@
 
             <ImageButton
                 android:id="@+id/btnSurprise"
+                android:visibility="gone"
                 android:layout_width="@dimen/home_top_action_size"
                 android:layout_height="@dimen/home_top_action_size"
                 android:layout_marginStart="8dp"
@@ -216,7 +220,28 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_weight="1" />
+            <TextView
+                android:id="@+id/tvHomeTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/jetbrainsmono_medium"
+                android:textDirection="ltr"
+                android:textColor="@color/cinematic_text_secondary"
+                android:textSize="16sp"
+                android:includeFontPadding="false" />
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvHomeNotice"
+            android:layout_width="match_parent"
+            android:layout_height="24dp"
+            android:layout_marginHorizontal="@dimen/screen_margin_horizontal"
+            android:gravity="center_vertical"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/cinematic_text_secondary"
+            android:textSize="12sp"
+            android:visibility="gone" />
 
         <!-- Notifications under brand/actions. -->
         <TextView
@@ -375,14 +400,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginStart="@dimen/screen_margin_horizontal"
-            android:layout_marginTop="52dp"
+            android:layout_marginTop="16dp"
             android:layout_marginEnd="@dimen/screen_margin_horizontal"
             android:layout_marginBottom="28dp"
             android:background="@drawable/bg_premium_clean_panel"
             android:gravity="center"
             android:orientation="vertical"
             android:paddingHorizontal="36dp"
-            android:paddingVertical="26dp"
+            android:paddingVertical="16dp"
             android:visibility="gone"
             tools:visibility="visible">
 
@@ -407,7 +432,7 @@
                 android:includeFontPadding="false"
                 android:text="@string/home_empty_title"
                 android:textColor="@color/cinematic_text_primary"
-                android:textSize="30sp"
+                android:textSize="22sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -428,7 +453,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginBottom="@dimen/home_content_bottom_padding"
+            android:layout_marginBottom="104dp"
             android:clipToPadding="false"
             android:clipChildren="false"
             android:paddingTop="4dp"

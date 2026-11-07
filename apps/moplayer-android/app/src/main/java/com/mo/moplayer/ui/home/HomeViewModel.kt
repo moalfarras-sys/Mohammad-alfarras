@@ -68,14 +68,8 @@ class HomeViewModel @Inject constructor(
         }
     }
     private val rowCache = linkedMapOf<String, ContentRow>()
-    private val rowOrder = listOf(
-        "continue_watching",
-        "recent_movies",
-        "recent_series",
-        "live_channels",
-        "favorites"
-    )
-    
+    private val rowOrder = listOf("recent_movies", "recent_series", "continue_watching")
+
     init {
         observeContent()
     }
@@ -91,7 +85,7 @@ class HomeViewModel @Inject constructor(
                 // refreshed; only a different source should rebuild the rows (otherwise Home
                 // flickers empty and loses focus every time the account is re-checked).
                 if (observedOnce && server?.id == observedServerId) {
-                    server?.let { loadDashboardState(it) }
+                    // A sync-status update must not rebuild Home or repeat full catalog counts.
                     return@collectLatest
                 }
                 observedOnce = true
@@ -117,15 +111,13 @@ class HomeViewModel @Inject constructor(
                 contentObserverJob = launch {
                     val pendingSections = mutableSetOf(
                         "continue_watching",
-                        "favorites",
                         "recent_movies",
-                        "recent_series",
-                        "live_channels"
+                        "recent_series"
                     )
 
                     launch {
-                        watchHistoryRepository.getContinueWatchingFlow()
-                            .distinctUntilChangedBy { rows -> rows.map { it.id } }
+                        watchHistoryRepository.getHomeContinueWatchingFlow()
+                            .distinctUntilChanged()
                             .collect { continueWatching ->
                                 updateRow(
                                     key = "continue_watching",
@@ -144,27 +136,7 @@ class HomeViewModel @Inject constructor(
                     }
 
                     launch {
-                        repository.getAllFavorites(server.id)
-                            .distinctUntilChangedBy { rows -> rows.map { it.id } }
-                            .collect { favorites ->
-                                updateRow(
-                                    key = "favorites",
-                                    row = if (favorites.isNotEmpty()) {
-                                        ContentRow(
-                                            id = "favorites",
-                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_favorites),
-                                            items = favorites.take(20).map { it.toContentItem() },
-                                            type = ContentRowType.FAVORITES
-                                        )
-                                    } else null
-                                )
-                                pendingSections.remove("favorites")
-                                if (pendingSections.isEmpty()) setLoading(false)
-                            }
-                    }
-
-                    launch {
-                        repository.getRecentlyAddedMovies(server.id, 20)
+                        repository.getRecentlyAddedMovies(server.id, 12)
                             .distinctUntilChanged()
                             .collect { recentMovies ->
                                 updateRow(
@@ -183,30 +155,8 @@ class HomeViewModel @Inject constructor(
                             }
                     }
 
-                    // Live channels in playlist order: the only row a live-only M3U source has,
-                    // so Home never sits on a "loading" card for those sources.
                     launch {
-                        repository.getAllChannelsLimited(server.id, 24)
-                            .distinctUntilChangedBy { rows -> rows.map { it.channelId } }
-                            .collect { channels ->
-                                updateRow(
-                                    key = "live_channels",
-                                    row = if (channels.isNotEmpty()) {
-                                        ContentRow(
-                                            id = "live_channels",
-                                            title = com.mo.moplayer.util.DisplayScale.localized(context).getString(R.string.section_live_tv),
-                                            items = channels.map { it.toContentItem() },
-                                            type = ContentRowType.CHANNELS
-                                        )
-                                    } else null
-                                )
-                                pendingSections.remove("live_channels")
-                                if (pendingSections.isEmpty()) setLoading(false)
-                            }
-                    }
-
-                    launch {
-                        repository.getRecentlyAddedSeries(server.id, 20)
+                        repository.getRecentlyAddedSeries(server.id, 12)
                             .distinctUntilChanged()
                             .collect { recentSeries ->
                                 updateRow(
@@ -236,6 +186,7 @@ class HomeViewModel @Inject constructor(
             rowCache[key] = row
         }
         val rows = rowOrder.mapNotNull { rowCache[it] }
+        if (rows == _contentRows.value) return
         _contentRows.value = rows
         _contentRowsLiveData.value = rows
         if (rows.isNotEmpty()) {
@@ -252,6 +203,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val snapshot = repository.getContentSnapshot(server.id)
             val syncState = repository.getServerSyncState(server.id)
+            if (_activeServer.value?.id != server.id) return@launch
             _dashboardState.value = HomeDashboardState(
                 sourceName = com.mo.moplayer.data.util.ProviderSourceUrlParser.displayName(server.name, server.serverUrl),
                 sourceType = server.serverType,
@@ -348,7 +300,7 @@ class HomeViewModel @Inject constructor(
         id = contentId,
         title = name,
         posterUrl = posterUrl,
-        type = if (type == "MOVIE") ContentType.MOVIE else ContentType.EPISODE,
+        type = if (type.equals("MOVIE", ignoreCase = true)) ContentType.MOVIE else ContentType.EPISODE,
         streamUrl = null,
         progress = if (durationMs > 0) ((positionMs * 100) / durationMs).toInt() else 0,
         savedPosition = positionMs,

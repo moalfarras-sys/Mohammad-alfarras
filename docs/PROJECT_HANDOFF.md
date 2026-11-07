@@ -2,7 +2,7 @@
 
 ## 2026-11-07 Classic playback audit
 
-The blue Classic app has a scoped playback, lifecycle and verification repair on `codex/classic-deep-audit-20261106`. See [proven findings, qualification and release status](_audit/CLASSIC_PLAYER_AUDIT_2026-11-07.md). Production release status must be read from that audit; an old APK or stale build-output report is not proof of current qualification.
+The blue Classic app has playback, lifecycle, compact Home and remote navigation repairs on `codex/classic-deep-audit-20261106`. The current candidate is **2.5.3/code 28**; internal 2.5.2/code 27 was not published. Home now contains only latest movies, latest series and VOD resume. The 2.5.3 suite passed 33/33 on the API 36 TV emulator, including real Room-to-UI progress updates and Arabic/English settings navigation. The physical TV became unreachable after the owner activated a real source; network wake attempts have not restored it. Its previous 2.5.2 results do not qualify the new layout or resolve the owner's real-source flicker report. Production remains Classic 2.5.1/code 26 pending that gate. See [proven findings, exact qualification and release status](_audit/CLASSIC_PLAYER_AUDIT_2026-11-07.md).
 
 ## 2026-11-06 Pro 2.7.5 Home, search and catalog freshness
 

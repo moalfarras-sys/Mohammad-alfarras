@@ -87,3 +87,12 @@ restart a frame callback, and constrained TVs keep the lightweight path. Live
 metadata is a real program title, not a duplicate Live badge; fence delayed guide
 results by content/load owner. Visual tests wait for deferred Home chrome before
 checking bounds and D-pad reachability.
+
+Home is intentionally limited to latest movies, latest series and VOD resume.
+All three populated shelves must fit together above the dock at each interface
+size, in Arabic and English. Home uses its own compact holder/view type; never
+share that holder with portrait library grids. Progress-only changes must update
+the real Room-to-UI path without reloading covers, fading rows or stealing focus.
+Keep Home's preview and weather layers hidden during D-pad browsing. Settings
+horizontal controls must keep their neighbors in RTL and return to the category
+rail only at the physical edge; hidden options cannot be focus targets.

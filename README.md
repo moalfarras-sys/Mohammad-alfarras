@@ -167,4 +167,4 @@ MoPlayer Pro design follow-up: [cinematic and remote UX audit](docs/_audit/PRO_C
 
 MoPlayer Pro 2.7.5: [Home, multilingual search and real-TV qualification](docs/_audit/PRO_SMART_SYNC_TV_2026-11-06.md).
 
-MoPlayer Classic: [playback ownership, lifecycle and real-device audit](docs/_audit/CLASSIC_PLAYER_AUDIT_2026-11-07.md).
+MoPlayer Classic: [playback ownership, compact Home, remote navigation and qualification status](docs/_audit/CLASSIC_PLAYER_AUDIT_2026-11-07.md).

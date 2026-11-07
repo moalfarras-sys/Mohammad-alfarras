@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
-import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 import com.mo.moplayer.databinding.ItemContentRowBinding
 import com.mo.moplayer.ui.home.ContentItem
@@ -26,6 +25,8 @@ class ContentRowAdapter(
     }
 
     private var recyclerView: RecyclerView? = null
+    private var posterSize = com.mo.moplayer.util.TvUiPreferences.PosterSize.MEDIUM
+    private var animationsEnabled = true
 
     override fun getItemId(position: Int): Long {
         return getItem(position).id.hashCode().toLong()
@@ -60,16 +61,15 @@ class ContentRowAdapter(
         posterSize: com.mo.moplayer.util.TvUiPreferences.PosterSize,
         animationsEnabled: Boolean
     ) {
+        if (this.posterSize == posterSize && this.animationsEnabled == animationsEnabled) return
+        this.posterSize = posterSize
+        this.animationsEnabled = animationsEnabled
         recyclerView?.let { rv ->
             for (i in 0 until rv.childCount) {
-                val child = rv.getChildAt(i)
-                val viewHolder = rv.getChildViewHolder(child)
-                if (viewHolder is RowViewHolder) {
-                    viewHolder.itemAdapter.updateUiPreferences(posterSize, animationsEnabled)
-                }
+                (rv.getChildViewHolder(rv.getChildAt(i)) as? RowViewHolder)
+                    ?.itemAdapter?.updateUiPreferences(posterSize, animationsEnabled)
             }
         }
-        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RowViewHolder {
@@ -102,13 +102,15 @@ class ContentRowAdapter(
                 adapter = itemAdapter
                 setHasFixedSize(true)
                 recyclerViewOptimizer?.optimizeHorizontalList(this)
-                // DefaultItemAnimator so posters move with row (no stuck translationX/alpha)
-                itemAnimator = DefaultItemAnimator()
+                // Library refreshes update existing cards without fading entire rows.
+                itemAnimator = null
+                preserveFocusAfterLayout = true
                 // Focus stays on cards only - rvRowItems must not steal focus
             }
         }
 
         fun bind(row: ContentRow) {
+            itemAdapter.updateUiPreferences(posterSize, animationsEnabled)
             binding.tvRowTitle.text = row.title
             itemAdapter.submitList(ArrayList(row.items))
         }

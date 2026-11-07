@@ -56,6 +56,23 @@ interface WatchHistoryDao {
         LIMIT :limit
     """)
     fun getContinueWatching(limit: Int = 10): Flow<List<WatchHistoryEntity>>
+
+    /** Home resumes real VOD after five seconds and never revives an older series episode. */
+    @Query("""
+        SELECT w.* FROM watch_history w
+        WHERE UPPER(w.type) IN ('MOVIE', 'SERIES', 'EPISODE')
+        AND w.durationMs > 0 AND w.positionMs >= 5000
+        AND w.positionMs < w.durationMs * 0.95 AND w.completed = 0
+        AND (w.seriesId IS NULL OR w.seriesId = '' OR NOT EXISTS (
+            SELECT 1 FROM watch_history newer
+            WHERE newer.seriesId = w.seriesId
+            AND UPPER(newer.type) IN ('SERIES', 'EPISODE')
+            AND (newer.lastWatched > w.lastWatched OR
+                (newer.lastWatched = w.lastWatched AND newer.id > w.id))
+        ))
+        ORDER BY w.lastWatched DESC LIMIT :limit
+    """)
+    fun getHomeContinueWatching(limit: Int = 12): Flow<List<WatchHistoryEntity>>
     
     /**
      * Get recently completed items (progress >= 95% or completed=1)

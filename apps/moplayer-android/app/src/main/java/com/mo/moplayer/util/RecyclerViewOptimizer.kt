@@ -26,6 +26,7 @@ class RecyclerViewOptimizer @Inject constructor(
     // Shared ViewPool for content cards
     private val contentCardPool = RecyclerView.RecycledViewPool().apply {
         setMaxRecycledViews(VIEW_TYPE_CONTENT_CARD, tierValue(8, 16, 24))
+        setMaxRecycledViews(VIEW_TYPE_HOME_COMPACT_CARD, tierValue(8, 12, 18))
         setMaxRecycledViews(VIEW_TYPE_CONTENT_CARD_SMALL, tierValue(8, 16, 25))
         setMaxRecycledViews(VIEW_TYPE_CHANNEL, tierValue(10, 20, 32))
         setMaxRecycledViews(VIEW_TYPE_EPISODE, tierValue(5, 8, 10))
@@ -189,5 +190,6 @@ class RecyclerViewOptimizer @Inject constructor(
         const val VIEW_TYPE_SEASON = 8
         const val VIEW_TYPE_SEASON_TV = 9
         const val VIEW_TYPE_ROW = 10
+        const val VIEW_TYPE_HOME_COMPACT_CARD = 11
     }
 }

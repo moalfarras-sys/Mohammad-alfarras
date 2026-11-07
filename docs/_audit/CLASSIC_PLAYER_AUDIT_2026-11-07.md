@@ -156,7 +156,7 @@ binding imports libvlc_media_player_set_pause. Native pause is asynchronous.
 - TV card hierarchy: https://developer.android.com/design/ui/tv/guides/components/cards
 - TV safe areas: https://developer.android.com/design/ui/tv/guides/styles/layouts
 
-## Final source gates
+## Internal 2.5.2 source gates (superseded by 2.5.3 below)
 
 `npm run verify:android` passed for Classic and Pro. Classic has 80 passing unit
 tests and zero Lint errors (1,227 existing warnings remain); Pro's 405 unit tests
@@ -180,8 +180,8 @@ available. Candidate publication and the remaining final checks are recorded nex
   baseline and are not represented as fixed.
 - Source import, QR handoff, large-library search and long-term series-detail
   freshness were inspected but not fully exercised with a real provider here.
-- Version 2.5.2/code 27 is being packaged; no production publication is claimed
-  until signed assets, update metadata, CI and post-deploy readback are recorded.
+- Internal 2.5.2/code 27 was installed in place on the physical TV but was not
+  published. It is superseded by the 2.5.3 candidate described below.
 
 Final qualification/release evidence is appended below after completion.
 
@@ -205,3 +205,89 @@ of the continuous overlay loop; it is not a universal frame-rate guarantee.
 The signed player also rendered the generated H.264/AAC video and continuous HLS
 on the physical TV. Duplicate Pause froze identical frames; duplicate Play advanced
 the test pattern. Empty QA content ids prevent test Watch Next/history entries.
+
+## 2.5.3 compact Home and owner-reported flicker follow-up
+
+After activating a real source, the owner reported flashing/jitter and hangs in
+**Classic**, and explicitly requested only latest movies, latest series and
+continue watching on one compact screen. The physical TV was briefly reachable:
+the signed app opened its real catalog without replacing or reading its source
+credentials. A ten-second idle sample contained ten frames; the connection failed
+before a navigation sample could finish. This is not a reproduction or resolution
+of the owner's navigation-jitter report.
+
+The new candidate is **2.5.3 / code 28**, retaining the existing signing identity,
+package and Room schema 6. No user source, watch history or stored theme is deleted.
+
+| Priority | Implemented change | Qualification |
+| --- | --- | --- |
+| P0 | Hide Home's focus-driven full-screen poster fades and weather/lightning layer; do not initialize hidden weather/football widgets | Actual D-pad test keeps both preview containers GONE while moving through all three shelves |
+| P1 | Only latest movies, latest series and VOD resume, at most 12 cards per shelf | All three populated shelves fully visible above the dock across 18 emulator language/size/resolution cases |
+| P1 | Home-specific 72dp horizontal cards with full 2:3 thumbnails and two-line titles | Unique recycled-pool view type; portrait movie/series grids retain their existing layout |
+| P1 | Stop row fades/full adapter refreshes and same-cover reloads on progress changes | Actual holder test retains the image on progress-only binding; real Room-to-UI change reaches 50% without stealing dock focus |
+| P1 | VOD resume begins after five seconds instead of waiting for 5% of a long movie; exclude live/completed items and collapse episodes by series | Three real SQLite/Room tests, including no revival of an older episode when the latest one is completed |
+| P1 | Skip redundant catalog-count/dashboard rebuilds on same-source metadata updates; fence late source snapshots | Source observers remain active for movie/series/history changes; structural row equality avoids repeat publication |
+| P1 | Clock updates on minute boundaries without a blinking colon | Visible ASCII HH:mm checked in every layout case |
+| P1 | Protect Home rail edges and vertical transitions | D-pad reaches each shelf and dock without an edge jumping to another section |
+| P1 | Settings physical arrows respect RTL and horizontal color neighbors; hidden options are excluded from links/restoration | New actual settings regression failed before repair (left returned to the rail), then passed in both languages; a second failed run exposed RTL's wrong first color and was repaired |
+| P1 | Raise the shared portrait-card focus outline above the elevated card; keep full-width category focus inside its rail and leave 8dp vertical space for the first grid row's focus scale | Actual category regression failed before repair with only 371/381 pixels visible, then passed in both languages at all three interface sizes; Movies and Series share this category holder/layout. The expanded library check also measures the scaled poster outline at the grid edge |
+
+Home retains the blue identity, saved backgrounds, Arabic/English font families,
+bottom dock and real remote-config maintenance messages. Home's old background
+preview/layout-style choices are hidden because they no longer control this screen;
+their saved values and underlying resources are retained. Favorites and Live TV
+remain accessible from the dock, without adding those shelves back to Home.
+
+### Current qualification and release gate
+
+- `connectedSideloadDebugAndroidTest`: **33/33 passed**, zero skipped, on the
+  actual API 36 Android TV emulator. This includes Media3/VLC, lifecycle/transport,
+  Home/Room updates, overlays, adapter stress, library bounds and settings navigation.
+- Home visual matrix: **18/18** cases passed (720p, 1080p and virtual 4K × Arabic/
+  English × compact/standard/large). At each resolution, the settings remote test
+  also passed in both languages. Screenshots use generated local artwork and a
+  synthetic catalog, not the owner's catalog. The emulator resolution was reset.
+- The required root Android gate passed with **80 Classic + 405 Pro unit tests**
+  and zero Classic Lint errors. The final root gate passed after the category/grid
+  corrections; **1,223 warnings remain**. They are not suppressed or claimed fixed.
+- The physical TV is currently unreachable. Wake-on-LAN to its verified identity,
+  targeted IPv4/IPv6 Cast and ADB/remote checks, and a fresh mDNS query did not
+  restore control. A cached discovery entry is not evidence that it is awake.
+  Its original screen timeout/screensaver settings were restored before the
+  disconnect. The real source and in-place installed 2.5.2 were preserved.
+- **Do not promote this candidate to stable or update production release rows
+  until the exact signed 2.5.3 asset is installed in place and the owner's real
+  source/navigation issue is checked on the physical TV.** Earlier 2.5.2 hardware
+  results do not qualify 2.5.3. Public Classic remains 2.5.1/code 26; Pro 2.7.5/code
+  75 is unaffected. No deployment, successful in-app OTA, 24-hour soak or hardware
+  HDR/4K compatibility is claimed for this candidate.
+
+Additional primary references checked for this pass:
+
+- Physical keyboard/focus targets and editable-text arrows:
+  https://developer.android.com/develop/ui/views/touch-and-input/keyboard-input/navigation
+- TV directional navigation:
+  https://developer.android.com/training/tv/get-started/navigation
+- Existing Cast control capability was checked against its primary project;
+  no Cast command is claimed to have reached an unreachable TV:
+  https://github.com/home-assistant-libs/pychromecast
+
+### Final candidate artifacts (unpublished)
+
+The final `assembleSideloadRelease -PincludeX86Abis=false --max-workers=2` passed.
+`apksigner` verifies the existing certificate SHA-256
+`97dad77680a62c4ead62634f59b4d4a44315dba6687bde9cb4576a6a527a593d`.
+Every asset reports package `com.mo.moplayer`, version 2.5.3/code 28. Native library
+ABIs are checked against the exact filename below; universal contains ARM only.
+The final expanded library test passed separately after the 33-test complete run,
+covering the small added first-row focus clearance in both languages/all sizes.
+
+| Candidate file | Bytes | SHA-256 |
+| --- | ---: | --- |
+| app-sideload-universal-release.apk | 53527134 | 68fba03fb6beb0933bf99371d34fbfcdb95dbe8581a87a7c8cfda17f2b01ebaf |
+| app-sideload-arm64-v8a-release.apk | 34373717 | cc6f087e3eecd5be991db6ca698eae2e782ab180d74cef4809315e5845925f85 |
+| app-sideload-armeabi-v7a-release.apk | 34052107 | 742e504c9108ca94603410950b4bf2d6464d672a59cf4fa6c34df05fd9b92b13 |
+
+These files are staged locally outside Git. No stable release or production
+metadata was changed. The exact signed ARM artifacts still require the physical
+TV gate above; emulator debug-suite results are not signed-APK hardware evidence.
